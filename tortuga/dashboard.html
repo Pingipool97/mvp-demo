@@ -81,7 +81,7 @@ table{border-collapse:collapse;width:100%}
        Sotto i 1000px il menu resta un pannello a scomparsa a larghezza piena. ---- */
 .side .lbl{white-space:nowrap}
 .wrap,.top{transition:margin-left .26s,left .26s}
-@media (min-width:1001px){
+@media (min-width:941px){
   body.mini{--side:68px}
   body.mini .side .lbl,
   body.mini .side-top div,
@@ -322,7 +322,7 @@ button > svg{max-width:26px;max-height:26px}
 .nt b{display:block;font-size:.84rem;color:var(--notte);line-height:1.3}
 .nt p{margin:2px 0 0;font-size:.78rem;color:var(--testo-2);line-height:1.45}
 .nt time{font-size:.7rem;color:var(--testo-3);font-weight:700}
-.scrim{position:fixed;inset:0;background:rgba(6,39,58,.45);backdrop-filter:blur(3px);z-index:70;
+.scrim{position:fixed;inset:0;background:rgba(13,33,55,.34);z-index:70;
   opacity:0;pointer-events:none;transition:.25s}
 .scrim.open{opacity:1;pointer-events:auto}
 
@@ -388,7 +388,7 @@ button > svg{max-width:26px;max-height:26px}
 .sw.on::after{transform:translateX(19px)}
 
 /* ============ MODALE ============ */
-.ovl{position:fixed;inset:0;background:rgba(6,39,58,.55);backdrop-filter:blur(4px);z-index:90;
+.ovl{position:fixed;inset:0;background:rgba(13,33,55,.46);z-index:90;
   display:grid;place-items:center;padding:18px;opacity:0;pointer-events:none;transition:.22s}
 .ovl.open{opacity:1;pointer-events:auto}
 .mod{background:#fff;border-radius:var(--r-xl);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;
@@ -415,7 +415,7 @@ button > svg{max-width:26px;max-height:26px}
 
 /* ============ RESPONSIVE ============ */
 @media (max-width:1280px){ .cols{grid-template-columns:1fr} .g4{grid-template-columns:repeat(2,1fr)} }
-@media (max-width:1000px){
+@media (max-width:940px){
   :root{--side:0px}
   .side{transform:translateX(-100%);width:248px}
   .side.open{transform:none;box-shadow:var(--sh-l)}
@@ -1814,7 +1814,7 @@ $('#scrim').onclick=()=>{$('#drawer').classList.remove('open');$('#scrim').class
 $('#drRead').onclick=()=>{FEED.forEach(f=>f.new=false);$('#dNot').textContent='0';openDrawer('not');toast('Notifiche segnate come lette');};
 /* Il pulsante menu apre il pannello su mobile e riduce la barra a icone su desktop. */
 function toggleMenu(){
-  if(window.innerWidth<=1000){
+  if(window.innerWidth<=940){
     const aperto=$('#side').classList.toggle('open');
     $('#scrim').classList.toggle('open',aperto);
   } else {
@@ -1826,7 +1826,7 @@ $('#burgerD').onclick=toggleMenu;
 try{ if(localStorage.getItem('tortuga_menu')==='mini') document.body.classList.add('mini'); }catch(e){}
 /* su mobile, toccando una voce il menu si richiude */
 $$('#snav a').forEach(a=>a.addEventListener('click',()=>{
-  if(window.innerWidth<=1000){ $('#side').classList.remove('open'); $('#scrim').classList.remove('open'); }
+  if(window.innerWidth<=940){ $('#side').classList.remove('open'); $('#scrim').classList.remove('open'); }
 }));
 
 /* ---------------- NAVIGAZIONE DATE ---------------- */
