@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Anteprime progetti</title>
+<style>
+:root{--oro:#EDA60C;--oro2:#FFC33D;--notte:#06273A;--notte2:#0A3D5C;
+  --testo:#1E2C38;--testo2:#5C6B7A;--testo3:#8494A2;--bordo:#E6ECF2;--bg:#F4F7FA;}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);
+  color:var(--testo);line-height:1.6;-webkit-font-smoothing:antialiased}
+.hero{background:linear-gradient(140deg,var(--notte),var(--notte2) 60%,#0E5578);color:#fff;
+  padding:44px 22px 84px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;width:340px;height:340px;border-radius:50%;
+  background:radial-gradient(circle,rgba(237,166,12,.26),transparent 68%);right:-110px;top:-130px}
+.wrap{max-width:840px;margin:0 auto;padding:0 22px}
+.hero .wrap{position:relative;z-index:2;padding:0}
+.hero h1{margin:0 0 6px;font-size:clamp(1.5rem,4vw,2.1rem);font-weight:700;letter-spacing:-.02em}
+.hero p{margin:0;color:rgba(255,255,255,.72);font-size:.95rem}
+.badge{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);
+  border-radius:99px;padding:.22em .8em;font-size:.7rem;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:14px}
+main{max-width:840px;margin:-56px auto 0;padding:0 22px 60px;position:relative;z-index:3}
+.card{background:#fff;border:1px solid var(--bordo);border-radius:20px;padding:28px;
+  box-shadow:0 4px 16px rgba(6,39,58,.08),0 16px 40px rgba(6,39,58,.06)}
+h2{margin:0 0 6px;font-size:1.2rem;letter-spacing:-.01em}
+.sub{color:var(--testo2);font-size:.92rem;margin:0 0 20px}
+label{display:block;font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--testo3);margin-bottom:6px}
+input{width:100%;padding:.75em .95em;border:1.5px solid #D3DDE7;border-radius:11px;font:inherit;
+  font-size:1rem;background:#fff;transition:.16s}
+input:focus{outline:0;border-color:var(--oro);box-shadow:0 0 0 3.5px rgba(237,166,12,.16)}
+button{width:100%;margin-top:14px;padding:.85em 1.2em;border:0;border-radius:11px;cursor:pointer;
+  font:inherit;font-weight:700;font-size:1rem;color:#2B1B00;
+  background:linear-gradient(135deg,var(--oro2),var(--oro));box-shadow:0 3px 12px rgba(237,166,12,.36);
+  transition:.16s}
+button:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(237,166,12,.46)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.msg{margin-top:14px;padding:.75em 1em;border-radius:11px;font-size:.88rem;font-weight:600;display:none}
+.msg.err{display:block;background:#FDEDED;color:#C42B2B;border:1px solid #F5C6C6}
+.msg.ok{display:block;background:#E9F7EF;color:#1B7F4A;border:1px solid #BFE7D0}
+.proj{border:1px solid var(--bordo);border-radius:16px;padding:20px;margin-bottom:14px;background:#fff}
+.proj h3{margin:0 0 2px;font-size:1.05rem}
+.proj .p-sub{margin:0 0 14px;font-size:.85rem;color:var(--testo3)}
+.links{display:grid;gap:10px}
+.lnk{display:flex;align-items:center;gap:13px;padding:13px 15px;border:1px solid var(--bordo);
+  border-radius:12px;text-decoration:none;color:inherit;transition:.16s;background:#FBFDFF}
+.lnk:hover{border-color:var(--oro);background:#FFFBF2;transform:translateX(2px)}
+.lnk .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.lnk b{display:block;font-size:.95rem}
+.lnk span{font-size:.8rem;color:var(--testo3)}
+.lnk .go{margin-left:auto;color:var(--testo3);font-size:1.2rem}
+.foot{margin-top:22px;padding-top:18px;border-top:1px solid var(--bordo);display:flex;
+  align-items:center;gap:12px;flex-wrap:wrap;font-size:.82rem;color:var(--testo3)}
+.foot button{width:auto;margin:0;padding:.45em .9em;font-size:.82rem;background:#fff;
+  border:1px solid #D3DDE7;color:var(--testo2);box-shadow:none}
+.foot button:hover{border-color:#B9C6D2;transform:none;box-shadow:none}
+.nota{margin-top:20px;font-size:.8rem;color:var(--testo3);text-align:center;line-height:1.55}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="badge">Area riservata</span>
+    <h1>Anteprime progetti</h1>
+    <p>Accedi con l'indirizzo email a cui è stato inviato l'invito.</p>
+  </div>
+</div>
+
+<main>
+  <!-- LOGIN -->
+  <div class="card" id="gate">
+    <h2>Accesso</h2>
+    <p class="sub">Inserisci la tua email per aprire le anteprime che ti sono state condivise.</p>
+    <label for="email">Indirizzo email</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="nome@azienda.it">
+    <button id="go">Entra</button>
+    <div class="msg" id="msg"></div>
+    <p class="nota">Se ricevi un errore, chiedi di abilitare il tuo indirizzo.</p>
+  </div>
+
+  <!-- PORTALE -->
+  <div id="portal" style="display:none">
+    <div class="card">
+      <h2 id="ciao"></h2>
+      <p class="sub" id="scad"></p>
+      <div id="lista"></div>
+      <div class="foot">
+        <span id="acc"></span>
+        <button id="esci" style="margin-left:auto">Esci</button>
+      </div>
+    </div>
+    <p class="nota">Le anteprime sono materiale di lavoro riservato, non sono i siti ufficiali
+      e non sono destinate alla pubblicazione.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var KEY='mvp_access';
+  var msg=$('#msg');
+  function err(t){msg.className='msg err';msg.textContent=t}
+  function ok(t){msg.className='msg ok';msg.textContent=t}
+
+  function carica(cb){
+    fetch('accessi.json?t='+Date.now())
+      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
+      .then(function(d){ cb(null,d); })
+      .catch(function(){ cb(new Error('Elenco accessi non raggiungibile. Se hai aperto il file dal computer, serve il link online.')); });
+  }
+
+  function sessione(){
+    try{ var a=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(!a) return null;
+      if(a.exp && Date.now()>a.exp){ localStorage.removeItem(KEY); return null; }
+      return a; }catch(e){ return null; }
+  }
+
+  function entra(u){
+    var exp=new Date(u.scadenza+'T23:59:59').getTime();
+    localStorage.setItem(KEY, JSON.stringify({email:u.email,nome:u.nome,exp:exp,progetti:u.progetti}));
+    mostra(u);
+  }
+
+  function mostra(u){
+    $('#gate').style.display='none';
+    $('#portal').style.display='block';
+    $('#ciao').textContent='Ciao '+(u.nome||'')+'';
+    var g=Math.ceil((new Date(u.scadenza+'T23:59:59').getTime()-Date.now())/86400000);
+    $('#scad').textContent = g>0
+      ? 'Il tuo accesso resta attivo ancora '+g+(g===1?' giorno':' giorni')+', fino al '+u.scadenza.split('-').reverse().join('/')+'.'
+      : 'Accesso in scadenza.';
+    $('#acc').textContent='Collegato come '+u.email;
+    carica(function(e,d){
+      if(e){ $('#lista').innerHTML='<p class="sub">'+e.message+'</p>'; return; }
+      var vis=(d.progetti||[]).filter(function(p){
+        return u.progetti && (u.progetti.indexOf('*')>=0 || u.progetti.indexOf(p.slug)>=0); });
+      if(!vis.length){ $('#lista').innerHTML='<p class="sub">Non ci sono anteprime associate a questo indirizzo.</p>'; return; }
+      $('#lista').innerHTML = vis.map(function(p){
+        return '<div class="proj"><h3>'+p.nome+'</h3><p class="p-sub">'+p.sottotitolo+'</p><div class="links">'
+          + p.voci.map(function(v){
+              return '<a class="lnk" href="'+p.slug+'/'+v.file+'">'
+                + '<span class="dot" style="background:'+p.colore+'"></span>'
+                + '<span><b>'+v.titolo+'</b><span>'+v.descrizione+'</span></span>'
+                + '<span class="go">&rsaquo;</span></a>';
+            }).join('')
+          + '</div></div>';
+      }).join('');
+    });
+  }
+
+  // gia' dentro?
+  var s=sessione();
+  if(s){
+    carica(function(e,d){
+      if(e){ mostra({nome:s.nome,email:s.email,scadenza:new Date(s.exp).toISOString().slice(0,10),progetti:s.progetti}); return; }
+      var u=(d.utenti||[]).filter(function(x){return x.email.toLowerCase()===s.email.toLowerCase() && x.attivo!==false})[0];
+      if(!u){ localStorage.removeItem(KEY); return; }
+      mostra(u);
+    });
+  }
+
+  $('#go').onclick=function(){
+    var v=($('#email').value||'').trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v)){ err('Inserisci un indirizzo email valido.'); return; }
+    var b=this; b.disabled=true; b.textContent='Verifica in corso';
+    carica(function(e,d){
+      b.disabled=false; b.textContent='Entra';
+      if(e){ err(e.message); return; }
+      var u=(d.utenti||[]).filter(function(x){return x.email.toLowerCase()===v})[0];
+      if(!u || u.attivo===false){ err('Questo indirizzo non risulta abilitato.'); return; }
+      if(new Date(u.scadenza+'T23:59:59').getTime() < Date.now()){ err('L\'accesso per questo indirizzo e scaduto.'); return; }
+      ok('Accesso riuscito.');
+      setTimeout(function(){ entra(u); }, 350);
+    });
+  };
+  $('#email').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#go').click(); });
+  $('#esci').onclick=function(){ localStorage.removeItem(KEY); location.reload(); };
+})();
+</script>
+</body>
+</html>

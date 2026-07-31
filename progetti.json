@@ -1,0 +1,15 @@
+{
+  "_istruzioni": "Elenco dei progetti mostrati nel portale. Per aggiungerne uno: crea la cartella, metti dentro sito.html e dashboard.html, e aggiungi una voce qui.",
+  "progetti": [
+    {
+      "slug": "tortuga",
+      "nome": "Tortuga Beach",
+      "sottotitolo": "Stabilimento balneare, Marina di Andora (SV)",
+      "colore": "#EDA60C",
+      "voci": [
+        { "titolo": "Sito pubblico", "descrizione": "Sito con prenotazione ombrelloni, listino e pagamento", "file": "sito.html" },
+        { "titolo": "Gestionale", "descrizione": "Mappa spiaggia, incassi, fatture, clienti e WhatsApp", "file": "dashboard.html" }
+      ]
+    }
+  ]
+}
