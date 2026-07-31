@@ -106,12 +106,14 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none}
   function err(t){msg.className='msg err';msg.textContent=t}
   function ok(t){msg.className='msg ok';msg.textContent=t}
 
-  function carica(cb){
-    fetch('accessi.json?t='+Date.now())
+  function json(file,cb){
+    fetch(file+'?t='+Date.now())
       .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
       .then(function(d){ cb(null,d); })
-      .catch(function(){ cb(new Error('Elenco accessi non raggiungibile. Se hai aperto il file dal computer, serve il link online.')); });
+      .catch(function(){ cb(new Error('Dati non raggiungibili. Se hai aperto il file dal computer, serve il link online.')); });
   }
+  function carica(cb){ json('accessi.json',cb); }
+  function progetti(cb){ json('progetti.json',cb); }
 
   function sessione(){
     try{ var a=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -135,7 +137,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none}
       ? 'Il tuo accesso resta attivo ancora '+g+(g===1?' giorno':' giorni')+', fino al '+u.scadenza.split('-').reverse().join('/')+'.'
       : 'Accesso in scadenza.';
     $('#acc').textContent='Collegato come '+u.email;
-    carica(function(e,d){
+    progetti(function(e,d){
       if(e){ $('#lista').innerHTML='<p class="sub">'+e.message+'</p>'; return; }
       var vis=(d.progetti||[]).filter(function(p){
         return u.progetti && (u.progetti.indexOf('*')>=0 || u.progetti.indexOf(p.slug)>=0); });
