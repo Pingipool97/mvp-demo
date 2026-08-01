@@ -69,7 +69,7 @@ input,select,textarea{font:inherit}
 /* ============ LOGIN ============ */
 .login{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:26px 22px calc(26px + env(safe-area-inset-bottom));background:var(--verde);color:#fff;gap:6px}
-.login img{height:64px;margin-bottom:14px;filter:brightness(0) invert(1)}
+.login img{height:64px;margin-bottom:14px}
 .login h2{color:#fff;font-size:1.25rem}
 .login p{margin:0;font-size:.85rem;opacity:.7;text-align:center}
 .staffgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;max-width:340px;margin-top:22px}
@@ -743,12 +743,10 @@ const TAVOLI = [
 
 /* ---------------- PERSONALE ---------------- */
 const STAFF = [
-  {id:'MR', nome:'Marco Rinaldi',   ruolo:'Sala',    pin:'1234', colore:'#19391B'},
-  {id:'GC', nome:'Giulia Conti',    ruolo:'Sala',    pin:'2345', colore:'#8A6A2F'},
-  {id:'AB', nome:'Ahmed Boulahia',  ruolo:'Bar',     pin:'3456', colore:'#5A6E3A'},
-  {id:'SV', nome:'Sara Vitali',     ruolo:'Cassa',   pin:'4567', colore:'#7B4A2F'},
-  {id:'LP', nome:'Luca Pozzi',      ruolo:'Cucina',  pin:'5678', colore:'#3E5C63'},
-  {id:'LC', nome:'Lorenzo Colucci', ruolo:'Titolare',pin:'0000', colore:'#262018'}
+  {id:'SA', nome:'Saverio',  ruolo:'Sala',     pin:'1234', colore:'#19391B'},
+  {id:'CA', nome:'Carolina', ruolo:'Sala',     pin:'2345', colore:'#8A6A2F'},
+  {id:'PI', nome:'Piero',    ruolo:'Bar',      pin:'3456', colore:'#5A6E3A'},
+  {id:'LO', nome:'Lorenzo',  ruolo:'Titolare', pin:'0000', colore:'#262018'}
 ];
 
 const LOCALE = {

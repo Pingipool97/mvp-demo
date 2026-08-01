@@ -56,7 +56,7 @@ a{color:var(--verde-2);text-decoration:none}
 .nav{position:fixed;inset:0 0 auto;height:var(--nav);background:var(--bruno);z-index:60;
   display:flex;align-items:center;gap:18px;padding:0 18px}
 .nav .brand{display:flex;align-items:center;gap:10px;flex:none}
-.nav .brand img{height:32px;filter:brightness(0) invert(1)}
+.nav .brand img{height:32px}
 .nav .brand b{color:#fff;font-family:var(--slab);font-size:.95rem;line-height:1}
 .nav .brand span{display:block;color:rgba(255,255,255,.42);font-size:.63rem;letter-spacing:.18em;
   text-transform:uppercase;font-weight:500}
@@ -423,7 +423,7 @@ table.t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap
   </div>
   <div class="nav-r">
     <button class="ibtn" id="b-not" title="Notifiche"><svg><use href="#i-bell"/></svg><span class="dot" id="d-not">0</span></button>
-    <div class="who"><span class="av">LC</span><div><b>Lorenzo Colucci</b><span>Titolare</span></div></div>
+    <div class="who"><span class="av">LO</span><div><b>Lorenzo</b><span>Titolare</span></div></div>
   </div>
 </nav>
 
@@ -962,12 +962,10 @@ const TAVOLI = [
 
 /* ---------------- PERSONALE ---------------- */
 const STAFF = [
-  {id:'MR', nome:'Marco Rinaldi',   ruolo:'Sala',    pin:'1234', colore:'#19391B'},
-  {id:'GC', nome:'Giulia Conti',    ruolo:'Sala',    pin:'2345', colore:'#8A6A2F'},
-  {id:'AB', nome:'Ahmed Boulahia',  ruolo:'Bar',     pin:'3456', colore:'#5A6E3A'},
-  {id:'SV', nome:'Sara Vitali',     ruolo:'Cassa',   pin:'4567', colore:'#7B4A2F'},
-  {id:'LP', nome:'Luca Pozzi',      ruolo:'Cucina',  pin:'5678', colore:'#3E5C63'},
-  {id:'LC', nome:'Lorenzo Colucci', ruolo:'Titolare',pin:'0000', colore:'#262018'}
+  {id:'SA', nome:'Saverio',  ruolo:'Sala',     pin:'1234', colore:'#19391B'},
+  {id:'CA', nome:'Carolina', ruolo:'Sala',     pin:'2345', colore:'#8A6A2F'},
+  {id:'PI', nome:'Piero',    ruolo:'Bar',      pin:'3456', colore:'#5A6E3A'},
+  {id:'LO', nome:'Lorenzo',  ruolo:'Titolare', pin:'0000', colore:'#262018'}
 ];
 
 const LOCALE = {
@@ -1356,7 +1354,7 @@ function chiudiConto(id){
     ora:pad(new Date().getHours())+':'+pad(new Date().getMinutes()),
     tavolo:id, asporto:false, coperti:s.coperti, righe:s.righe,
     totale:Math.round(tot*100)/100, mezzo:mezzoScelto, fascia:fasciaDi(new Date().getHours()),
-    cassiere:'Lorenzo Colucci', fattura:false, cliente:null
+    cassiere:'Lorenzo', fattura:false, cliente:null
   });
   /* le comande di quel tavolo escono dal monitor */
   const ord=DB.ordini().map(o=>{ if(o.tavolo===id&&o.stato!=='servito') o.stato='servito'; return o; });
@@ -1502,7 +1500,7 @@ function incassi(){
   });
   $('#settimana').innerHTML=g+'</svg>';
   /* chiusure */
-  const turni=[{n:'Mattina',da:'06:30',a:'15:00',resp:'Sara Vitali'},{n:'Sera',da:'15:00',a:'21:00',resp:'Giulia Conti'}];
+  const turni=[{n:'Mattina',da:'06:30',a:'15:00',resp:'Carolina'},{n:'Sera',da:'15:00',a:'21:00',resp:'Carolina'}];
   $('#t-cassa').innerHTML='<thead><tr><th>Turno</th><th>Orario</th><th>Responsabile</th>'
     +'<th class="n">Contanti</th><th class="n">Elettronico</th><th class="n">Totale</th><th>Stato</th></tr></thead><tbody>'
     +turni.map((t,i)=>{
@@ -1713,12 +1711,12 @@ $('#wa-in').addEventListener('keydown',e=>{if(e.key==='Enter')inviaWa();});
 
 /* ---------------- NOTIFICHE ---------------- */
 const NOTIFICHE=[
- {n:true,c:'v',i:'i-eur',t:'Conto incassato',d:'Tavolo T5, 48,50 € con carta, Sara Vitali',m:4},
+ {n:true,c:'v',i:'i-eur',t:'Conto incassato',d:'Tavolo T5, 48,50 € con carta, Carolina',m:4},
  {n:true,c:'a',i:'i-cucina',t:'Comanda in ritardo',d:'C0007 al tavolo T3, ferma da 19 minuti in cucina',m:9},
  {n:true,c:'b',i:'i-wa',t:'Nuovo messaggio WhatsApp',d:'Elena Marchetti chiede a che ora ritirare',m:12},
  {n:false,c:'r',i:'i-warn',t:'Prodotto in esaurimento',d:'Tagliere 3 di selvaggina segnato come finito',m:38},
  {n:false,c:'vi',i:'i-fisc',t:'Richiesta fattura',d:'Studio Marchetti srl, pranzo di venerdì',m:62},
- {n:false,c:'g',i:'i-user',t:'Turno aperto',d:'Giulia Conti ha aperto il turno serale',m:95}
+ {n:false,c:'g',i:'i-user',t:'Turno aperto',d:'Carolina ha aperto il turno serale',m:95}
 ];
 function pannello(){
   $('#drw-tit').textContent='Notifiche';
@@ -1874,18 +1872,18 @@ function semina(){
   };
   const sess = {}, ordini = [];
   const tavoli = [
-    {t:'T1', cop:2, ora:'12:40', cam:'Giulia Conti', conto:false, stato:'pronto',
+    {t:'T1', cop:2, ora:'12:40', cam:'Carolina', conto:false, stato:'pronto',
      righe:[r('GHE POST',1,['Tostato']), r('TAMIGI',1), r('CALICE ROSSO',2)]},
-    {t:'T2', cop:4, ora:'12:15', cam:'Marco Rinaldi', conto:true, stato:'servito',
+    {t:'T2', cop:4, ora:'12:15', cam:'Saverio', conto:true, stato:'servito',
      righe:[r('TAGLIERE 1',1), r('CALICE ROSSO',2), r('CALICE BIANCO',2), r('ACQUA ALLA SPINA 75CL',2)]},
-    {t:'T4', cop:3, ora:'13:05', cam:'Marco Rinaldi', conto:false, stato:'corso',
+    {t:'T4', cop:3, ora:'13:05', cam:'Saverio', conto:false, stato:'corso',
      righe:[r('SANTORINI',1), r('PARAGGI',1), r('MIMMI',1,['Pane senza glutine'],'celiaca, attenzione alla contaminazione')]},
-    {t:'T5', cop:6, ora:'12:50', cam:'Giulia Conti', conto:false, stato:'corso',
+    {t:'T5', cop:6, ora:'12:50', cam:'Carolina', conto:false, stato:'corso',
      righe:[r('TAGLIERE 2',1), r('BRONX',2), r('KATZS',1), r('SPINA MEDIA',3), r('CAFFÈ',2)]},
-    {t:'T7', cop:5, ora:'13:25', cam:'Marco Rinaldi', conto:false, stato:null, righe:[]},
-    {t:'T8', cop:2, ora:'13:10', cam:'Giulia Conti', conto:false, stato:'ricevuto',
+    {t:'T7', cop:5, ora:'13:25', cam:'Saverio', conto:false, stato:null, righe:[]},
+    {t:'T8', cop:2, ora:'13:10', cam:'Carolina', conto:false, stato:'ricevuto',
      righe:[r('CARPACCIO DI ROASTBEEF',1), r('ZOE',1,['senza brie']), r('ACQUA 50CL',2)]},
-    {t:'T10',cop:4, ora:'12:05', cam:'Marco Rinaldi', conto:true, stato:'servito',
+    {t:'T10',cop:4, ora:'12:05', cam:'Saverio', conto:true, stato:'servito',
      righe:[r('SUPREME',2), r('DYLAN',1), r('CLAIRE',1), r('BECKS 33cl',2), r('CAFFÈ',4)]}
   ];
   let n = 0;
