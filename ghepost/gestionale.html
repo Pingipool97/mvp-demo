@@ -423,7 +423,7 @@ table.t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap
   </div>
   <div class="nav-r">
     <button class="ibtn" id="b-not" title="Notifiche"><svg><use href="#i-bell"/></svg><span class="dot" id="d-not">0</span></button>
-    <div class="who"><span class="av">SV</span><div><b>Sara Vitali</b><span>Cassa</span></div></div>
+    <div class="who"><span class="av">LC</span><div><b>Lorenzo Colucci</b><span>Titolare</span></div></div>
   </div>
 </nav>
 
@@ -967,7 +967,7 @@ const STAFF = [
   {id:'AB', nome:'Ahmed Boulahia',  ruolo:'Bar',     pin:'3456', colore:'#5A6E3A'},
   {id:'SV', nome:'Sara Vitali',     ruolo:'Cassa',   pin:'4567', colore:'#7B4A2F'},
   {id:'LP', nome:'Luca Pozzi',      ruolo:'Cucina',  pin:'5678', colore:'#3E5C63'},
-  {id:'TT', nome:'Titolare',        ruolo:'Titolare',pin:'0000', colore:'#262018'}
+  {id:'LC', nome:'Lorenzo Colucci', ruolo:'Titolare',pin:'0000', colore:'#262018'}
 ];
 
 const LOCALE = {
@@ -1356,7 +1356,7 @@ function chiudiConto(id){
     ora:pad(new Date().getHours())+':'+pad(new Date().getMinutes()),
     tavolo:id, asporto:false, coperti:s.coperti, righe:s.righe,
     totale:Math.round(tot*100)/100, mezzo:mezzoScelto, fascia:fasciaDi(new Date().getHours()),
-    cassiere:'Sara Vitali', fattura:false, cliente:null
+    cassiere:'Lorenzo Colucci', fattura:false, cliente:null
   });
   /* le comande di quel tavolo escono dal monitor */
   const ord=DB.ordini().map(o=>{ if(o.tavolo===id&&o.stato!=='servito') o.stato='servito'; return o; });
@@ -1855,6 +1855,72 @@ function disegnaQR(cv,testo){
 }
 const URL_APP = location.href.replace(/[^/]*$/,'') + 'app.html';
 $('#b-app').onclick=()=>window.open(URL_APP,'_blank');
+
+/* ---------------- SERVIZIO IN CORSO ----------------
+   Alla prima apertura popoliamo la sala e i monitor, altrimenti la demo
+   parte vuota. Restano liberi T3, T6, T9, T11 e T12: sono quelli da usare
+   per mostrare dal vivo come il cameriere apre un tavolo dall'app. */
+function semina(){
+  const d = DB.leggi();
+  if(d.seminato) return;
+  const P = c => G.PRODOTTI.find(x=>x.cod===c) || G.PRODOTTI.find(x=>x.nome===c);
+  const r = (nome,qta,dett,nota)=>{
+    const p = G.PRODOTTI.find(x=>x.nome===nome);
+    if(!p) return null;
+    let prezzo = p.prezzo;
+    if(dett && dett.indexOf('Pane senza glutine')>=0) prezzo += 1.5;
+    return {cod:p.cod, nome:p.nome, prezzo:Math.round(prezzo*100)/100, qta:qta||1,
+            reparto:p.reparto, dett:dett||[], nota:nota||'', allerg:p.allerg};
+  };
+  const sess = {}, ordini = [];
+  const tavoli = [
+    {t:'T1', cop:2, ora:'12:40', cam:'Giulia Conti', conto:false, stato:'pronto',
+     righe:[r('GHE POST',1,['Tostato']), r('TAMIGI',1), r('CALICE ROSSO',2)]},
+    {t:'T2', cop:4, ora:'12:15', cam:'Marco Rinaldi', conto:true, stato:'servito',
+     righe:[r('TAGLIERE 1',1), r('CALICE ROSSO',2), r('CALICE BIANCO',2), r('ACQUA ALLA SPINA 75CL',2)]},
+    {t:'T4', cop:3, ora:'13:05', cam:'Marco Rinaldi', conto:false, stato:'corso',
+     righe:[r('SANTORINI',1), r('PARAGGI',1), r('MIMMI',1,['Pane senza glutine'],'celiaca, attenzione alla contaminazione')]},
+    {t:'T5', cop:6, ora:'12:50', cam:'Giulia Conti', conto:false, stato:'corso',
+     righe:[r('TAGLIERE 2',1), r('BRONX',2), r('KATZS',1), r('SPINA MEDIA',3), r('CAFFÈ',2)]},
+    {t:'T7', cop:5, ora:'13:25', cam:'Marco Rinaldi', conto:false, stato:null, righe:[]},
+    {t:'T8', cop:2, ora:'13:10', cam:'Giulia Conti', conto:false, stato:'ricevuto',
+     righe:[r('CARPACCIO DI ROASTBEEF',1), r('ZOE',1,['senza brie']), r('ACQUA 50CL',2)]},
+    {t:'T10',cop:4, ora:'12:05', cam:'Marco Rinaldi', conto:true, stato:'servito',
+     righe:[r('SUPREME',2), r('DYLAN',1), r('CLAIRE',1), r('BECKS 33cl',2), r('CAFFÈ',4)]}
+  ];
+  let n = 0;
+  tavoli.forEach(x=>{
+    const righe = x.righe.filter(Boolean);
+    sess[x.t] = {tavolo:x.t, coperti:x.cop, aperto:x.ora, cameriere:x.cam,
+                 righe:righe, stato:'occupato', conto:x.conto};
+    if(x.conto){ sess[x.t].contoOra = '13:4'+(n%10); sess[x.t].contoDa = x.cam; }
+    if(!righe.length) return;
+    const perRep = {};
+    righe.forEach(rr=>{ (perRep[rr.reparto]=perRep[rr.reparto]||[]).push(rr); });
+    ordini.push({
+      numero:'C'+String(++n).padStart(4,'0'), tavolo:x.t, coperti:x.cop, cameriere:x.cam,
+      ora:x.ora, righe:righe, totale:Math.round(righe.reduce((a,rr)=>a+rr.prezzo*rr.qta,0)*100)/100,
+      nota: x.t==='T4' ? 'Un coperto celiaco, preparare separatamente' : '',
+      stato:x.stato||'ricevuto', reparti:Object.keys(perRep)
+    });
+  });
+  /* due ordini da asporto in attesa al banco */
+  [['Elena Marchetti','13:30',[r('GHE POST',1,[],'senza praga'), r('TAMIGI',1)],'ricevuto'],
+   ['Davide Ferri','13:45',[r('TAGLIERE 2',1), r('CALICE PROSECCO',2)],'corso']
+  ].forEach(([cli,ora,righe,stato])=>{
+    const rr = righe.filter(Boolean);
+    const perRep={}; rr.forEach(x=>{(perRep[x.reparto]=perRep[x.reparto]||[]).push(x);});
+    ordini.push({numero:'C'+String(++n).padStart(4,'0'), tavolo:null, coperti:0,
+      cameriere:cli+' (asporto)', ora:ora, righe:rr,
+      totale:Math.round(rr.reduce((a,x)=>a+x.prezzo*x.qta,0)*100)/100,
+      nota:'Ordine da asporto arrivato su WhatsApp', stato:stato, reparti:Object.keys(perRep)});
+  });
+  d.sessioni = Object.assign(sess, d.sessioni||{});
+  d.ordini = (d.ordini||[]).concat(ordini);
+  d.seminato = true;
+  DB.scrivi(d);
+}
+semina();
 
 /* ---------------- AVVIO ---------------- */
 etichettaData();
