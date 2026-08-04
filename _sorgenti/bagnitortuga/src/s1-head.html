@@ -262,6 +262,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 
 /* galleria */
 .gal{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:640px){.gal{grid-template-columns:1fr}.gal figure{grid-column:span 1!important}}
 .gal figure{position:relative;overflow:hidden;border-radius:var(--r);cursor:zoom-in;
   background-size:cover;background-position:center}
 .gal figure::after{content:"";display:block;padding-top:72%}
@@ -431,8 +432,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
   .g3{grid-template-columns:1fr}
   .sez{padding:64px 0}
   .gal{grid-template-columns:repeat(2,1fr)}
-  .gal figure:nth-child(n){grid-column:span 1}
-  .gal figure:nth-child(1),.gal figure:nth-child(6){grid-column:span 2}
+  .gal figure{grid-column:span 1!important}
   .hero .dati{gap:20px}
   .scendi{display:none}
 }
