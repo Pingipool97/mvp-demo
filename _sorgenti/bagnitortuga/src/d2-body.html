@@ -15,28 +15,40 @@
 <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
 <symbol id="i-sole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
 <symbol id="i-glob" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></symbol>
+<symbol id="i-giu" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 <symbol id="i-esci" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M17 8l4 4-4 4M21 12H9"/></symbol>
 </svg>
-
-<!-- ============ COLONNINA ============ -->
-<nav class="rail" id="rail">
-  <span class="logo"><img src="{{ASSET:logo512.webp}}" alt="Bagni Tortuga"></span>
-  <button data-p="oggi" class="on"><svg><use href="#i-oggi"/></svg><span class="eti">Oggi</span></button>
-  <button data-p="spiaggia"><svg><use href="#i-mappa"/></svg><span class="eti">Spiaggia</span></button>
-  <button data-p="prenotazioni"><svg><use href="#i-lista"/></svg><span class="eti">Prenotazioni</span><span class="pallo" id="pallo-pren" hidden></span></button>
-  <button data-p="clienti"><svg><use href="#i-clienti"/></svg><span class="eti">Clienti</span></button>
-  <button data-p="cabine"><svg><use href="#i-cabina"/></svg><span class="eti">Cabine</span></button>
-  <button data-p="listino"><svg><use href="#i-euro"/></svg><span class="eti">Listino</span></button>
-  <button data-p="cassa" class="sotto"><svg><use href="#i-cassa"/></svg><span class="eti">Cassa e documenti</span></button>
-</nav>
 
 <div class="corpo">
   <!-- ============ BARRA ============ -->
   <header class="barra">
-    <div>
-      <h1 id="titolo">Oggi</h1>
-      <div class="oggi" id="data-oggi"></div>
+    <div class="marchio">
+      <span class="logo"><img src="{{ASSET:logo512.webp}}" alt="Bagni Tortuga"></span>
+      <div class="nome">
+        <h1 id="titolo">Oggi</h1>
+        <div class="oggi" id="data-oggi"></div>
+      </div>
     </div>
+
+    <div class="menu" id="menu">
+      <button class="menu-b" id="menu-b" aria-haspopup="true" aria-expanded="false">
+        <svg id="menu-ic"><use href="#i-oggi"/></svg>
+        <span id="menu-et">Oggi</span>
+        <span class="pallo" id="pallo-pren" hidden></span>
+        <svg class="fre"><use href="#i-giu"/></svg>
+      </button>
+      <div class="tendina" id="tendina">
+        <button data-p="oggi" class="on"><svg><use href="#i-oggi"/></svg>Oggi</button>
+        <button data-p="spiaggia"><svg><use href="#i-mappa"/></svg>Mappa della spiaggia</button>
+        <button data-p="prenotazioni"><svg><use href="#i-lista"/></svg>Prenotazioni<span class="pallo" id="pallo-voce" hidden></span></button>
+        <button data-p="clienti"><svg><use href="#i-clienti"/></svg>Clienti</button>
+        <button data-p="cabine"><svg><use href="#i-cabina"/></svg>Cabine</button>
+        <div class="div"></div>
+        <button data-p="listino"><svg><use href="#i-euro"/></svg>Listino</button>
+        <button data-p="cassa"><svg><use href="#i-cassa"/></svg>Cassa e documenti</button>
+      </div>
+    </div>
+
     <div class="dx">
       <label class="cerca">
         <svg><use href="#i-cerca"/></svg>
@@ -44,8 +56,8 @@
       </label>
       <button class="b b-p b-sm" id="b-nuova"><svg><use href="#i-piu"/></svg>Nuova prenotazione</button>
       <div class="utente">
-        <span class="cerchio">MP</span>
-        <div><b>Marco Pino</b><small>Bagnino capo</small></div>
+        <span class="cerchio">SR</span>
+        <div><b>Sharon Roveraro</b><small>Referente</small></div>
       </div>
     </div>
   </header>
