@@ -36,24 +36,22 @@
 <!-- ============ TESTATA ============ -->
 <header class="top hero-top" id="top">
   <a href="#" class="marchio" aria-label="Bagni Tortuga">
-    <span class="segno"><svg viewBox="0 0 64 64"><use href="#i-tartaruga"/></svg></span>
+    <span class="segno"><img src="{{ASSET:logo512.webp}}" alt="Marchio dei Bagni Tortuga"></span>
     <span class="nome">Bagni Tortuga</span>
   </a>
   <div class="strumenti">
     <button class="chip" id="apri-pres" title="Confronto con il sito attuale">
-      <svg><use href="#i-occhio"/></svg><span class="solo-largo">Presentazione</span>
-    </button>
-    <button class="chip" id="apri-pal" title="Cambia identità visiva">
-      <svg><use href="#i-pal"/></svg><span id="nome-pal">Mare</span>
+      <svg><use href="#i-occhio"/></svg><span>Presentazione</span>
     </button>
   </div>
 </header>
 
 <!-- ============ APERTURA ============ -->
 <section class="hero" id="apertura">
-  <div class="sfondo" style="background-image:url({{ASSET:p1.jpg}})"></div>
+  <div class="sfondo" style="background-image:url({{ASSET:p2.jpg}})"></div>
   <div class="velo"></div>
   <div class="wrap">
+    <img class="stemma" src="{{ASSET:logo512.webp}}" alt="Marchio dei Bagni Tortuga, Andora">
     <p class="paga">Lasciati cullare dalle onde<br>e baciare dal sole.</p>
     <h1>Il tuo posto<br>al sole, ad Andora.</h1>
     <p class="sotto">Sabbia dorata affacciata sul Mar Ligure, a due passi dal molo.
@@ -169,7 +167,7 @@
               <span><i style="background:var(--acc)"></i>Libero</span>
               <span><i style="background:var(--tx3);opacity:.45"></i>Occupato</span>
               <span><i style="background:var(--deep)"></i>Scelto da te</span>
-              <span><i style="background:#fff;border:2px solid var(--acc-s)"></i>Bambini vicino</span>
+              <span><i style="background:#fff;border:2px solid var(--acc-s)"></i>Con bambini piccoli</span>
             </div>
           </div>
           <div class="mappa-scorri">
@@ -378,7 +376,7 @@
     <div class="griglia" style="grid-template-columns:1.4fr 1fr 1fr;gap:34px">
       <div>
         <div class="marchio" style="margin-bottom:16px">
-          <span class="segno" style="color:var(--acc)"><svg viewBox="0 0 64 64"><use href="#i-tartaruga"/></svg></span>
+          <span class="segno" style="width:58px;height:58px"><img src="{{ASSET:logo512.webp}}" alt=""></span>
           <span class="nome">Bagni Tortuga</span>
         </div>
         <p class="paga">" Lasciati cullare dalle onde<br>e baciare dal sole. "</p>
@@ -423,20 +421,7 @@
   </div>
 </div>
 
-<!-- ============ PANNELLO PALETTE ============ -->
 <div class="velo-pal" id="velo-pal"></div>
-<aside class="pal" id="pal">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px">
-    <div><h3>Identità visiva</h3>
-      <p style="font-size:.86rem">Quattro strade per lo stesso lido. Cambia tutto il sito,
-        mappa e logo compresi.</p></div>
-    <button class="chip" id="chiudi-pal" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
-  </div>
-  <div class="p-list" id="p-list"></div>
-  <div class="nota">I colori di partenza sono quelli veri della spiaggia, presi dagli ombrelloni:
-    giallo e blu. Le altre tre servono a vedere come starebbe il lido con un'identità diversa,
-    prima di stampare qualsiasi cosa.</div>
-</aside>
 
 <!-- ============ PANNELLO PRESENTAZIONE ============ -->
 <aside class="pres" id="pres">
@@ -449,6 +434,17 @@
   <div id="lista-bug"></div>
   <div class="nota" style="margin-top:18px">Nessuno di questi punti è un'opinione:
     sono tutti verificabili aprendo il sito attuale adesso.</div>
+
+  <h3 style="margin:26px 0 8px">Cosa in questa pagina è inventato</h3>
+  <p style="font-size:.86rem;margin-bottom:10px">Dal sito dei Bagni Tortuga si ricavano indirizzo,
+    telefono, email, i testi di presentazione, l'elenco dei servizi e le sei fotografie.
+    Tutto il resto serve a far vedere come funziona e va sostituito con i dati veri:</p>
+  <div class="nota" style="line-height:1.7">
+    Numero di ombrelloni, file e cabine · disposizione della spiaggia sulla mappa ·
+    tutti i prezzi del listino · orari di apertura e della giornata · anno di apertura
+    e anni di gestione · percentuale di clienti che tornano · le prenotazioni già segnate
+    sulla mappa con i relativi nomi.
+  </div>
 </aside>
 
 <!-- ============ CHAT ============ -->
@@ -457,7 +453,7 @@
 </button>
 <section class="chat" id="chat" aria-label="Assistente della spiaggia">
   <div class="c-top">
-    <span class="av"><svg viewBox="0 0 64 64"><use href="#i-tartaruga"/></svg></span>
+    <span class="av"><img src="{{ASSET:logo512.webp}}" alt=""></span>
     <div><b>Assistente di spiaggia</b><small id="chat-stato">Risponde e prenota per te</small></div>
     <button class="x" id="chat-x" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
   </div>

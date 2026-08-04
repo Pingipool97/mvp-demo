@@ -1,0 +1,216 @@
+<svg style="display:none" aria-hidden="true">
+<symbol id="i-oggi" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M3 9h18M8 2v4M16 2v4M8 14h3M8 17.5h7"/></symbol>
+<symbol id="i-mappa" viewBox="0 0 24 24"><path d="m9 4-6 3v13l6-3 6 3 6-3V4l-6 3Z"/><path d="M9 4v13M15 7v13"/></symbol>
+<symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6v.1M3.5 12v.1M3.5 18v.1"/></symbol>
+<symbol id="i-clienti" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="10.5" r="2.4"/><path d="M15 20a5 5 0 0 1 6.5-4.3"/></symbol>
+<symbol id="i-euro" viewBox="0 0 24 24"><path d="M17 5a7 7 0 1 0 0 14"/><path d="M4 10h9M4 14h9"/></symbol>
+<symbol id="i-cassa" viewBox="0 0 24 24"><rect x="2.5" y="7" width="19" height="13" rx="2.5"/><path d="M2.5 12h19M7 16h4"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-cabina" viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M3 21h18M15 12v.1"/></symbol>
+<symbol id="i-cerca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-ok" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></symbol>
+<symbol id="i-wa" viewBox="0 0 24 24"><path d="M20 11.8a7.9 7.9 0 0 1-11.6 7L4 20l1.3-4.2A7.9 7.9 0 1 1 20 11.8Z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5.6 0 1-.5 1-1l-1.6-.8-1 .9a5 5 0 0 1-2-2l.9-1L11 9.5c-.5 0-1 .4-1 1"/></symbol>
+<symbol id="i-bimbi" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17.5" cy="11" r="2.2"/><path d="M14.5 20a4.5 4.5 0 0 1 7-3.7"/></symbol>
+<symbol id="i-piu" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+<symbol id="i-sole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
+<symbol id="i-glob" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></symbol>
+<symbol id="i-esci" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M17 8l4 4-4 4M21 12H9"/></symbol>
+</svg>
+
+<!-- ============ COLONNINA ============ -->
+<nav class="rail" id="rail">
+  <span class="logo"><img src="{{ASSET:logo512.webp}}" alt="Bagni Tortuga"></span>
+  <button data-p="oggi" class="on"><svg><use href="#i-oggi"/></svg><span class="eti">Oggi</span></button>
+  <button data-p="spiaggia"><svg><use href="#i-mappa"/></svg><span class="eti">Spiaggia</span></button>
+  <button data-p="prenotazioni"><svg><use href="#i-lista"/></svg><span class="eti">Prenotazioni</span><span class="pallo" id="pallo-pren" hidden></span></button>
+  <button data-p="clienti"><svg><use href="#i-clienti"/></svg><span class="eti">Clienti</span></button>
+  <button data-p="cabine"><svg><use href="#i-cabina"/></svg><span class="eti">Cabine</span></button>
+  <button data-p="listino"><svg><use href="#i-euro"/></svg><span class="eti">Listino</span></button>
+  <button data-p="cassa" class="sotto"><svg><use href="#i-cassa"/></svg><span class="eti">Cassa e documenti</span></button>
+</nav>
+
+<div class="corpo">
+  <!-- ============ BARRA ============ -->
+  <header class="barra">
+    <div>
+      <h1 id="titolo">Oggi</h1>
+      <div class="oggi" id="data-oggi"></div>
+    </div>
+    <div class="dx">
+      <label class="cerca">
+        <svg><use href="#i-cerca"/></svg>
+        <input id="q" placeholder="Cerca cliente, posto o telefono" autocomplete="off">
+      </label>
+      <button class="b b-p b-sm" id="b-nuova"><svg><use href="#i-piu"/></svg>Nuova prenotazione</button>
+      <div class="utente">
+        <span class="cerchio">MP</span>
+        <div><b>Marco Pino</b><small>Bagnino capo</small></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ OGGI ============ -->
+  <section class="pagina" id="p-oggi">
+    <div class="griglia g4" style="margin-bottom:18px">
+      <div class="kpi"><span class="ic"><svg><use href="#i-euro"/></svg></span>
+        <span class="et">Incasso di oggi</span><b id="k-incasso">0 €</b><small id="k-incasso-s"></small></div>
+      <div class="kpi"><span class="ic"><svg><use href="#i-sole"/></svg></span>
+        <span class="et">Ombrelloni occupati</span><b id="k-occ">0</b><small id="k-occ-s"></small></div>
+      <div class="kpi"><span class="ic"><svg><use href="#i-clienti"/></svg></span>
+        <span class="et">Persone in spiaggia</span><b id="k-persone">0</b><small id="k-persone-s"></small></div>
+      <div class="kpi"><span class="ic"><svg><use href="#i-cabina"/></svg></span>
+        <span class="et">Cabine assegnate</span><b id="k-cabine">0</b><small id="k-cabine-s"></small></div>
+    </div>
+
+    <div class="griglia" style="grid-template-columns:1.35fr 1fr">
+      <div class="scheda">
+        <div class="tit"><h2>Arrivi e partenze di oggi</h2>
+          <span class="eti eti-neu" id="conta-movimenti"></span></div>
+        <div class="tab-scorri"><table>
+          <thead><tr><th>Cliente</th><th>Posto</th><th>Movimento</th><th>Periodo</th><th class="num">Saldo</th></tr></thead>
+          <tbody id="movimenti"></tbody>
+        </table></div>
+      </div>
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="scheda">
+          <div class="tit"><h2>Arrivate dal sito</h2>
+            <span class="eti eti-ok" id="conta-web">0</span></div>
+          <div id="lista-web"></div>
+          <p class="nota" style="margin-top:12px">Le prenotazioni chiuse sul sito compaiono qui.
+            Prova a prenotare dal sito con lo stesso browser e ricarica questa pagina.</p>
+        </div>
+        <div class="scheda">
+          <div class="tit"><h2>Incasso degli ultimi 7 giorni</h2></div>
+          <div class="barre" id="barre"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SPIAGGIA ============ -->
+  <section class="pagina" id="p-spiaggia" hidden>
+    <div class="scheda">
+      <div class="tit">
+        <div class="sx"><h2>Mappa della spiaggia</h2>
+          <span class="eti eti-neu" id="conta-mappa"></span></div>
+        <div class="legenda">
+          <span><i style="background:var(--acc)"></i>Libero</span>
+          <span><i style="background:var(--deep)"></i>Occupato</span>
+          <span><i style="background:var(--ko)"></i>Da saldare</span>
+          <span><i style="background:#fff;border:2px solid var(--acc-s)"></i>Con bambini</span>
+        </div>
+      </div>
+      <div class="mappa-scorri">
+        <svg id="mappa" viewBox="0 0 900 560" role="img" aria-label="Mappa della spiaggia"></svg>
+      </div>
+      <div class="filtri" style="margin-top:14px">
+        <button data-f="tutti" class="on">Tutti</button>
+        <button data-f="liberi">Solo liberi</button>
+        <button data-f="saldare">Da saldare</button>
+        <button data-f="bimbi">Con bambini</button>
+        <button data-f="oggi">In partenza oggi</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRENOTAZIONI ============ -->
+  <section class="pagina" id="p-prenotazioni" hidden>
+    <div class="scheda">
+      <div class="tit">
+        <div class="sx"><h2>Prenotazioni</h2><span class="eti eti-neu" id="conta-pren"></span></div>
+        <div class="filtri">
+          <button data-fp="tutte" class="on">Tutte</button>
+          <button data-fp="stagione">Stagionali</button>
+          <button data-fp="mese">Mensili</button>
+          <button data-fp="brevi">Brevi</button>
+          <button data-fp="saldare">Da saldare</button>
+          <button data-fp="web">Dal sito</button>
+        </div>
+      </div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Posto</th><th>Cliente</th><th>Telefono</th><th>Periodo</th><th>Persone</th>
+          <th>Origine</th><th class="num">Importo</th><th>Saldo</th></tr></thead>
+        <tbody id="tab-pren"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ============ CLIENTI ============ -->
+  <section class="pagina" id="p-clienti" hidden>
+    <div class="scheda">
+      <div class="tit"><div class="sx"><h2>Clienti</h2><span class="eti eti-neu" id="conta-cli"></span></div></div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Cliente</th><th>Telefono</th><th>Posto</th><th>Stagioni</th>
+          <th>Note</th><th class="num">Speso quest'anno</th></tr></thead>
+        <tbody id="tab-cli"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ============ CABINE ============ -->
+  <section class="pagina" id="p-cabine" hidden>
+    <div class="scheda">
+      <div class="tit"><div class="sx"><h2>Cabine</h2><span class="eti eti-neu" id="conta-cab"></span></div>
+        <p style="font-size:.83rem;color:var(--tx3)">Tocca una cabina per assegnarla o liberarla</p></div>
+      <div class="griglia" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))" id="griglia-cabine"></div>
+    </div>
+  </section>
+
+  <!-- ============ LISTINO ============ -->
+  <section class="pagina" id="p-listino" hidden>
+    <div class="scheda">
+      <div class="tit"><div class="sx"><h2>Listino della stagione</h2></div>
+        <button class="b b-s b-sm" id="b-salva-listino"><svg><use href="#i-ok"/></svg>Salva</button></div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Fascia</th><th class="num">Giornata</th><th class="num">Mezza</th>
+          <th class="num">Settimana</th><th class="num">Quindicina</th><th class="num">Mese</th>
+          <th class="num">Stagione</th></tr></thead>
+        <tbody id="tab-listino"></tbody>
+      </table></div>
+      <p class="nota" style="margin-top:14px">Il listino modificato qui vale subito sul sito pubblico:
+        prezzo scritto una volta sola, in un posto solo.</p>
+    </div>
+  </section>
+
+  <!-- ============ CASSA ============ -->
+  <section class="pagina" id="p-cassa" hidden>
+    <div class="griglia g3" style="margin-bottom:18px">
+      <div class="kpi"><span class="et">Incassato stagione</span><b id="k-stag">0 €</b><small>dal 1 maggio</small></div>
+      <div class="kpi"><span class="et">Da incassare</span><b id="k-dovuto">0 €</b><small id="k-dovuto-s"></small></div>
+      <div class="kpi"><span class="et">Scontrini di oggi</span><b id="k-scontrini">0</b><small>emessi dalla cassa</small></div>
+    </div>
+    <div class="griglia g2">
+      <div class="scheda">
+        <div class="tit"><h2>Movimenti di cassa di oggi</h2></div>
+        <div class="tab-scorri"><table>
+          <thead><tr><th>Ora</th><th>Descrizione</th><th>Metodo</th><th class="num">Importo</th></tr></thead>
+          <tbody id="tab-cassa"></tbody>
+        </table></div>
+      </div>
+      <div class="scheda">
+        <div class="tit"><h2>Documenti fiscali</h2></div>
+        <div class="tab-scorri"><table>
+          <thead><tr><th>Numero</th><th>Cliente</th><th>Tipo</th><th class="num">Importo</th><th></th></tr></thead>
+          <tbody id="tab-doc"></tbody>
+        </table></div>
+        <p class="nota" style="margin-top:14px">Sezione dimostrativa: non c'è nessun collegamento
+          con l'Agenzia delle Entrate né con un registratore di cassa telematico.
+          I documenti qui sotto sono finti e servono solo a mostrare come sarebbe l'elenco.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ CASSETTO ============ -->
+<div class="velo" id="velo"></div>
+<aside class="cass" id="cass">
+  <div class="c-top">
+    <div><h3 id="cass-tit">Postazione</h3><small id="cass-sot"></small></div>
+    <button class="b b-s b-sm" id="cass-x" style="margin-left:auto" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <div class="c-corpo" id="cass-corpo"></div>
+  <div class="c-piede" id="cass-piede"></div>
+</aside>
+
+<div class="toast" id="toast"><svg><use href="#i-ok"/></svg><span id="toast-testo"></span></div>
