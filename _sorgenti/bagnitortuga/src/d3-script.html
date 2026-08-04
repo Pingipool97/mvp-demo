@@ -340,16 +340,18 @@ const ICONE={oggi:'i-oggi',spiaggia:'i-mappa',prenotazioni:'i-lista',clienti:'i-
   cabine:'i-cabina',listino:'i-euro',cassa:'i-cassa'};
 function vaiA(p){
   $$('.pagina').forEach(s=>s.hidden=(s.id!=='p-'+p));
-  $$('#tendina button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  $$('#voci button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
   $('#titolo').textContent=TITOLI[p];
-  $('#menu-et').textContent=TITOLI[p];
 
-  apriMenu(false);
+
+  apriLato(false);
   scrollTo({top:0,behavior:'smooth'});
 }
-function apriMenu(v){
-  $('#menu').classList.toggle('on',v);
-  $('#menu-b').setAttribute('aria-expanded',v?'true':'false');
+function apriLato(v){
+  $('#lato').classList.toggle('on',v);
+  $('#velo').classList.toggle('on',v);
+  $('#burger').setAttribute('aria-expanded',v?'true':'false');
+  $('#lato').dataset.aperto=v?'1':'';
 }
 
 /* oggi */
@@ -535,17 +537,31 @@ function tuttoAggiorna(){
 }
 
 /* ================= AVVIO ================= */
+/* zoom della mappa: adatta, medio, grande */
+let zoom=0;
+function applicaZoom(){
+  const c=document.querySelector('.mappa-scorri');
+  c.classList.toggle('z1',zoom===1);
+  c.classList.toggle('z2',zoom===2);
+  document.getElementById('z-et').textContent=['Adatta','Medio','Grande'][zoom];
+  document.getElementById('z-meno').disabled=zoom===0;
+  document.getElementById('z-piu').disabled=zoom===2;
+}
+
 (function(){
+  document.getElementById("z-meno").onclick=()=>{zoom=Math.max(0,zoom-1);applicaZoom();};
+  document.getElementById("z-piu").onclick=()=>{zoom=Math.min(2,zoom+1);applicaZoom();};
+  applicaZoom();
   $('#data-oggi').textContent=OGGI.toLocaleDateString('it-IT',
     {weekday:'long',day:'numeric',month:'long',year:'numeric'});
   disegnaMappa(); disegnaListino(); tuttoAggiorna();
 
-  $$('#tendina button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
-  $('#menu-b').onclick=e=>{ e.stopPropagation(); apriMenu(!$('#menu').classList.contains('on')); };
-  document.addEventListener('click',e=>{ if(!e.target.closest('#menu')) apriMenu(false); });
+  $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
+  $('#burger').onclick=()=>apriLato(!$('#lato').classList.contains('on'));
+  $('#lato-x').onclick=()=>apriLato(false);
   $('#cass-x').onclick=()=>cass(false);
-  $('#velo').onclick=()=>cass(false);
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); apriMenu(false); } });
+  $('#velo').onclick=()=>{ cass(false); apriLato(false); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); apriLato(false); } });
 
   $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
   $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{

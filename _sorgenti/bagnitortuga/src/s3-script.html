@@ -550,12 +550,27 @@ function rispondi(t){
 }
 function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
 
+/* zoom */
+/* zoom della mappa: adatta, medio, grande */
+let zoom=0;
+function applicaZoom(){
+  const c=document.querySelector('.mappa-scorri');
+  c.classList.toggle('z1',zoom===1);
+  c.classList.toggle('z2',zoom===2);
+  document.getElementById('z-et').textContent=['Adatta','Medio','Grande'][zoom];
+  document.getElementById('z-meno').disabled=zoom===0;
+  document.getElementById('z-piu').disabled=zoom===2;
+}
+
 /* =========================================================
    AVVIO
    ========================================================= */
 function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classList.toggle('on',v); }
 
 (function(){
+  document.getElementById("z-meno").onclick=()=>{zoom=Math.max(0,zoom-1);applicaZoom();};
+  document.getElementById("z-piu").onclick=()=>{zoom=Math.min(2,zoom+1);applicaZoom();};
+  applicaZoom();
   disegnaListino(); disegnaMappa(); disegnaGalleria(); disegnaBug(); riepilogo();
   $('#n-postazioni').textContent=POSTI.length;
   $('#n-file').textContent=[...new Set(POSTI.map(p=>p.fila))].length;

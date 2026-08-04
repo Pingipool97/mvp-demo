@@ -170,7 +170,14 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 .legenda i{width:13px;height:13px;border-radius:4px;display:block;flex:none}
 .mappa-scorri{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
   border-radius:var(--r);background:var(--bg2)}
-.mappa-scorri svg{width:100%;min-width:620px;height:auto;stroke:none;display:block}
+.mappa-scorri svg{width:100%;min-width:0;height:auto;stroke:none;display:block;transition:min-width .25s}
+.mappa-scorri.z1 svg{min-width:820px}
+.mappa-scorri.z2 svg{min-width:1180px}
+.zoom{display:inline-flex;gap:2px;align-items:center;border:1.5px solid var(--bord);border-radius:99px;padding:2px}
+.zoom button{width:30px;height:30px;border-radius:99px;display:grid;place-items:center;transition:.15s;font-weight:700}
+.zoom button:hover{background:var(--bg2,#f3f3f3)}
+.zoom button[disabled]{opacity:.3;pointer-events:none}
+.zoom span{font-size:.76rem;color:var(--tx3);padding:0 6px;min-width:44px;text-align:center}
 #mappa .omb{cursor:pointer}
 #mappa .omb:focus{outline:none}
 #mappa .omb:focus-visible .disco{transform:scale(1.16)}

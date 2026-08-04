@@ -29,30 +29,38 @@ img{max-width:100%;display:block}
 :focus-visible{outline:2.5px solid var(--acc);outline-offset:2px}
 ::selection{background:var(--acc);color:var(--acc-t)}
 
-/* ============ MENU A TENDINA ============ */
+/* ============ HAMBURGER E PANNELLO LATERALE ============ */
 .marchio{display:flex;align-items:center;gap:10px;flex:none}
 .marchio .logo{width:40px;height:40px;border-radius:99px;overflow:hidden;background:#fff;flex:none}
-.menu{position:relative;flex:none}
-.menu-b{display:flex;align-items:center;gap:9px;padding:.55em .95em .55em .8em;border-radius:11px;
-  border:1.5px solid var(--deep);background:var(--deep);color:#fff;transition:.16s;
-  font-weight:600;font-size:.92rem;box-shadow:0 4px 14px -6px var(--om)}
-.menu-b:hover{background:var(--deep-s);border-color:var(--deep-s)}
-.menu-b .sez-nome{opacity:.72;font-weight:400}
-.menu-b .fre{width:15px;height:15px;opacity:.8;transition:transform .2s}
-.menu.on .menu-b{background:var(--deep-s)}
-.menu.on .menu-b .fre{transform:rotate(180deg)}
-.menu-b .pallo{width:8px;height:8px;border-radius:99px;background:var(--acc);flex:none}
-.tendina{position:absolute;top:calc(100% + 7px);left:0;min-width:262px;background:var(--card);
-  border:1px solid var(--bord);border-radius:14px;box-shadow:0 18px 44px -14px var(--om);
-  padding:7px;z-index:70;opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s}
-.menu.on .tendina{opacity:1;transform:none;pointer-events:auto}
-.tendina button{display:flex;align-items:center;gap:11px;width:100%;padding:.6em .7em;border-radius:9px;
-  text-align:left;font-size:.9rem;transition:.14s;color:var(--tx2)}
-.tendina button:hover{background:var(--card2);color:var(--tx)}
-.tendina button.on{background:var(--deep);color:#fff}
-.tendina button svg{width:18px;height:18px;flex:none}
-.tendina button .pallo{margin-left:auto;width:8px;height:8px;border-radius:99px;background:var(--acc);flex:none}
-.tendina .div{height:1px;background:var(--bord);margin:6px 4px}
+.burger{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;
+  background:var(--deep);color:#fff;transition:.16s;position:relative}
+.burger:hover{background:var(--deep-s)}
+.burger svg{width:21px;height:21px}
+.burger .pallo{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:99px;
+  background:var(--acc);border:2px solid var(--card)}
+
+.lato{position:fixed;left:0;top:0;bottom:0;width:min(272px,86vw);background:var(--deep);
+  color:#fff;z-index:80;transform:translateX(-101%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;padding:14px 12px}
+.lato.on{transform:none}
+.lato .l-top{display:flex;align-items:center;gap:11px;padding:6px 6px 16px;
+  border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:12px}
+.lato .l-top .logo{width:40px;height:40px;border-radius:99px;overflow:hidden;background:#fff;flex:none}
+.lato .l-top b{font-size:.95rem;display:block;line-height:1.2}
+.lato .l-top small{font-size:.73rem;opacity:.66}
+.lato .l-top .x{margin-left:auto;color:#fff;opacity:.7;padding:6px}
+.lato .l-top .x:hover{opacity:1}
+.lato nav{display:grid;gap:3px}
+.lato nav button{display:flex;align-items:center;gap:12px;width:100%;padding:.72em .8em;
+  border-radius:10px;text-align:left;font-size:.92rem;color:rgba(255,255,255,.74);transition:.14s}
+.lato nav button:hover{background:rgba(255,255,255,.1);color:#fff}
+.lato nav button.on{background:var(--acc);color:var(--acc-t);font-weight:600}
+.lato nav button svg{width:19px;height:19px;flex:none}
+.lato nav button .pallo{margin-left:auto;width:8px;height:8px;border-radius:99px;background:var(--acc);flex:none}
+.lato nav button.on .pallo{background:var(--deep)}
+.lato .div{height:1px;background:rgba(255,255,255,.15);margin:9px 8px}
+.lato .l-piede{margin-top:auto;padding:12px 8px 4px;border-top:1px solid rgba(255,255,255,.15);
+  font-size:.74rem;opacity:.6;line-height:1.5}
 
 .corpo{min-height:100vh;display:flex;flex-direction:column}
 .barra{display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--card);
@@ -131,7 +139,14 @@ td b{font-family:'Inter',sans-serif}
 /* mappa */
 .tab-scorri{overflow-x:auto;min-width:0}
 .mappa-scorri{overflow-x:auto;min-width:0;border-radius:12px;background:var(--card2);border:1px solid var(--bord)}
-.mappa-scorri svg{width:100%;min-width:620px;height:auto;stroke:none;display:block}
+.mappa-scorri svg{width:100%;min-width:0;height:auto;stroke:none;display:block;transition:min-width .25s}
+.mappa-scorri.z1 svg{min-width:820px}
+.mappa-scorri.z2 svg{min-width:1180px}
+.zoom{display:inline-flex;gap:2px;align-items:center;border:1.5px solid var(--bord);border-radius:99px;padding:2px}
+.zoom button{width:30px;height:30px;border-radius:99px;display:grid;place-items:center;transition:.15s;font-weight:700}
+.zoom button:hover{background:var(--bg2,#f3f3f3)}
+.zoom button[disabled]{opacity:.3;pointer-events:none}
+.zoom span{font-size:.76rem;color:var(--tx3);padding:0 6px;min-width:44px;text-align:center}
 #mappa .omb{cursor:pointer}
 #mappa .omb:focus{outline:none}
 #mappa .omb:focus-visible .disco{transform:scale(1.15)}

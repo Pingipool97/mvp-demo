@@ -52,14 +52,13 @@
   <div class="velo"></div>
   <div class="wrap">
     <img class="stemma" src="{{ASSET:logo512.webp}}" alt="Marchio dei Bagni Tortuga, Andora">
-    <p class="paga">Lasciati cullare dalle onde<br>e baciare dal sole.</p>
-    <h1>Il tuo posto<br>al sole, ad Andora.</h1>
-    <p class="sotto">Sabbia dorata affacciata sul Mar Ligure, a due passi dal molo.
-      Scegli l'ombrellone sulla mappa della spiaggia e prenotalo in un minuto,
-      senza telefonate e senza attese.</p>
+    <h1>Stabilimento balneare<br>ad Andora</h1>
+    <p class="sotto">Sabbia dorata sul Mar Ligure, accanto al molo, nel centro di Andora.
+      Ottantaquattro postazioni su sei file e ventiquattro cabine private.
+      L'ombrellone si sceglie sulla mappa e si prenota online.</p>
     <div class="azioni">
-      <a class="b b-p" href="#prenota"><svg><use href="#i-omb"/></svg>Scegli il tuo ombrellone</a>
-      <a class="b b-s" href="#spiaggia">Scopri la spiaggia</a>
+      <a class="b b-p" href="#prenota"><svg><use href="#i-omb"/></svg>Scegli l'ombrellone</a>
+      <a class="b b-s" href="#listino">Vedi il listino</a>
     </div>
     <div class="dati">
       <div><b id="n-postazioni">84</b><span>Postazioni</span></div>
@@ -76,7 +75,7 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">01</span> La spiaggia</p>
-      <h2>Una spiaggia sola, curata come si deve</h2>
+      <h2>La spiaggia</h2>
       <p>Siamo i Bagni Tortuga, un'oasi di sabbia dorata affacciata sul Mar Ligure,
         nel centro di Andora, a pochi passi dal porto e dalla passeggiata.
         Qui trovate divertimento, sano relax e un posto al sole da condividere
@@ -94,15 +93,15 @@
       <div class="scheda">
         <div class="serv" style="border:none;padding:0">
           <span class="ic"><svg><use href="#i-bimbi"/></svg></span>
-          <div><h3>Adatta ai bambini</h3>
-            <p>Fondale che degrada piano, bagnino in servizio e file arretrate lontane
-              dal passaggio. Le famiglie sanno sempre chi hanno accanto.</p></div>
+          <div><h3>Famiglie con bambini</h3>
+            <p>Fondale che degrada gradualmente, bagnino in servizio dalle 9 alle 19
+              e file arretrate lontane dal passaggio.</p></div>
         </div>
       </div>
       <div class="scheda">
         <div class="serv" style="border:none;padding:0">
           <span class="ic"><svg><use href="#i-access"/></svg></span>
-          <div><h3>Accessibile a tutti</h3>
+          <div><h3>Accessibilità</h3>
             <p>Passerelle fino alla battigia, spogliatoi e servizi senza gradini,
               sedia job disponibile su prenotazione.</p></div>
         </div>
@@ -116,9 +115,9 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">02</span> Prenotazione</p>
-      <h2>Scegli il posto guardando la spiaggia</h2>
-      <p>La mappa è quella vera: il mare in basso, il molo a sinistra, le cabine colorate
-        in fondo. Tocca un ombrellone libero per prenotarlo.</p>
+      <h2>Scelta del posto sulla mappa</h2>
+      <p>La mappa riproduce la disposizione reale della spiaggia: il mare in basso,
+        il molo a sinistra, le cabine in fondo. Tocca un ombrellone libero per prenotarlo.</p>
     </div>
 
     <div class="griglia" style="grid-template-columns:1fr 380px;gap:26px;align-items:start" id="griglia-pren">
@@ -181,7 +180,7 @@
           <div class="mappa-info">
             <button class="b b-s b-sm" id="b-tranquillo"><svg><use href="#i-scudo"/></svg>Trovami un posto tranquillo</button>
             <button class="b b-s b-sm" id="b-fronte"><svg><use href="#i-sole"/></svg>Il più vicino al mare</button>
-            <span id="conta-liberi"></span>
+            <span class="zoom" aria-label="Ingrandimento della mappa"><button id="z-meno" aria-label="Riduci">&minus;</button><span id="z-et">Adatta</span><button id="z-piu" aria-label="Ingrandisci">+</button></span><span id="conta-liberi"></span>
           </div>
         </div>
       </div>
@@ -233,9 +232,9 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">03</span> Listino</p>
-      <h2>Prezzi chiari, scritti una volta sola</h2>
-      <p>Una postazione è ombrellone, due lettini e sgabello. Il prezzo cambia solo
-        in base alla fila e a quanto ti fermi.</p>
+      <h2>Listino della stagione 2026</h2>
+      <p>Una postazione comprende ombrellone, due lettini e sgabello.
+        Il prezzo dipende dalla fila e dalla durata del soggiorno.</p>
     </div>
     <div class="scheda" style="padding:8px 20px;overflow-x:auto">
       <table class="tab">
@@ -262,7 +261,7 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">04</span> Servizi</p>
-      <h2>Quello che trovi quando arrivi</h2>
+      <h2>Servizi</h2>
     </div>
     <div class="griglia g2" style="gap:0 40px">
       <div>
@@ -294,7 +293,7 @@
   <div class="wrap stretto">
     <div class="testa">
       <p class="occhiello"><span class="num">05</span> La giornata</p>
-      <h2>Dalle otto e mezza fino al tramonto</h2>
+      <h2>Gli orari della giornata</h2>
     </div>
     <div class="ora"><b>8:30</b><div><h3>Apertura</h3><p>Ombrelloni già aperti, sabbia passata, docce accese. Il primo caffè è al banco dell'angolo relax.</p></div></div>
     <div class="ora"><b>9:00</b><div><h3>Bagnino in torretta</h3><p>Inizia la sorveglianza. Da qui in poi la bandiera dice sempre come sta il mare.</p></div></div>
@@ -310,8 +309,8 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">06</span> Galleria</p>
-      <h2>La spiaggia com'è davvero</h2>
-      <p>Fotografie dei Bagni Tortuga, nessun ritocco e nessuna immagine presa altrove.</p>
+      <h2>Fotografie</h2>
+      <p>Immagini dei Bagni Tortuga. Nessun ritocco, nessuna immagine presa altrove.</p>
     </div>
     <div class="gal" id="galleria-lista"></div>
   </div>
@@ -349,8 +348,8 @@
   <div class="wrap">
     <div class="testa">
       <p class="occhiello"><span class="num">08</span> Contatti</p>
-      <h2>Siamo accanto al molo</h2>
-      <p>Per qualsiasi cosa scrivici o chiamaci: rispondiamo tutti i giorni durante la stagione.</p>
+      <h2>Dove siamo</h2>
+      <p>Durante la stagione rispondiamo tutti i giorni, per telefono e per email.</p>
     </div>
     <div class="griglia g2" style="gap:26px;align-items:start">
       <div class="scheda">
