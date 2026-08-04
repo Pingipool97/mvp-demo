@@ -26,3 +26,16 @@ function costruisci(parti, uscita){
 const quale=process.argv[2]||'sito';
 if(quale==='sito') costruisci(['s1-head.html','s2-body.html','s3-script.html'], path.join(RAD,'out','sito.html'));
 if(quale==='dash') costruisci(['d1-head.html','d2-body.html','d3-script.html'], path.join(RAD,'out','dashboard.html'));
+
+/* controllo: $(...) restituisce un elemento solo, .forEach su quello esplode */
+(function controlla(){
+  const fs=require('fs'), path=require('path');
+  fs.readdirSync(path.join(__dirname,'src')).forEach(f=>{
+    fs.readFileSync(path.join(__dirname,'src',f),'utf8').split('\n').forEach((r,i)=>{
+      if(/[^$]\$\([^)]*\)\.forEach/.test(r)){
+        console.error('ERRORE in '+f+':'+(i+1)+' -> $(...).forEach, serve $$');
+        process.exitCode=1;
+      }
+    });
+  });
+})();

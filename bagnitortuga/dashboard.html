@@ -197,6 +197,80 @@ td b{font-family:'Inter',sans-serif}
 .nota{font-size:.8rem;color:var(--tx3);padding:13px 15px;border-radius:11px;background:var(--card2);
   border:1px dashed var(--bord);line-height:1.55}
 
+/* ============ ASSISTENTE ============ */
+.assist{background:var(--deep);color:#fff;border-radius:16px;padding:20px}
+.assist .a-top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.assist .a-top svg{width:20px;height:20px;color:var(--acc)}
+.assist .a-top h2{font-size:1.05rem}
+.assist .a-top span{margin-left:auto;font-size:.76rem;opacity:.6}
+.assist .cons{background:rgba(255,255,255,.07);border-radius:12px;padding:15px 16px;margin-bottom:10px}
+.assist .cons:last-child{margin-bottom:0}
+.assist .cons .riga1{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
+.assist .cons h4{font-size:.95rem;font-weight:700;line-height:1.3}
+.assist .cons p{font-size:.85rem;opacity:.78;margin-top:5px;line-height:1.45}
+.assist .cons .az{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+.assist .cons .az button{padding:.4em .85em;border-radius:8px;font-size:.8rem;font-weight:600;
+  background:rgba(255,255,255,.14);color:#fff;transition:.15s}
+.assist .cons .az button:hover{background:rgba(255,255,255,.26)}
+.assist .cons .az button.forte{background:var(--acc);color:var(--acc-t)}
+.assist .cons .az button.forte:hover{background:var(--acc-s)}
+.tag{font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:.24em .55em;border-radius:6px;flex:none}
+.tag-urg{background:#C0392B;color:#fff}
+.tag-oggi{background:var(--acc);color:var(--acc-t)}
+.tag-info{background:rgba(255,255,255,.16);color:#fff}
+
+/* ============ WHATSAPP ============ */
+.wa{display:grid;grid-template-columns:320px 1fr;gap:0;border:1px solid var(--bord);
+  border-radius:16px;overflow:hidden;background:var(--card);height:min(620px,72vh)}
+.wa-elenco{border-right:1px solid var(--bord);overflow-y:auto;background:var(--card2)}
+.wa-c{display:flex;gap:11px;padding:13px 14px;border-bottom:1px solid var(--bord);cursor:pointer;
+  transition:.14s}
+.wa-c:hover{background:var(--card)}
+.wa-c.on{background:var(--card);border-left:3px solid var(--acc);padding-left:11px}
+.wa-c .cerchio{width:38px;height:38px;border-radius:99px;background:var(--deep);color:#fff;
+  display:grid;place-items:center;font-size:.8rem;font-weight:700;flex:none}
+.wa-c .testo{min-width:0;flex:1}
+.wa-c b{font-size:.88rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-c small{font-size:.78rem;color:var(--tx3);display:block;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.wa-c .dx2{text-align:right;flex:none}
+.wa-c .dx2 .ora{font-size:.7rem;color:var(--tx3)}
+.wa-c .dx2 .n{display:inline-grid;place-items:center;min-width:19px;height:19px;border-radius:99px;
+  background:#25D366;color:#fff;font-size:.7rem;font-weight:700;margin-top:4px;padding:0 5px}
+.wa-t{display:flex;flex-direction:column;min-width:0}
+.wa-t .t-top{display:flex;align-items:center;gap:11px;padding:13px 16px;border-bottom:1px solid var(--bord);
+  flex-wrap:wrap}
+.wa-t .t-top .cerchio{width:36px;height:36px;border-radius:99px;background:var(--deep);color:#fff;
+  display:grid;place-items:center;font-size:.78rem;font-weight:700;flex:none}
+.wa-t .t-top b{font-size:.93rem;display:block;line-height:1.2}
+.wa-t .t-top small{font-size:.75rem;color:var(--tx3)}
+.wa-t .t-top .az{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.wa-msg{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:9px;
+  background:var(--card2)}
+.wa-b{max-width:76%;padding:9px 13px;border-radius:14px;font-size:.87rem;line-height:1.45}
+.wa-b.cli{background:var(--card);border:1px solid var(--bord);align-self:flex-start;
+  border-bottom-left-radius:4px}
+.wa-b.noi{background:#DCF8C6;color:#0B2431;align-self:flex-end;border-bottom-right-radius:4px}
+.wa-b.sistema{align-self:center;background:transparent;color:var(--tx3);font-size:.76rem;
+  border:1px dashed var(--bord);border-radius:99px;padding:5px 12px}
+.wa-b .chi{display:block;font-size:.7rem;opacity:.6;margin-bottom:2px;font-weight:700}
+.wa-piede{padding:11px 14px;border-top:1px solid var(--bord);display:flex;gap:8px;background:var(--card)}
+.wa-piede input{flex:1;padding:.6em .9em;border-radius:99px;border:1.5px solid var(--bord);
+  background:var(--card2);font-size:.88rem}
+.wa-piede input:focus{outline:none;border-color:var(--acc)}
+.wa-piede button{width:40px;height:40px;border-radius:99px;background:#25D366;color:#fff;
+  display:grid;place-items:center;flex:none}
+.wa-rapide{display:flex;gap:6px;padding:9px 14px 0;flex-wrap:wrap;background:var(--card)}
+.wa-rapide button{padding:.36em .8em;border-radius:99px;border:1.5px solid var(--bord);font-size:.78rem;
+  background:var(--card2);transition:.14s}
+.wa-rapide button:hover{border-color:var(--acc)}
+@media(max-width:880px){
+  .wa{grid-template-columns:1fr;height:auto}
+  .wa-elenco{max-height:260px;border-right:none;border-bottom:1px solid var(--bord)}
+  .wa-msg{height:340px}
+}
+
 /* barre di incasso */
 .barre{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:10px}
 .barre div{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;
@@ -251,6 +325,9 @@ td b{font-family:'Inter',sans-serif}
 <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
 <symbol id="i-sole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
 <symbol id="i-glob" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z"/></symbol>
+<symbol id="i-scintilla" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7Z"/></symbol>
+<symbol id="i-attesa" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10"/><path d="M8 3v3.5c0 2 4 3.6 4 5.5s-4 3.5-4 5.5V21M16 3v3.5c0 2-4 3.6-4 5.5s4 3.5 4 5.5V21"/></symbol>
+<symbol id="i-bacheca" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9h10M7 13h10M7 17h6"/></symbol>
 <symbol id="i-burger" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
 <symbol id="i-giu" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 <symbol id="i-esci" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M17 8l4 4-4 4M21 12H9"/></symbol>
@@ -267,6 +344,9 @@ td b{font-family:'Inter',sans-serif}
     <button data-p="oggi" class="on"><svg><use href="#i-oggi"/></svg>Oggi</button>
     <button data-p="spiaggia"><svg><use href="#i-mappa"/></svg>Mappa della spiaggia</button>
     <button data-p="prenotazioni"><svg><use href="#i-lista"/></svg>Prenotazioni<span class="pallo" id="pallo-voce" hidden></span></button>
+    <button data-p="attesa"><svg><use href="#i-attesa"/></svg>Lista d'attesa<span class="pallo" id="pallo-attesa" hidden></span></button>
+    <button data-p="whatsapp"><svg><use href="#i-wa"/></svg>WhatsApp<span class="pallo" id="pallo-wa" hidden></span></button>
+    <button data-p="bacheca"><svg><use href="#i-bacheca"/></svg>Bacheca e menù del giorno</button>
     <button data-p="clienti"><svg><use href="#i-clienti"/></svg>Clienti</button>
     <button data-p="cabine"><svg><use href="#i-cabina"/></svg>Cabine</button>
     <div class="div"></div>
@@ -315,6 +395,12 @@ td b{font-family:'Inter',sans-serif}
         <span class="et">Persone in spiaggia</span><b id="k-persone">0</b><small id="k-persone-s"></small></div>
       <div class="kpi"><span class="ic"><svg><use href="#i-cabina"/></svg></span>
         <span class="et">Cabine assegnate</span><b id="k-cabine">0</b><small id="k-cabine-s"></small></div>
+    </div>
+
+    <div class="assist" id="assistente" style="margin-bottom:18px">
+      <div class="a-top"><svg><use href="#i-scintilla"/></svg><h2>Assistente</h2>
+        <span id="conta-cons"></span></div>
+      <div id="consigli"></div>
     </div>
 
     <div class="griglia" style="grid-template-columns:1.35fr 1fr">
@@ -403,6 +489,94 @@ td b{font-family:'Inter',sans-serif}
           <th>Origine</th><th class="num">Importo</th><th>Saldo</th></tr></thead>
         <tbody id="tab-pren"></tbody>
       </table></div>
+    </div>
+  </section>
+
+
+
+  <!-- ============ LISTA D'ATTESA ============ -->
+  <section class="pagina" id="p-attesa" hidden>
+    <div class="scheda">
+      <div class="tit"><div class="sx"><h2>Lista d'attesa</h2>
+        <span class="eti eti-neu" id="conta-attesa"></span></div>
+        <p style="font-size:.83rem;color:var(--tx3)">Chi ha chiesto un posto che in quel momento non c'era</p></div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Cliente</th><th>Telefono</th><th>Cerca</th><th>Periodo</th><th>Dal</th><th></th></tr></thead>
+        <tbody id="tab-attesa"></tbody>
+      </table></div>
+      <p class="nota" style="margin-top:14px">Quando liberi una postazione adatta, qui compare
+        il tasto per assegnarla e avvisare il cliente su WhatsApp.</p>
+    </div>
+  </section>
+
+  <!-- ============ WHATSAPP ============ -->
+  <section class="pagina" id="p-whatsapp" hidden>
+    <div class="tit">
+      <div class="sx"><h2>Conversazioni WhatsApp</h2>
+        <span class="eti eti-neu" id="conta-conv"></span></div>
+      <p style="font-size:.83rem;color:var(--tx3)">Risponde l'assistente automatico.
+        Quando serve, prendi in carico tu la conversazione.</p>
+    </div>
+    <div class="wa">
+      <div class="wa-elenco" id="wa-elenco"></div>
+      <div class="wa-t">
+        <div class="t-top" id="wa-testa"></div>
+        <div class="wa-msg" id="wa-msg"></div>
+        <div class="wa-rapide" id="wa-rapide"></div>
+        <div class="wa-piede">
+          <input id="wa-in" placeholder="Scrivi come operatore" autocomplete="off">
+          <button id="wa-invia" aria-label="Invia"><svg><use href="#i-ok"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BACHECA ============ -->
+  <section class="pagina" id="p-bacheca" hidden>
+    <div class="griglia g2">
+      <div class="scheda">
+        <div class="tit"><h2>Menù del pranzo di oggi</h2>
+          <span class="eti eti-neu" id="bac-data"></span></div>
+        <div class="campo"><label for="m-primo">Primo</label><input id="m-primo"></div>
+        <div class="campo"><label for="m-secondo">Secondo</label><input id="m-secondo"></div>
+        <div class="campo"><label for="m-contorno">Contorno</label><input id="m-contorno"></div>
+        <div class="campo"><label for="m-dolce">Dolce</label><input id="m-dolce"></div>
+        <div class="campo"><label for="m-prezzo">Prezzo del menù completo, bevande escluse</label>
+          <input id="m-prezzo" inputmode="numeric"></div>
+        <p class="nota">Sul sito compare la dicitura "bevande escluse" sotto il prezzo.
+          Lascia vuoto un campo se oggi quella portata non c'è.</p>
+      </div>
+
+      <div style="display:grid;gap:16px;align-content:start">
+        <div class="scheda">
+          <div class="tit"><h2>Bandiera in battigia</h2></div>
+          <div class="filtri" id="scelta-bandiera">
+            <button data-b="verde">Verde, mare tranquillo</button>
+            <button data-b="gialla">Gialla, prudenza</button>
+            <button data-b="rossa">Rossa, balneazione vietata</button>
+          </div>
+        </div>
+        <div class="scheda">
+          <div class="tit"><h2>Avvisi ed eventi</h2>
+            <span class="eti eti-neu" id="conta-avvisi"></span></div>
+          <div id="lista-avvisi"></div>
+          <div class="griglia" style="grid-template-columns:110px 1fr;gap:10px;margin-top:14px">
+            <div class="campo" style="margin:0"><label for="a-quando">Quando</label>
+              <input id="a-quando" placeholder="11:00"></div>
+            <div class="campo" style="margin:0"><label for="a-titolo">Titolo</label>
+              <input id="a-titolo" placeholder="Acqua gym"></div>
+          </div>
+          <div class="campo" style="margin-top:10px"><label for="a-testo">Testo</label>
+            <input id="a-testo" placeholder="Mezz'ora in acqua bassa, compresa nel prezzo"></div>
+          <button class="b b-s b-sm" id="b-aggiungi-avviso"><svg><use href="#i-piu"/></svg>Aggiungi</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px;align-items:center;flex-wrap:wrap">
+      <button class="b b-p" id="b-salva-bacheca"><svg><use href="#i-ok"/></svg>Pubblica sul sito</button>
+      <button class="b b-s" id="b-ripristina">Rimetti i valori di partenza</button>
+      <span style="font-size:.83rem;color:var(--tx3)">Quello che pubblichi qui compare subito
+        nella sezione "Oggi in spiaggia" del sito.</span>
     </div>
   </section>
 
@@ -822,6 +996,7 @@ function cass(v){ $('#cass').classList.toggle('on',v); $('#velo').classList.togg
 /* ================= PAGINE ================= */
 function ora(){ return new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); }
 const TITOLI={oggi:'Oggi',spiaggia:'Mappa della spiaggia',prenotazioni:'Prenotazioni',
+  attesa:"Lista d'attesa",whatsapp:'Conversazioni WhatsApp',bacheca:'Bacheca e menù del giorno',
   clienti:'Clienti',cabine:'Cabine',listino:'Listino',cassa:'Cassa e documenti'};
 const ICONE={oggi:'i-oggi',spiaggia:'i-mappa',prenotazioni:'i-lista',clienti:'i-clienti',
   cabine:'i-cabina',listino:'i-euro',cassa:'i-cassa'};
@@ -1011,6 +1186,244 @@ function disegnaCassa(){
     +': sezione dimostrativa, non viene generato nessun file.'));
 }
 
+/* ================= LISTA D'ATTESA ================= */
+const ATTESA=[
+ {nome:'Fam. Delfino',tel:'+39 347 2210984',cerca:'fronte',per:'settimana',dal:piuGiorni(OGGI,2)},
+ {nome:'G. Ravera',tel:'+39 333 8871245',cerca:'qualsiasi',per:'giorno',dal:piuGiorni(OGGI,0)},
+ {nome:'Fam. Isnardi',tel:'+39 340 5567120',cerca:'fronte',per:'quindicina',dal:piuGiorni(OGGI,5)},
+ {nome:'M. Berruti',tel:'+39 366 4432018',cerca:'retro',per:'mese',dal:piuGiorni(OGGI,7)}
+];
+const CERCA={fronte:'Prima fila',retro:'File arretrate',qualsiasi:'Qualsiasi fila',centrale:'File centrali'};
+function disegnaAttesa(){
+  $('#conta-attesa').textContent=ATTESA.length+' in attesa';
+  $('#pallo-attesa').hidden=!ATTESA.length;
+  $('#tab-attesa').innerHTML= ATTESA.length? ATTESA.map((a,i)=>{
+    const libero=POSTI.find(p=>p.att&&!p.occ&&(a.cerca==='qualsiasi'||p.fascia===a.cerca));
+    return '<tr><td><b>'+esc(a.nome)+'</b></td><td>'+esc(a.tel)+'</td>'
+     +'<td>'+CERCA[a.cerca]+'</td><td>'+NOMEPER[a.per]+'</td><td>'+dataIt(a.dal)+'</td>'
+     +'<td>'+(libero
+        ? '<button class="b b-p b-sm" data-att="'+i+'" data-posto="'+libero.id+'">Assegna '+libero.id+'</button>'
+        : '<span class="eti eti-att">niente di adatto ora</span>')+'</td></tr>';
+  }).join('') : '<tr><td colspan="6"><div class="vuoto">Nessuno in lista d\'attesa.</div></td></tr>';
+  $$('#tab-attesa [data-att]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const a=ATTESA[+b.dataset.att], p=POSTI.find(x=>x.id===b.dataset.posto);
+    p.occ=true;
+    p.cli={nome:a.nome,tel:a.tel,per:a.per,adulti:2,bimbi:0,dal:new Date(a.dal),
+      al:piuGiorni(a.dal,DURATA[a.per]-1),saldo:'da saldare',origine:'lista d\'attesa',
+      cabina:null,stagioni:1,arrivato:false};
+    ATTESA.splice(+b.dataset.att,1);
+    nuovaConversazione(a.nome,a.tel,'Buongiorno '+a.nome.split(' ').pop()+', si è liberata la postazione '
+      +p.id+' per il periodo che aveva chiesto. Le va bene? Se conferma la teniamo bloccata due ore.');
+    tuttoAggiorna();
+    avvisa('Postazione '+p.id+' assegnata a '+a.nome+'. Messaggio pronto su WhatsApp.');
+  });
+}
+
+/* ================= WHATSAPP ================= */
+let CONV=[
+ {nome:'Fam. Delfino',tel:'+39 347 2210984',stato:'agente',nonletti:2,ora:'09:12',msg:[
+   {chi:'cli',t:'Buongiorno, avete posto in prima fila per la settimana di ferragosto?',ora:'09:10'},
+   {chi:'ag',t:'Buongiorno. Per quella settimana la prima fila è esaurita, ho disponibilità in seconda fila a 150 € a settimana. Vuole che la metta in lista d\'attesa per la prima fila?',ora:'09:11'},
+   {chi:'cli',t:'Sì grazie, mi metta in lista. Siamo in quattro con due bambini piccoli.',ora:'09:12'}
+ ]},
+ {nome:'L. Marino',tel:'+39 333 4521190',stato:'agente',nonletti:1,ora:'08:47',msg:[
+   {chi:'cli',t:'A che ora aprite domenica?',ora:'08:46'},
+   {chi:'ag',t:'Siamo aperti tutti i giorni dalle 8:30 alle 19:00, bagnino in servizio dalle 9. Le serve anche un ombrellone per domenica?',ora:'08:47'},
+   {chi:'cli',t:'Sì, per due persone',ora:'08:47'}
+ ]},
+ {nome:'Fam. Conti',tel:'+39 340 7789021',stato:'umano',nonletti:0,ora:'ieri',msg:[
+   {chi:'cli',t:'Buonasera, dovremmo disdire la giornata di giovedì, mia moglie non sta bene.',ora:'ieri 20:14'},
+   {chi:'ag',t:'Mi dispiace. Passo la richiesta a una persona del nostro staff, le risponde a breve.',ora:'ieri 20:14'},
+   {chi:'sis',t:'Conversazione presa in carico da Sharon Roveraro',ora:'ieri 20:20'},
+   {chi:'noi',t:'Buonasera, nessun problema: la giornata di giovedì la spostiamo senza costi. Mi dica quando volete venire.',ora:'ieri 20:22'}
+ ]},
+ {nome:'A. Ricci',tel:'+39 348 1120765',stato:'agente',nonletti:0,ora:'ieri',msg:[
+   {chi:'cli',t:'Il cane è ammesso in spiaggia?',ora:'ieri 17:02'},
+   {chi:'ag',t:'Su questo non ho una risposta certa e preferisco non inventarla: le faccio rispondere da una persona dello staff.',ora:'ieri 17:02'},
+   {chi:'noi',t:'Buonasera, i cani di piccola taglia sono ammessi nelle file arretrate, al guinzaglio.',ora:'ieri 17:20'}
+ ]}
+];
+let convApert=0;
+const RAPIDE=['Le confermo la disponibilità','Le mando il listino','Passo in cassa e le dico',
+  'Grazie, a presto'];
+
+function iniz(n){ return n.replace('Fam. ','').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase(); }
+function disegnaConv(){
+  const nonletti=CONV.reduce((t,c)=>t+c.nonletti,0);
+  $('#conta-conv').textContent=CONV.length+' conversazioni, '+nonletti+' da leggere';
+  $('#pallo-wa').hidden=!nonletti;
+  $('#wa-elenco').innerHTML=CONV.map((c,i)=>
+    '<div class="wa-c'+(i===convApert?' on':'')+'" data-c="'+i+'">'
+    +'<span class="cerchio">'+iniz(c.nome)+'</span>'
+    +'<span class="testo"><b>'+esc(c.nome)+'</b>'
+    +'<small>'+esc(c.msg[c.msg.length-1].t)+'</small></span>'
+    +'<span class="dx2"><span class="ora">'+c.ora+'</span>'
+    +(c.nonletti?'<br><span class="n">'+c.nonletti+'</span>':'')+'</span></div>').join('');
+  $$('#wa-elenco .wa-c').forEach(e=>e.onclick=()=>{ convApert=+e.dataset.c;
+    CONV[convApert].nonletti=0; disegnaConv(); });
+
+  const c=CONV[convApert];
+  if(!c){ $('#wa-msg').innerHTML='<div class="vuoto">Nessuna conversazione</div>'; return; }
+  $('#wa-testa').innerHTML='<span class="cerchio">'+iniz(c.nome)+'</span>'
+    +'<div><b>'+esc(c.nome)+'</b><small>'+esc(c.tel)+'</small></div>'
+    +'<span class="eti '+(c.stato==='umano'?'eti-ok':'eti-neu')+'">'
+    +(c.stato==='umano'?'gestita da Sharon Roveraro':'risponde l\'assistente')+'</span>'
+    +'<span class="az">'+(c.stato==='agente'
+      ? '<button class="b b-p b-sm" id="b-prendi">Prendi in carico</button>'
+      : '<button class="b b-s b-sm" id="b-rendi">Restituisci all\'assistente</button>')
+    +'<button class="b b-s b-sm" id="b-scheda">Apri la scheda cliente</button></span>';
+  $('#wa-msg').innerHTML=c.msg.map(m=>{
+    if(m.chi==='sis') return '<div class="wa-b sistema">'+esc(m.t)+'</div>';
+    const mio=m.chi!=='cli';
+    return '<div class="wa-b '+(mio?'noi':'cli')+'">'
+      +(m.chi==='ag'?'<span class="chi">Assistente</span>':'')
+      +(m.chi==='noi'?'<span class="chi">Sharon</span>':'')
+      +esc(m.t)+'</div>';
+  }).join('');
+  $('#wa-msg').scrollTop=1e6;
+  $('#wa-rapide').innerHTML=RAPIDE.map(r=>'<button>'+esc(r)+'</button>').join('');
+  $$('#wa-rapide button').forEach(b=>b.onclick=()=>mandaWa(b.textContent));
+  const bp=$('#b-prendi'); if(bp) bp.onclick=()=>{
+    c.stato='umano';
+    c.msg.push({chi:'sis',t:'Conversazione presa in carico da Sharon Roveraro',ora:ora()});
+    disegnaConv(); avvisa('Hai preso in carico la conversazione con '+c.nome
+      +'. L\'assistente non risponde più finché non gliela restituisci.');
+  };
+  const br=$('#b-rendi'); if(br) br.onclick=()=>{
+    c.stato='agente';
+    c.msg.push({chi:'sis',t:'Conversazione restituita all\'assistente',ora:ora()});
+    disegnaConv(); avvisa('Torna a rispondere l\'assistente');
+  };
+  const bs=$('#b-scheda'); if(bs) bs.onclick=()=>{
+    const p=POSTI.find(x=>x.occ&&x.cli.nome===c.nome);
+    if(p) apriPosto(p.id); else avvisa('Questo contatto non ha una postazione attiva');
+  };
+}
+function mandaWa(testo){
+  const c=CONV[convApert]; if(!c||!testo.trim()) return;
+  if(c.stato!=='umano'){
+    c.stato='umano';
+    c.msg.push({chi:'sis',t:'Conversazione presa in carico da Sharon Roveraro',ora:ora()});
+  }
+  c.msg.push({chi:'noi',t:testo.trim(),ora:ora()});
+  c.ora=ora(); $('#wa-in').value=''; disegnaConv();
+}
+function nuovaConversazione(nome,tel,testo){
+  CONV.unshift({nome:nome,tel:tel,stato:'umano',nonletti:0,ora:ora(),
+    msg:[{chi:'noi',t:testo,ora:ora()}]});
+  convApert=0;
+}
+
+/* ================= ASSISTENTE ================= */
+function consigli(){
+  const out=[];
+  const daSald=POSTI.filter(daSaldare);
+  if(daSald.length){
+    const tot=daSald.reduce((t,p)=>t+importo(p),0);
+    out.push({tag:'urg',t:daSald.length+' posizioni ancora da saldare',
+      p:'In tutto '+eur(tot)+'. La più vecchia è '+daSald[0].id+', '+daSald[0].cli.nome+'. '
+        +'Conviene chiudere gli incassi prima della fine della settimana.',
+      az:[['Vai alle prenotazioni',()=>{ filtroPren='saldare';
+        $$('.filtri [data-fp]').forEach(x=>x.classList.toggle('on',x.dataset.fp==='saldare'));
+        disegnaPren(); vaiA('prenotazioni'); },true]]});
+  }
+  const attesi=POSTI.filter(p=>p.occ&&!p.cli.arrivato&&dataIt(p.cli.dal)===dataIt(OGGI));
+  if(attesi.length){
+    out.push({tag:'oggi',t:attesi.length+' ospiti attesi oggi non ancora arrivati',
+      p:'Fra questi '+attesi[0].cli.nome+' all\'ombrellone '+attesi[0].id
+        +'. Dopo le 12:30 puoi rimettere in vendita il pomeriggio come mezza giornata.',
+      az:[['Vedi la mappa',()=>vaiA('spiaggia'),false]]});
+  }
+  if(ATTESA.length){
+    const assegnabili=ATTESA.filter(a=>POSTI.some(p=>p.att&&!p.occ&&(a.cerca==='qualsiasi'||p.fascia===a.cerca)));
+    if(assegnabili.length) out.push({tag:'oggi',t:assegnabili.length+' persone in lista d\'attesa possono essere accontentate',
+      p:'Si sono liberate postazioni adatte a quello che cercavano. Assegnandole parte anche il messaggio su WhatsApp.',
+      az:[['Apri la lista d\'attesa',()=>vaiA('attesa'),true]]});
+  }
+  const nonletti=CONV.reduce((t,c)=>t+c.nonletti,0);
+  if(nonletti) out.push({tag:'oggi',t:nonletti+' messaggi WhatsApp da leggere',
+    p:'L\'assistente ha già risposto, ma due richieste riguardano disponibilità che non può confermare da solo.',
+    az:[['Apri le conversazioni',()=>vaiA('whatsapp'),true]]});
+  const primaFila=POSTI.filter(p=>p.att&&p.fila==='A'&&!p.occ).length;
+  if(primaFila) out.push({tag:'info',t:primaFila+' postazioni libere in prima fila',
+    p:'È la fascia che rende di più, '+eur(PREZZI.fronte.giorno)+' al giorno. '
+      +'Puoi proporla a chi oggi ha prenotato le file arretrate.',
+    az:[['Vedi la mappa',()=>vaiA('spiaggia'),false]]});
+  const nuoveWeb=POSTI.filter(p=>p.occ&&p.cli.nuova).length;
+  if(nuoveWeb) out.push({tag:'oggi',t:nuoveWeb+' prenotazioni nuove arrivate dal sito',
+    p:'Sono già confermate e pagate. Controlla che la postazione sia libera all\'arrivo.',
+    az:[['Vedi le prenotazioni',()=>{ filtroPren='web';
+      $$('.filtri [data-fp]').forEach(x=>x.classList.toggle('on',x.dataset.fp==='web'));
+      disegnaPren(); vaiA('prenotazioni'); },false]]});
+  return out;
+}
+function disegnaAssistente(){
+  const c=consigli();
+  $('#conta-cons').textContent=c.length+(c.length===1?' cosa da valutare':' cose da valutare');
+  $('#consigli').innerHTML=c.map((x,i)=>
+    '<div class="cons"><div class="riga1"><h4>'+esc(x.t)+'</h4>'
+    +'<span class="tag tag-'+x.tag+'">'+(x.tag==='urg'?'urgente':x.tag==='oggi'?'oggi':'nota')+'</span></div>'
+    +'<p>'+esc(x.p)+'</p>'
+    +'<div class="az">'+x.az.map((a,j)=>'<button data-c="'+i+'" data-a="'+j+'"'
+      +(a[2]?' class="forte"':'')+'>'+esc(a[0])+'</button>').join('')+'</div></div>').join('')
+    || '<div class="cons"><h4>Non c\'è niente che richieda attenzione</h4>'
+      +'<p>Incassi in pari, nessuno in lista d\'attesa, nessun messaggio in sospeso.</p></div>';
+  $$('#consigli [data-a]').forEach(b=>b.onclick=()=>c[+b.dataset.c].az[+b.dataset.a][1]());
+}
+
+/* ================= BACHECA E MENU DEL GIORNO ================= */
+const BACHECA_DEF={
+  menu:{primo:'Trofie al pesto genovese',secondo:'Pesce del giorno alla griglia',
+    contorno:'Insalata di pomodori cuore di bue e cipolla di Tropea',
+    dolce:'Panna cotta ai frutti di bosco',prezzo:22},
+  bandiera:'verde',
+  avvisi:[
+    {quando:'11:00',titolo:'Acqua gym',testo:"Mezz'ora in acqua bassa con l'istruttore. Compresa nel prezzo del posto, basta presentarsi in battigia."},
+    {quando:'16:30',titolo:'Giochi per i bambini',testo:'Ping pong e calcio balilla nell\'area dietro le cabine, all\'ombra.'},
+    {quando:'Venerdì',titolo:'Aperitivo in spiaggia',testo:'Dalle 18:30 musica e aperitivo al banco dell\'angolo relax.'}
+  ]
+};
+let BACHECA=JSON.parse(JSON.stringify(BACHECA_DEF));
+(function leggiBacheca(){
+  try{ const b=JSON.parse(localStorage.getItem('tortuga_bacheca')||'null');
+    if(b && b.menu) BACHECA=b; }catch(e){}
+})();
+
+function elencoAvvisi(){
+  $('#conta-avvisi').textContent=(BACHECA.avvisi||[]).length+' in bacheca';
+  $('#lista-avvisi').innerHTML=(BACHECA.avvisi||[]).map((a,i)=>
+    '<div class="dato"><span><b>'+esc(a.quando)+' · '+esc(a.titolo)+'</b><br>'
+    +'<small style="color:var(--tx3)">'+esc(a.testo)+'</small></span>'
+    +'<span><button class="b b-ko b-sm" data-el="'+i+'">Elimina</button></span></div>').join('')
+    || '<div class="vuoto">Nessun avviso in bacheca.</div>';
+  $$('#lista-avvisi [data-el]').forEach(b=>b.onclick=()=>{
+    BACHECA.avvisi.splice(+b.dataset.el,1); elencoAvvisi();
+  });
+}
+/* i campi del menù si riempiono solo all'apertura e al ripristino:
+   se li riscrivessi a ogni ridisegno cancellerei quello che sta scrivendo l'operatore */
+function riempiMenu(){
+  const m=BACHECA.menu;
+  $('#m-primo').value=m.primo||''; $('#m-secondo').value=m.secondo||'';
+  $('#m-contorno').value=m.contorno||''; $('#m-dolce').value=m.dolce||'';
+  $('#m-prezzo').value=m.prezzo||'';
+}
+function disegnaBacheca(){
+  $('#bac-data').textContent=OGGI.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  riempiMenu();
+  $$('#scelta-bandiera button').forEach(b=>b.classList.toggle('on',b.dataset.b===BACHECA.bandiera));
+  elencoAvvisi();
+}
+function salvaBacheca(){
+  BACHECA.menu={primo:$('#m-primo').value.trim(),secondo:$('#m-secondo').value.trim(),
+    contorno:$('#m-contorno').value.trim(),dolce:$('#m-dolce').value.trim(),
+    prezzo:parseInt($('#m-prezzo').value,10)||0};
+  try{ localStorage.setItem('tortuga_bacheca',JSON.stringify(BACHECA)); }catch(e){}
+  elencoAvvisi();
+  avvisa('Bacheca pubblicata. Sul sito la sezione "Oggi in spiaggia" è già aggiornata.');
+}
+
 /* ================= AVVISO ================= */
 function avvisa(t){
   $('#toast-testo').textContent=t;
@@ -1020,7 +1433,7 @@ function avvisa(t){
 
 function tuttoAggiorna(){
   aggiornaMappa(); disegnaOggi(); disegnaPren(); disegnaClienti();
-  disegnaCabine(); disegnaCassa();
+  disegnaCabine(); disegnaCassa(); disegnaAttesa(); disegnaConv(); disegnaAssistente();
 }
 
 /* ================= AVVIO ================= */
@@ -1041,7 +1454,7 @@ function applicaZoom(){
   applicaZoom();
   $('#data-oggi').textContent=OGGI.toLocaleDateString('it-IT',
     {weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  disegnaMappa(); disegnaListino(); tuttoAggiorna();
+  disegnaMappa(); disegnaListino(); disegnaBacheca(); tuttoAggiorna();
 
   $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
   $('#burger').onclick=()=>apriLato(!$('#lato').classList.contains('on'));
@@ -1062,6 +1475,21 @@ function applicaZoom(){
     disegnaPren();
   });
   $('#b-salva-listino').onclick=salvaListino;
+  $('#b-salva-bacheca').onclick=salvaBacheca;
+  $('#wa-invia').onclick=()=>mandaWa($('#wa-in').value);
+  $('#wa-in').onkeydown=e=>{ if(e.key==='Enter') mandaWa($('#wa-in').value); };
+  $('#b-ripristina').onclick=()=>{ BACHECA=JSON.parse(JSON.stringify(BACHECA_DEF));
+    try{localStorage.removeItem('tortuga_bacheca')}catch(e){} disegnaBacheca();
+    avvisa('Bacheca riportata ai valori di partenza'); };
+  $$('#scelta-bandiera button').forEach(b=>b.onclick=()=>{ BACHECA.bandiera=b.dataset.b;
+    $$('#scelta-bandiera button').forEach(x=>x.classList.toggle('on',x===b)); });
+  $('#b-aggiungi-avviso').onclick=()=>{
+    const q=$('#a-quando').value.trim(), ti=$('#a-titolo').value.trim(), te=$('#a-testo').value.trim();
+    if(ti.length<2){ avvisa('Serve almeno il titolo dell\'avviso'); return; }
+    BACHECA.avvisi=BACHECA.avvisi||[];
+    BACHECA.avvisi.push({quando:q||'Oggi',titolo:ti,testo:te});
+    $('#a-quando').value=''; $('#a-titolo').value=''; $('#a-testo').value='';
+    elencoAvvisi(); avvisa('Avviso aggiunto. Ricordati di premere Pubblica sul sito.'); };
   $('#b-modifica').onclick=()=>modoModifica(!modifica);
   $('#m-tutte').onclick=()=>tutteLeFile(true);
   $('#m-1').onclick=()=>fileDietro(1);
