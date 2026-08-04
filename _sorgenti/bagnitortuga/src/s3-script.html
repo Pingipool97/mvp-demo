@@ -1,0 +1,657 @@
+<script>
+"use strict";
+const $=(s,e)=>(e||document).querySelector(s);
+const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
+const eur=n=>n.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0})+' €';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* =========================================================
+   PALETTE ·  il rebranding dal vivo
+   ========================================================= */
+const PALETTE=[
+  {id:'mare',     nome:'Mare',     sotto:'I colori veri della spiaggia', c:['#F2B705','#0B3C5D','#F7F3EA']},
+  {id:'tramonto', nome:'Tramonto', sotto:'Arancio caldo e blu notte',    c:['#E8622A','#0E3350','#FAF4EC']},
+  {id:'brezza',   nome:'Brezza',   sotto:'Bianco e azzurro, molto pulito',c:['#1F8FBF','#12313F','#EFF6FA']},
+  {id:'notte',    nome:'Notte',    sotto:'Un colore solo, tutte le sue gradazioni', c:['#12435F','#0D1B24','#F4F5F6']}
+];
+function disegnaPalette(){
+  $('#p-list').innerHTML=PALETTE.map(p=>
+    '<button class="p-v" data-p="'+p.id+'">'
+     +'<span class="campioni">'+p.c.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span>'
+     +'<span><b>'+p.nome+'</b><small>'+p.sotto+'</small></span></button>').join('');
+  $$('#p-list .p-v').forEach(b=>b.onclick=()=>metti(b.dataset.p));
+  segnaPalette();
+}
+function metti(id){
+  document.documentElement.dataset.tema=id;
+  const p=PALETTE.find(x=>x.id===id);
+  $('#nome-pal').textContent=p.nome;
+  segnaPalette();
+  try{localStorage.setItem('tortuga_tema',id)}catch(e){}
+}
+function segnaPalette(){
+  const t=document.documentElement.dataset.tema;
+  $$('#p-list .p-v').forEach(b=>b.classList.toggle('on',b.dataset.p===t));
+}
+function giraPalette(){
+  const t=document.documentElement.dataset.tema;
+  const i=PALETTE.findIndex(p=>p.id===t);
+  metti(PALETTE[(i+1)%PALETTE.length].id);
+}
+
+/* =========================================================
+   LISTINO
+   ========================================================= */
+const FILE=['A','B','C','D','E','F'];
+const FASCIA={A:'fronte',B:'centrale',C:'centrale',D:'retro',E:'retro',F:'retro'};
+const PREZZI={
+  fronte:  {giorno:32,mezza:22,settimana:175,quindicina:320,mese:560,stagione:1750},
+  centrale:{giorno:27,mezza:19,settimana:150,quindicina:275,mese:480,stagione:1500},
+  retro:   {giorno:22,mezza:15,settimana:125,quindicina:230,mese:400,stagione:1250}
+};
+const CABINA={giorno:12,mezza:12,settimana:60,quindicina:110,mese:180,stagione:480};
+const GIORNI={giorno:1,mezza:1,settimana:7,quindicina:15,mese:30,stagione:120};
+const NOMEPER={giorno:'Giornata intera',mezza:'Mezza giornata',settimana:'Una settimana',
+  quindicina:'Quindici giorni',mese:'Un mese',stagione:'Tutta la stagione'};
+const NOMEFASCIA={fronte:'Prima fila, fronte mare',centrale:'File centrali',retro:'File arretrate'};
+
+function disegnaListino(){
+  const gruppi=[['A','fronte'],['B, C','centrale'],['D, E, F','retro']];
+  $('#corpo-listino').innerHTML=gruppi.map(([lab,f])=>{
+    const p=PREZZI[f];
+    return '<tr><td><span class="fila"><i></i><span><b>Fila '+lab+'</b><br>'
+      +'<small style="color:var(--tx3);font-size:.78rem">'+NOMEFASCIA[f]+'</small></span></span></td>'
+      +'<td><b>'+eur(p.giorno)+'</b></td><td>'+eur(p.mezza)+'</td><td>'+eur(p.settimana)+'</td>'
+      +'<td>'+eur(p.quindicina)+'</td><td>'+eur(p.mese)+'</td><td><b>'+eur(p.stagione)+'</b></td></tr>';
+  }).join('');
+}
+
+/* =========================================================
+   SPIAGGIA ·  84 postazioni su 6 file da 14, passerella al centro
+   ========================================================= */
+const PERFILA=14;
+const POSTI=[];
+FILE.forEach((f,ri)=>{ for(let i=1;i<=PERFILA;i++) POSTI.push({id:f+i,fila:f,ri:ri,col:i,
+  fascia:FASCIA[f], occ:false, cli:null}); });
+
+/* generatore deterministico: la mappa è sempre uguale a ogni apertura */
+let seme=20260804;
+function rnd(){ seme=(seme*1103515245+12345)&0x7fffffff; return seme/0x7fffffff; }
+const NOMI=['Fam. Rossi','Fam. Bianchi','Fam. Conti','M. Ferrari','Fam. Greco','L. Marino',
+ 'Fam. Costa','A. Ricci','Fam. Bruno','S. Gallo','Fam. Rizzo','P. Moretti','Fam. Serra',
+ 'G. Vitale','Fam. Longo','C. Barbieri','Fam. Fontana','D. Villa','Fam. Sala','E. Neri',
+ 'Fam. Parodi','R. Bianco','Fam. Testa','V. Amato','Fam. Pini','N. Riva','Fam. Orlando',
+ 'F. Genta','Fam. Baldi','T. Rebora','Fam. Sciandra','U. Peluffo'];
+function semina(){
+  let n=0;
+  POSTI.forEach(p=>{
+    /* le file davanti si riempiono prima, come succede davvero */
+    const base=[.72,.66,.58,.46,.38,.30][p.ri];
+    if(rnd()<base){
+      p.occ=true;
+      p.cli={ nome:NOMI[n%NOMI.length], bimbi:rnd()<.28?(rnd()<.6?1:2):0,
+              per:['stagione','mese','settimana','giorno','quindicina'][Math.floor(rnd()*5)] };
+      n++;
+    }
+  });
+  /* garantisco alcuni posti liberi utili alla dimostrazione */
+  ['A7','A8','B4','C11','D2','E14','F1','F7'].forEach(id=>{
+    const p=POSTI.find(x=>x.id===id); if(p){p.occ=false;p.cli=null;}
+  });
+}
+semina();
+
+const CABINE=24;
+const COLCAB=['#E94F37','#F6A413','#F7D708','#8DC63F','#39B54A','#00A99D','#27AAE1','#2E5FAA',
+ '#7B5AA6','#D6449B','#F26D7D','#F58220'];
+
+/* geometria */
+const RY=[110,172,234,296,358,420];      /* F,E,D,C,B,A dall'alto verso il mare */
+function xdi(col){ return 100+(col-1)*52+(col>7?44:0); }
+function ydi(fila){ return RY[5-FILE.indexOf(fila)]; }
+
+function glifo(){
+  /* ombrellone visto dall'alto: otto spicchi alternati, come quelli veri */
+  let d='';
+  for(let i=0;i<8;i++){
+    const a1=i*Math.PI/4, a2=(i+1)*Math.PI/4, r=16;
+    d+='<path d="M0 0 L'+(r*Math.cos(a1)).toFixed(2)+' '+(r*Math.sin(a1)).toFixed(2)
+      +' A16 16 0 0 1 '+(r*Math.cos(a2)).toFixed(2)+' '+(r*Math.sin(a2)).toFixed(2)+' Z" fill="'
+      +(i%2?'var(--deep)':'var(--acc)')+'"/>';
+  }
+  return '<g id="glifo-omb">'+d+'<circle r="3.1" fill="#fff" opacity=".92"/></g>';
+}
+
+function disegnaMappa(){
+  const s=[];
+  s.push('<defs>'+glifo()
+    +'<linearGradient id="grad-mare" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="var(--deep)" stop-opacity=".55"/>'
+    +'<stop offset="1" stop-color="var(--deep)" stop-opacity=".9"/></linearGradient>'
+    +'<pattern id="sabbia" width="9" height="9" patternUnits="userSpaceOnUse">'
+    +'<rect width="9" height="9" fill="var(--bg2)"/>'
+    +'<circle cx="2" cy="3" r=".7" fill="var(--tx3)" opacity=".2"/>'
+    +'<circle cx="6.5" cy="7" r=".6" fill="var(--tx3)" opacity=".15"/></pattern></defs>');
+
+  /* sabbia */
+  s.push('<rect x="0" y="0" width="900" height="560" fill="url(#sabbia)"/>');
+
+  /* mare in basso */
+  s.push('<path d="M0 470 Q 120 458 240 470 T 480 470 T 720 470 T 900 468 L900 560 L0 560 Z" fill="url(#grad-mare)"/>');
+  s.push('<path d="M0 470 Q 120 458 240 470 T 480 470 T 720 470 T 900 468" fill="none" stroke="#fff" stroke-width="2.5" opacity=".55"/>');
+  for(let i=0;i<5;i++){
+    const y=492+i*13;
+    s.push('<path d="M'+(30+i*40)+' '+y+' q 22 -6 44 0 t 44 0" fill="none" stroke="#fff" stroke-width="1.4" opacity=".2"/>');
+  }
+  s.push('<text x="820" y="536" class="et" style="font-size:12px;fill:#fff;opacity:.75">Mar Ligure</text>');
+
+  /* molo a sinistra */
+  s.push('<rect x="0" y="86" width="58" height="404" rx="6" fill="var(--tx3)" opacity=".22"/>');
+  for(let i=0;i<9;i++) s.push('<line x1="6" y1="'+(104+i*44)+'" x2="52" y2="'+(104+i*44)+'" stroke="var(--tx3)" stroke-width="1.6" opacity=".35"/>');
+  s.push('<text x="29" y="300" class="et" style="font-size:11px;letter-spacing:.2em" transform="rotate(-90 29 300)">IL MOLO</text>');
+
+  /* scogliera a destra, come nella foto dall\'alto */
+  s.push('<path d="M842 452 q 26 -14 52 6 l 6 40 -64 8 z" fill="var(--tx3)" opacity=".33"/>');
+  [ [852,462,9],[872,470,7],[860,482,6],[880,486,8],[845,478,5] ].forEach(([x,y,r])=>
+    s.push('<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="var(--tx3)" opacity=".4"/>'));
+  s.push('<text x="866" y="446" class="et" style="font-size:9px">scogliera</text>');
+
+  /* passerella centrale e passerella verso il mare */
+  s.push('<rect x="437" y="76" width="46" height="400" rx="4" fill="#fff" opacity=".85"/>');
+  s.push('<rect x="447" y="470" width="26" height="66" rx="4" fill="#fff" opacity=".6"/>');
+
+  /* cabine colorate in fondo */
+  s.push('<rect x="62" y="14" width="790" height="52" rx="9" fill="var(--card)" stroke="var(--bord)"/>');
+  for(let i=0;i<CABINE;i++){
+    const x=70+i*32.6;
+    s.push('<g class="cab"><rect x="'+x.toFixed(1)+'" y="20" width="27" height="40" rx="4" fill="'
+      +COLCAB[i%COLCAB.length]+'" opacity=".85"/>'
+      +'<rect x="'+(x+8).toFixed(1)+'" y="28" width="11" height="24" rx="2" fill="#fff" opacity=".55"/></g>');
+  }
+  s.push('<text x="457" y="82" class="et" style="font-size:9px">24 cabine private</text>');
+
+  /* ombrelloni */
+  POSTI.forEach(p=>{
+    const x=xdi(p.col), y=ydi(p.fila);
+    s.push('<g class="omb'+(p.occ?' occ':'')+'" data-id="'+p.id+'" transform="translate('+x+','+y+')" '
+      +'tabindex="0" role="button" aria-label="Ombrellone '+p.id+'">'
+      +'<circle class="anello" r="23" fill="none" stroke="var(--deep)" stroke-width="3" opacity="0"/>'
+      +'<ellipse cx="2" cy="4" rx="15" ry="13" fill="var(--tx)" opacity=".07"/>'
+      +'<use href="#glifo-omb" class="disco"/>'
+      +'<circle class="bimbo" cx="13" cy="-13" r="5.6" fill="#fff" stroke="var(--acc-s)" stroke-width="2.2" opacity="0"/>'
+      +'<text class="et" y="28">'+p.col+'</text></g>');
+  });
+
+  /* lettere di fila */
+  FILE.forEach(f=>{
+    s.push('<text x="76" y="'+(ydi(f)+4)+'" class="et" style="font-size:13px;fill:var(--tx2)">'+f+'</text>');
+  });
+
+  $('#mappa').innerHTML=s.join('');
+  $$('#mappa .omb').forEach(g=>{
+    g.addEventListener('click',()=>tocca(g.dataset.id));
+    g.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();tocca(g.dataset.id);} });
+  });
+  aggiornaMappa();
+}
+
+function vicini(p){
+  return POSTI.filter(q=> q!==p && Math.abs(q.ri-p.ri)<=1 && Math.abs(q.col-p.col)<=1 );
+}
+function biminVicini(p){
+  return vicini(p).filter(q=>q.occ&&q.cli&&q.cli.bimbi>0);
+}
+function aggiornaMappa(){
+  POSTI.forEach(p=>{
+    const g=$('#mappa .omb[data-id="'+p.id+'"]'); if(!g) return;
+    g.classList.toggle('occ',p.occ);
+    $('.anello',g).setAttribute('opacity', stato.posto===p.id?'1':'0');
+    $('.bimbo',g).setAttribute('opacity', (p.occ&&p.cli&&p.cli.bimbi>0)?'1':'0');
+    const d=$('.disco',g);
+    if(p.occ){ g.style.setProperty('--acc','var(--tx3)'); g.style.setProperty('--deep','var(--tx3)');
+      g.style.opacity='.42'; }
+    else { g.style.removeProperty('--acc'); g.style.removeProperty('--deep'); g.style.opacity='1'; }
+    if(stato.posto===p.id) g.style.opacity='1';
+    let t=p.occ ? p.id+' · occupato' : p.id+' · libero, '+NOMEFASCIA[p.fascia].toLowerCase();
+    if(p.occ&&p.cli&&p.cli.bimbi>0) t+=', con bambini piccoli';
+    g.setAttribute('aria-label',t);
+    let ti=$('title',g); if(!ti){ ti=document.createElementNS('http://www.w3.org/2000/svg','title'); g.appendChild(ti); }
+    ti.textContent=t;
+  });
+  const liberi=POSTI.filter(p=>!p.occ).length;
+  $('#conta-liberi').textContent=liberi+' postazioni libere su '+POSTI.length;
+}
+
+/* =========================================================
+   PRENOTAZIONE
+   ========================================================= */
+const stato={posto:null,periodo:'giorno',data:'',adulti:2,bimbi:0,extra:{lettino:false,regista:false,cabina:false}};
+
+function tocca(id){
+  const p=POSTI.find(x=>x.id===id);
+  if(!p) return;
+  if(p.occ){ mostraAvviso('Questo ombrellone è occupato',
+      'Il posto '+p.id+' è già prenotato'+(p.cli.per==='stagione'?' per tutta la stagione':'')+
+      '. Posso mostrarti il posto libero più vicino con le stesse caratteristiche.',
+      ()=>{ const alt=piuVicinoLibero(p); if(alt) scegli(alt.id); });
+    return; }
+  scegli(id);
+}
+function scegli(id){
+  const p=POSTI.find(x=>x.id===id);
+  stato.posto=id; aggiornaMappa(); riepilogo();
+  const bv=biminVicini(p);
+  if(bv.length && stato.bimbi==0){
+    mostraAvviso('Bambini nelle vicinanze',
+      'Accanto al posto '+p.id+' ci sono '+(bv.length===1?'bambini sotto i 10 anni in una postazione':
+      'bambini sotto i 10 anni in '+bv.length+' postazioni')+
+      '. Nessun problema per molti, ma se cerchi silenzio posso proporti un posto più riparato.',
+      ()=>{ const q=postoTranquillo(); if(q) scegli(q.id); });
+  } else if(bv.length && stato.bimbi>0){
+    mostraAvviso('Ci sono altre famiglie qui',
+      'Accanto al posto '+p.id+' ci sono altri bambini sotto i 10 anni. Di solito è una buona notizia: '
+      +'i piccoli trovano compagnia e i genitori si danno il cambio.', null, 'Perfetto');
+  } else nascondiAvviso();
+  const g=$('#mappa .omb[data-id="'+id+'"]');
+  if(g) g.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+function piuVicinoLibero(p){
+  const l=POSTI.filter(x=>!x.occ);
+  l.sort((a,b)=>(Math.abs(a.ri-p.ri)*3+Math.abs(a.col-p.col))-(Math.abs(b.ri-p.ri)*3+Math.abs(b.col-p.col)));
+  return l[0];
+}
+function postoTranquillo(){
+  const l=POSTI.filter(p=>!p.occ).map(p=>({p:p,
+    b:biminVicini(p).length, occ:vicini(p).filter(q=>q.occ).length, ri:p.ri}));
+  l.sort((a,b)=> a.b-b.b || a.occ-b.occ || b.ri-a.ri);
+  return l.length?l[0].p:null;
+}
+function postoFronteMare(){
+  for(const f of FILE){
+    const l=POSTI.filter(p=>p.fila===f&&!p.occ);
+    if(l.length){ l.sort((a,b)=>Math.abs(a.col-7.5)-Math.abs(b.col-7.5)); return l[0]; }
+  }
+  return null;
+}
+
+function prezzoPosto(){
+  if(!stato.posto) return 0;
+  const p=POSTI.find(x=>x.id===stato.posto);
+  return PREZZI[p.fascia][stato.periodo];
+}
+function prezzoExtra(){
+  const g=GIORNI[stato.periodo];
+  let t=0;
+  if(stato.extra.lettino) t+=8*g;
+  if(stato.extra.regista) t+=5*g;
+  if(stato.extra.cabina)  t+=CABINA[stato.periodo];
+  return t;
+}
+function riepilogo(){
+  const box=$('#r-righe');
+  if(!stato.posto){
+    box.innerHTML='<div class="nota">Nessun posto scelto. Tocca un ombrellone giallo sulla mappa, '
+      +'oppure lascia scegliere all\'assistente.</div>';
+    $('#r-extra').style.display='none'; $('#r-dati').style.display='none';
+    $('#r-sotto').textContent='Scegli un ombrellone sulla mappa.';
+    return;
+  }
+  const p=POSTI.find(x=>x.id===stato.posto);
+  const base=prezzoPosto(), ex=prezzoExtra();
+  $('#r-sotto').textContent=NOMEFASCIA[p.fascia]+', postazione '+p.id+'.';
+  let h='';
+  h+=riga('Postazione '+p.id,'Ombrellone, 2 lettini e sgabello',eur(base));
+  h+=riga('Periodo',NOMEPER[stato.periodo]+(stato.data?' dal '+dataIt(stato.data):''),'');
+  h+=riga('Persone',stato.adulti+(stato.adulti==1?' adulto':' adulti')
+    +(stato.bimbi>0?', '+stato.bimbi+(stato.bimbi==1?' bambino':' bambini'):''),'');
+  if(stato.extra.lettino) h+=riga('Terzo lettino','8 € al giorno',eur(8*GIORNI[stato.periodo]));
+  if(stato.extra.regista) h+=riga('Sedia da regista','5 € al giorno',eur(5*GIORNI[stato.periodo]));
+  if(stato.extra.cabina)  h+=riga('Cabina privata','Numero assegnato all\'arrivo',eur(CABINA[stato.periodo]));
+  const bv=biminVicini(p);
+  if(bv.length) h+=riga('Vicinato','In '+bv.length+(bv.length==1?' postazione accanto ci sono bambini':
+    ' postazioni accanto ci sono bambini')+' sotto i 10 anni','');
+  h+='<div class="riga-r tot"><span>Totale</span><span>'+eur(base+ex)+'</span></div>';
+  box.innerHTML=h;
+  $('#r-extra').style.display='block'; $('#r-dati').style.display='block';
+}
+function riga(a,b,c){
+  return '<div class="riga-r"><span><b class="sy">'+esc(a)+'</b>'
+    +(b?'<br><small style="color:var(--tx3);font-size:.79rem">'+esc(b)+'</small>':'')+'</span>'
+    +'<span style="white-space:nowrap"><b class="sy">'+c+'</b></span></div>';
+}
+function dataIt(s){
+  const d=new Date(s+'T12:00:00');
+  return d.toLocaleDateString('it-IT',{day:'numeric',month:'long'});
+}
+
+/* avviso */
+let avvAlt=null;
+function mostraAvviso(tit,testo,alt,etOk){
+  $('#avv-tit').textContent=tit;
+  $('#avv-testo').textContent=testo;
+  $('#avv-ok').textContent=etOk||'Va benissimo';
+  avvAlt=alt;
+  $('#avv-alt').style.display=alt?'':'none';
+  $('#avviso').classList.add('on');
+  clearTimeout(mostraAvviso.t);
+  mostraAvviso.t=setTimeout(nascondiAvviso,12000);
+}
+function nascondiAvviso(){ $('#avviso').classList.remove('on'); }
+
+/* =========================================================
+   GALLERIA
+   ========================================================= */
+const FOTO=[
+  ['{{ASSET:p1.jpg}}','La spiaggia vista dal molo, con le cabine colorate sul fondo'],
+  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu, il corridoio centrale verso il mare'],
+  ['{{ASSET:p4.jpg}}','Le ventiquattro cabine private, ognuna con il suo colore'],
+  ['{{ASSET:p5.jpg}}','I lettini blu e la vista verso il molo'],
+  ['{{ASSET:p2.jpg}}','L\'insegna all\'ingresso, sulla passeggiata'],
+  ['{{ASSET:p6.jpg}}','L\'angolo relax all\'ombra, con le poltroncine a righe']
+];
+function disegnaGalleria(){
+  $('#galleria-lista').innerHTML=FOTO.map((f,i)=>
+    '<figure data-i="'+i+'"><div style="background-image:url('+f[0]+')"></div>'
+    +'<figcaption class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden">'+esc(f[1])+'</figcaption></figure>').join('');
+  $$('#galleria-lista figure').forEach(f=>f.onclick=()=>{
+    const d=FOTO[+f.dataset.i];
+    $('#lente-img').src=d[0]; $('#lente-img').alt=d[1];
+    $('#lente').classList.add('on');
+  });
+}
+
+/* =========================================================
+   AUDIT DEL SITO ATTUALE
+   ========================================================= */
+const BUG=[
+ ['Le prenotazioni finiscono su un altro sito',
+  'Il tasto "Prenota Ora" apre widget.spiagge.it in una scheda nuova. Il cliente esce dal vostro sito, '
+  +'prenota su una piattaforma di terzi e su ogni prenotazione resta una commissione.',
+  'Qui la prenotazione si chiude sulla vostra pagina, il cliente resta vostro e i dati anche.'],
+ ['La pagina "Chi siamo" ha un indirizzo generato dall\'editor',
+  'Il menu porta a /about-3, un indirizzo automatico mai sistemato. È brutto da leggere, '
+  +'da condividere e per i motori di ricerca.',
+  'Indirizzi leggibili e sezioni sulla stessa pagina, senza salti.'],
+ ['Un testo troncato è rimasto pubblicato',
+  'Nella scheda "Un po\' di noi" resta la riga "olfo ligure.", il residuo di una frase cancellata a metà.',
+  'Testi riscritti e riletti, senza avanzi di lavorazione.'],
+ ['Parti in inglese su un sito italiano',
+  'Compaiono "Welcome", "Contact Us", "Contact", "More", "press to zoom" e '
+  +'"Use tab to navigate through the menu items.". Sono voci lasciate dal modello di partenza.',
+  'Tutto in italiano, comprese le indicazioni di accessibilità.'],
+ ['Non si trova un solo prezzo',
+  'Non sono scritti i prezzi degli ombrelloni, delle cabine, né gli orari o quante postazioni ci sono. '
+  +'Chi vuole saperlo deve telefonare.',
+  'Listino completo per fila e periodo, sempre aggiornato dal gestionale.'],
+ ['Il diritto d\'autore è fermo al 2024',
+  'In fondo a ogni pagina si legge ancora "©2024". Piccolo dettaglio, ma dice al visitatore '
+  +'che il sito non viene aggiornato da due anni.',
+  'Anno calcolato dal sito stesso, non c\'è più niente da ricordarsi.'],
+ ['La galleria non dice cosa mostra',
+  'Le foto si aprono con l\'etichetta "press to zoom" e non hanno testo alternativo: '
+  +'chi usa un lettore di schermo non sa cosa sta guardando.',
+  'Ogni foto ha una descrizione scritta, e la galleria si apre da tastiera.'],
+ ['Mezzo megabyte di pagina per poche righe di testo',
+  'La sola pagina iniziale pesa 512 KB di HTML, più decine di file esterni caricati da Wix, '
+  +'prima ancora di mostrare una foto.',
+  'Questa pagina è un file solo: foto e caratteri sono dentro, funziona anche senza rete.']
+];
+function disegnaBug(){
+  $('#lista-bug').innerHTML=BUG.map((b,i)=>
+    '<div class="bug"><h4><i>'+(i+1)+'</i><span>'+esc(b[0])+'</span></h4>'
+    +'<p>'+esc(b[1])+'</p>'
+    +'<div class="fix"><svg><use href="#i-ok"/></svg><span>'+esc(b[2])+'</span></div></div>').join('');
+}
+
+/* =========================================================
+   ASSISTENTE ·  risponde e agisce sulla pagina
+   ========================================================= */
+const SUGGERIMENTI=['Quanto costa una settimana?','Trovami un posto tranquillo',
+  'C\'è posto fronte mare domani?','Siete adatti ai bambini?','Come arrivo da voi?'];
+
+function chatApri(v){
+  $('#chat').classList.toggle('on',v);
+  $('#chat-b').style.display=v?'none':'grid';
+  if(v && !$('#chat-corpo').children.length){
+    dice('Buongiorno. Sono l\'assistente dei Bagni Tortuga: rispondo sui prezzi e sui servizi, '
+      +'e se vuoi scelgo io l\'ombrellone e lo metto nel riepilogo.');
+  }
+  if(v) setTimeout(()=>$('#chat-in').focus(),320);
+}
+function dice(testo,fatto){
+  const d=document.createElement('div');
+  d.className='msg a';
+  d.innerHTML=testo+(fatto?'<span class="fatto"><svg><use href="#i-ok"/></svg>'+esc(fatto)+'</span>':'');
+  $('#chat-corpo').appendChild(d);
+  $('#chat-corpo').scrollTop=1e6;
+}
+function diceUtente(t){
+  const d=document.createElement('div'); d.className='msg u'; d.textContent=t;
+  $('#chat-corpo').appendChild(d); $('#chat-corpo').scrollTop=1e6;
+}
+function scrive(){
+  const d=document.createElement('div'); d.className='scrive'; d.id='sto-scrivendo';
+  d.innerHTML='<i></i><i></i><i></i>';
+  $('#chat-corpo').appendChild(d); $('#chat-corpo').scrollTop=1e6;
+}
+function finito(){ const d=$('#sto-scrivendo'); if(d) d.remove(); }
+
+function chiedi(testo){
+  if(!testo.trim()) return;
+  diceUtente(testo);
+  $('#chat-in').value='';
+  scrive();
+  setTimeout(()=>{ finito(); rispondi(testo.toLowerCase()); }, 520+Math.random()*380);
+}
+function ha(t,...p){ return p.some(x=>t.includes(x)); }
+
+function rispondi(t){
+  /* prezzi */
+  if(ha(t,'costa','prezzo','prezzi','listino','tariff','quanto')){
+    let per='settimana';
+    if(ha(t,'giorno','giornata','oggi','domani')) per='giorno';
+    if(ha(t,'mese','mensile')) per='mese';
+    if(ha(t,'stagione','stagionale')) per='stagione';
+    if(ha(t,'quindic')) per='quindicina';
+    if(ha(t,'mezza')) per='mezza';
+    dice('Per '+NOMEPER[per].toLowerCase()+' una postazione, cioè ombrellone, due lettini e sgabello, costa '
+      +'<b>'+eur(PREZZI.fronte[per])+'</b> in prima fila fronte mare, <b>'+eur(PREZZI.centrale[per])
+      +'</b> nelle file centrali e <b>'+eur(PREZZI.retro[per])+'</b> nelle file arretrate. '
+      +'La cabina privata è '+eur(CABINA[per])+'.',
+      'Listino aperto qui sotto');
+    vaiA('#listino'); return;
+  }
+  /* posto tranquillo */
+  if(ha(t,'tranquil','silenzio','riparat','lontano','senza bambini','no bambini','quiet')){
+    const p=postoTranquillo();
+    if(p){ scegli(p.id); vaiA('#prenota');
+      dice('Ho scelto il posto <b>'+p.id+'</b>: '+NOMEFASCIA[p.fascia].toLowerCase()
+        +', nessun bambino piccolo nelle postazioni accanto e poco passaggio. '
+        +'Costa '+eur(PREZZI[p.fascia][stato.periodo])+' per '+NOMEPER[stato.periodo].toLowerCase()+'.',
+        'Posto '+p.id+' selezionato sulla mappa');
+    } else dice('Oggi non ho postazioni libere lontane dal passaggio. Provo con un altro giorno?');
+    return;
+  }
+  /* fronte mare / disponibilità */
+  if(ha(t,'fronte mare','prima fila','vicino al mare','davanti','libero','liber','disponib','posto','prenot','ombrellone')){
+    const p= ha(t,'fronte','prima','mare','davanti') ? postoFronteMare() : postoTranquillo();
+    if(p){ scegli(p.id); vaiA('#prenota');
+      dice('Sì. Il posto libero migliore è <b>'+p.id+'</b>, '+NOMEFASCIA[p.fascia].toLowerCase()
+        +'. L\'ho già messo nel riepilogo: costa '+eur(PREZZI[p.fascia][stato.periodo])
+        +' per '+NOMEPER[stato.periodo].toLowerCase()+'. Ti servono anche un lettino in più o la cabina?',
+        'Posto '+p.id+' selezionato sulla mappa');
+    } else dice('Per quel periodo siamo al completo. Se mi dici un\'altra data controllo subito.');
+    return;
+  }
+  /* bambini */
+  if(ha(t,'bambin','bimb','famigl','figli','piccol')){
+    const conB=POSTI.filter(p=>p.occ&&p.cli&&p.cli.bimbi>0).length;
+    dice('Sì, siamo un lido da famiglie: il fondale degrada piano, il bagnino è in servizio dalle 9 alle 19 '
+      +'e fino a 6 anni il posto non si paga. In più, quando scegli l\'ombrellone ti diciamo se accanto '
+      +'ci sono bambini sotto i 10 anni: oggi succede in '+conB+' postazioni. '
+      +'Serve a chi cerca compagnia e a chi cerca silenzio, in tutti e due i casi.',
+      'Cerchia bianca sulla mappa: postazioni con bambini');
+    vaiA('#prenota'); return;
+  }
+  /* cabine */
+  if(ha(t,'cabina','cabine','spogliatoi','armadiett')){
+    dice('Le cabine private sono 24, ognuna con il suo colore, in fondo alla spiaggia. '
+      +'Costano '+eur(CABINA.giorno)+' al giorno, '+eur(CABINA.settimana)+' a settimana, '
+      +eur(CABINA.mese)+' al mese e '+eur(CABINA.stagione)+' a stagione. '
+      +'Gli spogliatoi comuni invece sono sempre compresi.');
+    return;
+  }
+  /* servizi */
+  if(ha(t,'servizi','wifi','wi-fi','doccia','docce','ping pong','calcio','giochi','bar','caff','mangiare','relax')){
+    dice('Trovi doccia calda e Wi-Fi compresi, cabine private, spogliatoi, angolo relax con dispenser '
+      +'di bibite e caffè, calcio balilla e ping pong dietro le cabine, passerelle fino alla battigia '
+      +'e sedia job su prenotazione.',
+      'Sezione servizi aperta');
+    vaiA('#servizi'); return;
+  }
+  /* orari */
+  if(ha(t,'orari','orario','aperto','apertura','chiude','chiusura','stagione','quando aprite')){
+    dice('Siamo aperti dal 1 maggio al 30 settembre, tutti i giorni dalle 8:30 alle 19:00. '
+      +'Il bagnino è in servizio dalle 9 alle 19. Chi prenota la mezza giornata entra dalle 13.',
+      'Sezione con gli orari aperta');
+    vaiA('#giornata'); return;
+  }
+  /* dove */
+  if(ha(t,'dove','arriv','indirizzo','parcheg','strada','maps','treno','come si')){
+    dice('Siamo in Passeggiata Quaglia, via Aurelia 45, ad Andora (SV), accanto al molo. '
+      +'Dalla stazione sono otto minuti a piedi lungo la passeggiata, e il parcheggio pubblico '
+      +'è quello del porto, a duecento metri.',
+      'Contatti aperti');
+    vaiA('#contatti'); return;
+  }
+  /* contatti */
+  if(ha(t,'telefono','chiamare','numero','mail','email','contatt','whatsapp')){
+    dice('Ci trovi al <b>+39 375 5063425</b> oppure a <b>bagnitortuga24@gmail.com</b>. '
+      +'Durante la stagione rispondiamo tutti i giorni.');
+    vaiA('#contatti'); return;
+  }
+  /* colori */
+  if(ha(t,'color','logo','palette','marchio','rebranding','identità','identita')){
+    apriPal(true);
+    dice('Questa pagina può cambiare identità visiva senza rifare niente: giallo e blu come gli ombrelloni '
+      +'veri, oppure arancio e blu, bianco e azzurro, o un colore solo. Cambia tutto, mappa e marchio compresi.',
+      'Pannello identità aperto');
+    return;
+  }
+  /* cane */
+  if(ha(t,'cane','cani','animal')){
+    dice('Su questo non voglio inventare: la spiaggia non dichiara una regola per gli animali. '
+      +'Conviene chiedere allo 0375 5063425 prima di venire.');
+    return;
+  }
+  /* saluti */
+  if(ha(t,'ciao','buongiorno','buonasera','salve','grazie')){
+    dice('Ciao. Dimmi pure: prezzi, disponibilità, servizi, oppure scelgo io il posto e te lo preparo.');
+    return;
+  }
+  dice('Su questo non ho una risposta certa e preferisco non inventarla. '
+    +'Posso aiutarti su prezzi, disponibilità, scelta del posto, servizi, orari e come arrivare. '
+    +'Per il resto il numero è +39 375 5063425.');
+}
+function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+/* =========================================================
+   AVVIO
+   ========================================================= */
+function apriPal(v){ $('#pal').classList.toggle('on',v); $('#velo-pal').classList.toggle('on',v); }
+function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classList.toggle('on',v); }
+
+(function(){
+  try{ const t=localStorage.getItem('tortuga_tema'); if(t&&PALETTE.some(p=>p.id===t)) metti(t); }catch(e){}
+  disegnaPalette(); disegnaListino(); disegnaMappa(); disegnaGalleria(); disegnaBug(); riepilogo();
+
+  /* data di partenza: domani */
+  const d=new Date(); d.setDate(d.getDate()+1);
+  const iso=d.toISOString().slice(0,10);
+  $('#p-data').value=iso; stato.data=iso;
+  $('#p-data').min=new Date().toISOString().slice(0,10);
+
+  $('#p-data').onchange=e=>{stato.data=e.target.value;riepilogo();};
+  $('#p-periodo').onchange=e=>{stato.periodo=e.target.value;riepilogo();};
+  $('#p-adulti').onchange=e=>{stato.adulti=+e.target.value;riepilogo();};
+  $('#p-bimbi').onchange=e=>{stato.bimbi=+e.target.value;riepilogo();
+    if(stato.posto) scegli(stato.posto);};
+
+  $$('.interruttore[data-extra]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.extra; stato.extra[k]=!stato.extra[k];
+    b.classList.toggle('on',stato.extra[k]); riepilogo();
+  });
+
+  $('#b-tranquillo').onclick=()=>{ const p=postoTranquillo(); if(p){scegli(p.id);} };
+  $('#b-fronte').onclick=()=>{ const p=postoFronteMare(); if(p){scegli(p.id);} };
+
+  $('#avv-ok').onclick=nascondiAvviso;
+  $('#avv-alt').onclick=()=>{ nascondiAvviso(); if(avvAlt) avvAlt(); };
+
+  $('#b-conferma').onclick=()=>{
+    let ok=true;
+    const c=[['#c-nome',v=>v.trim().length>2],['#c-tel',v=>v.replace(/\D/g,'').length>=8],
+             ['#c-mail',v=>/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v)]];
+    c.forEach(([sel,f])=>{ const el=$(sel), campo=el.closest('.campo');
+      const buono=f(el.value); campo.classList.toggle('ko',!buono); if(!buono) ok=false; });
+    if(!ok) return;
+    const p=POSTI.find(x=>x.id===stato.posto);
+    p.occ=true; p.cli={nome:$('#c-nome').value.trim(),bimbi:stato.bimbi,per:stato.periodo};
+    const tot=prezzoPosto()+prezzoExtra();
+    aggiornaMappa();
+    mostraAvviso('Prenotazione registrata',
+      'Postazione '+stato.posto+', '+NOMEPER[stato.periodo].toLowerCase()+', totale '+eur(tot)+'. '
+      +'In una versione vera qui partirebbe il pagamento e la conferma su WhatsApp. '
+      +'Questa è una dimostrazione: non è stato addebitato nulla.',null,'Ho capito');
+    stato.posto=null; ['#c-nome','#c-tel','#c-mail'].forEach(s=>$(s).value='');
+    riepilogo(); aggiornaMappa();
+  };
+
+  $('#b-invia-msg').onclick=()=>{
+    mostraAvviso('Modulo dimostrativo','Il messaggio non è stato spedito: questa pagina non invia niente. '
+      +'Nel sito vero arriverebbe sulla casella dei bagni e su WhatsApp.',null,'Ho capito');
+  };
+
+  /* pannelli */
+  $('#apri-pal').onclick=()=>apriPal(true);
+  $('#chiudi-pal').onclick=()=>apriPal(false);
+  $('#apri-pres').onclick=()=>apriPres(true);
+  $('#chiudi-pres').onclick=()=>apriPres(false);
+  $('#velo-pal').onclick=()=>{apriPal(false);apriPres(false);};
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ apriPal(false); apriPres(false); chatApri(false);
+      $('#lente').classList.remove('on'); nascondiAvviso(); }
+    if(e.key==='c'&&e.altKey) giraPalette();
+  });
+
+  /* lente */
+  $('#lente').onclick=()=>$('#lente').classList.remove('on');
+
+  /* chat */
+  $('#chat-b').onclick=()=>chatApri(true);
+  $('#chat-x').onclick=()=>chatApri(false);
+  $('#chat-invia').onclick=()=>chiedi($('#chat-in').value);
+  $('#chat-in').onkeydown=e=>{ if(e.key==='Enter') chiedi($('#chat-in').value); };
+  $('#chat-sug').innerHTML=SUGGERIMENTI.map(s=>'<button>'+esc(s)+'</button>').join('');
+  $$('#chat-sug button').forEach(b=>b.onclick=()=>chiedi(b.textContent));
+
+  /* testata e navigazione */
+  const top=$('#top');
+  const hero=$('#apertura');
+  addEventListener('scroll',()=>{
+    const giu=scrollY>60;
+    top.classList.toggle('giu',giu);
+    top.classList.toggle('hero-top',scrollY < hero.offsetHeight-90);
+  },{passive:true});
+
+  const sezioni=$$('section[id],footer');
+  const oss=new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting){
+      $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.id));
+    }});
+  },{rootMargin:'-45% 0px -50% 0px'});
+  sezioni.forEach(s=>oss.observe(s));
+})();
+</script>
+</body>
+</html>
