@@ -6,40 +6,6 @@ const eur=n=>n.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDi
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* =========================================================
-   PALETTE ·  il rebranding dal vivo
-   ========================================================= */
-const PALETTE=[
-  {id:'mare',     nome:'Mare',     sotto:'I colori veri della spiaggia', c:['#F2B705','#0B3C5D','#F7F3EA']},
-  {id:'tramonto', nome:'Tramonto', sotto:'Arancio caldo e blu notte',    c:['#E8622A','#0E3350','#FAF4EC']},
-  {id:'brezza',   nome:'Brezza',   sotto:'Bianco e azzurro, molto pulito',c:['#1F8FBF','#12313F','#EFF6FA']},
-  {id:'notte',    nome:'Notte',    sotto:'Un colore solo, tutte le sue gradazioni', c:['#12435F','#0D1B24','#F4F5F6']}
-];
-function disegnaPalette(){
-  $('#p-list').innerHTML=PALETTE.map(p=>
-    '<button class="p-v" data-p="'+p.id+'">'
-     +'<span class="campioni">'+p.c.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span>'
-     +'<span><b>'+p.nome+'</b><small>'+p.sotto+'</small></span></button>').join('');
-  $$('#p-list .p-v').forEach(b=>b.onclick=()=>metti(b.dataset.p));
-  segnaPalette();
-}
-function metti(id){
-  document.documentElement.dataset.tema=id;
-  const p=PALETTE.find(x=>x.id===id);
-  $('#nome-pal').textContent=p.nome;
-  segnaPalette();
-  try{localStorage.setItem('tortuga_tema',id)}catch(e){}
-}
-function segnaPalette(){
-  const t=document.documentElement.dataset.tema;
-  $$('#p-list .p-v').forEach(b=>b.classList.toggle('on',b.dataset.p===t));
-}
-function giraPalette(){
-  const t=document.documentElement.dataset.tema;
-  const i=PALETTE.findIndex(p=>p.id===t);
-  metti(PALETTE[(i+1)%PALETTE.length].id);
-}
-
-/* =========================================================
    LISTINO
    ========================================================= */
 const FILE=['A','B','C','D','E','F'];
@@ -252,8 +218,13 @@ function scegli(id){
       'Accanto al posto '+p.id+' ci sono altri bambini sotto i 10 anni. Di solito è una buona notizia: '
       +'i piccoli trovano compagnia e i genitori si danno il cambio.', null, 'Perfetto');
   } else nascondiAvviso();
-  const g=$('#mappa .omb[data-id="'+id+'"]');
-  if(g) g.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+  /* sposto solo la mappa in orizzontale: la pagina non deve saltare sotto il dito */
+  const cont=$('.mappa-scorri'), svg=$('#mappa');
+  if(cont && svg && cont.scrollWidth>cont.clientWidth+4){
+    const larg=svg.getBoundingClientRect().width;
+    const x=xdi(p.col)/900*larg;
+    cont.scrollTo({left:Math.max(0,x-cont.clientWidth/2),behavior:'smooth'});
+  }
 }
 function piuVicinoLibero(p){
   const l=POSTI.filter(x=>!x.occ);
@@ -342,12 +313,12 @@ function nascondiAvviso(){ $('#avviso').classList.remove('on'); }
    GALLERIA
    ========================================================= */
 const FOTO=[
-  ['{{ASSET:p1.jpg}}','La spiaggia vista dal molo, con le cabine colorate sul fondo'],
-  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu, il corridoio centrale verso il mare'],
-  ['{{ASSET:p4.jpg}}','Le ventiquattro cabine private, ognuna con il suo colore'],
-  ['{{ASSET:p5.jpg}}','I lettini blu e la vista verso il molo'],
-  ['{{ASSET:p2.jpg}}','L\'insegna all\'ingresso, sulla passeggiata'],
-  ['{{ASSET:p6.jpg}}','L\'angolo relax all\'ombra, con le poltroncine a righe']
+  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu e la passerella che porta alla battigia'],
+  ['{{ASSET:p4.jpg}}','Le cabine private, ognuna con il suo colore'],
+  ['{{ASSET:p5.jpg}}','Le file di lettini blu e la vista verso il molo'],
+  ['{{ASSET:p1.jpg}}','L\'insegna dei Bagni Tortuga all\'ingresso, sulla passeggiata'],
+  ['{{ASSET:p6.jpg}}','L\'angolo relax all\'ombra, con le poltroncine a righe gialle'],
+  ['{{ASSET:p2.jpg}}','La spiaggia vista dall\'alto: il molo, le cabine e le sei file di ombrelloni']
 ];
 function disegnaGalleria(){
   $('#galleria-lista').innerHTML=FOTO.map((f,i)=>
@@ -510,7 +481,8 @@ function rispondi(t){
     vaiA('#servizi'); return;
   }
   /* orari */
-  if(ha(t,'orari','orario','aperto','apertura','chiude','chiusura','stagione','quando aprite')){
+  if(ha(t,'orari','orario','aperto','aperti','aprite','apre','apertura','chiude','chiudete','chiusura',
+        'stagione','a che ora','fino a che')){
     dice('Siamo aperti dal 1 maggio al 30 settembre, tutti i giorni dalle 8:30 alle 19:00. '
       +'Il bagnino è in servizio dalle 9 alle 19. Chi prenota la mezza giornata entra dalle 13.',
       'Sezione con gli orari aperta');
@@ -529,14 +501,6 @@ function rispondi(t){
     dice('Ci trovi al <b>+39 375 5063425</b> oppure a <b>bagnitortuga24@gmail.com</b>. '
       +'Durante la stagione rispondiamo tutti i giorni.');
     vaiA('#contatti'); return;
-  }
-  /* colori */
-  if(ha(t,'color','logo','palette','marchio','rebranding','identità','identita')){
-    apriPal(true);
-    dice('Questa pagina può cambiare identità visiva senza rifare niente: giallo e blu come gli ombrelloni '
-      +'veri, oppure arancio e blu, bianco e azzurro, o un colore solo. Cambia tutto, mappa e marchio compresi.',
-      'Pannello identità aperto');
-    return;
   }
   /* cane */
   if(ha(t,'cane','cani','animal')){
@@ -558,12 +522,10 @@ function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',bl
 /* =========================================================
    AVVIO
    ========================================================= */
-function apriPal(v){ $('#pal').classList.toggle('on',v); $('#velo-pal').classList.toggle('on',v); }
 function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classList.toggle('on',v); }
 
 (function(){
-  try{ const t=localStorage.getItem('tortuga_tema'); if(t&&PALETTE.some(p=>p.id===t)) metti(t); }catch(e){}
-  disegnaPalette(); disegnaListino(); disegnaMappa(); disegnaGalleria(); disegnaBug(); riepilogo();
+  disegnaListino(); disegnaMappa(); disegnaGalleria(); disegnaBug(); riepilogo();
 
   /* data di partenza: domani */
   const d=new Date(); d.setDate(d.getDate()+1);
@@ -599,9 +561,17 @@ function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classL
     p.occ=true; p.cli={nome:$('#c-nome').value.trim(),bimbi:stato.bimbi,per:stato.periodo};
     const tot=prezzoPosto()+prezzoExtra();
     aggiornaMappa();
+    /* la prenotazione compare nel gestionale, sullo stesso dispositivo */
+    try{
+      const l=JSON.parse(localStorage.getItem('tortuga_prenotazioni')||'[]');
+      l.push({posto:stato.posto,nome:p.cli.nome,tel:$('#c-tel').value.trim(),
+        mail:$('#c-mail').value.trim(),periodo:stato.periodo,adulti:stato.adulti,
+        bimbi:stato.bimbi,dal:stato.data,totale:tot,extra:Object.assign({},stato.extra)});
+      localStorage.setItem('tortuga_prenotazioni',JSON.stringify(l));
+    }catch(e){}
     mostraAvviso('Prenotazione registrata',
       'Postazione '+stato.posto+', '+NOMEPER[stato.periodo].toLowerCase()+', totale '+eur(tot)+'. '
-      +'In una versione vera qui partirebbe il pagamento e la conferma su WhatsApp. '
+      +'La trovi già nel gestionale, alla voce "Arrivate dal sito". '
       +'Questa è una dimostrazione: non è stato addebitato nulla.',null,'Ho capito');
     stato.posto=null; ['#c-nome','#c-tel','#c-mail'].forEach(s=>$(s).value='');
     riepilogo(); aggiornaMappa();
@@ -613,15 +583,12 @@ function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classL
   };
 
   /* pannelli */
-  $('#apri-pal').onclick=()=>apriPal(true);
-  $('#chiudi-pal').onclick=()=>apriPal(false);
   $('#apri-pres').onclick=()=>apriPres(true);
   $('#chiudi-pres').onclick=()=>apriPres(false);
-  $('#velo-pal').onclick=()=>{apriPal(false);apriPres(false);};
+  $('#velo-pal').onclick=()=>apriPres(false);
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){ apriPal(false); apriPres(false); chatApri(false);
+    if(e.key==='Escape'){ apriPres(false); chatApri(false);
       $('#lente').classList.remove('on'); nascondiAvviso(); }
-    if(e.key==='c'&&e.altKey) giraPalette();
   });
 
   /* lente */
