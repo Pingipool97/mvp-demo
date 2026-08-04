@@ -313,12 +313,13 @@ function nascondiAvviso(){ $('#avviso').classList.remove('on'); }
    GALLERIA
    ========================================================= */
 const FOTO=[
-  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu e la passerella che porta alla battigia'],
+  
   ['{{ASSET:p4.jpg}}','Le cabine private, ognuna con il suo colore'],
   ['{{ASSET:p5.jpg}}','Le file di lettini blu e la vista verso il molo'],
   ['{{ASSET:p1.jpg}}','L\'insegna dei Bagni Tortuga all\'ingresso, sulla passeggiata'],
   ['{{ASSET:p6.jpg}}','L\'angolo relax all\'ombra, con le poltroncine a righe gialle'],
-  ['{{ASSET:p2.jpg}}','La spiaggia vista dall\'alto: il molo, le cabine e le sei file di ombrelloni']
+  ['{{ASSET:p2.jpg}}','La spiaggia vista dall\'alto: il molo, le cabine e le sei file di ombrelloni'],
+  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu e la passerella che porta alla battigia']
 ];
 function disegnaGalleria(){
   $('#galleria-lista').innerHTML=FOTO.map((f,i)=>
