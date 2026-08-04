@@ -62,8 +62,8 @@
       <a class="b b-s" href="#spiaggia">Scopri la spiaggia</a>
     </div>
     <div class="dati">
-      <div><b>84</b><span>Postazioni</span></div>
-      <div><b>6</b><span>File di ombrelloni</span></div>
+      <div><b id="n-postazioni">84</b><span>Postazioni</span></div>
+      <div><b id="n-file">6</b><span>File di ombrelloni</span></div>
       <div><b>24</b><span>Cabine private</span></div>
       <div><b>1954</b><span>Anno di apertura</span></div>
     </div>
@@ -169,6 +169,11 @@
               <span><i style="background:var(--deep)"></i>Scelto da te</span>
               <span><i style="background:#fff;border:2px solid var(--acc-s)"></i>Con bambini piccoli</span>
             </div>
+          </div>
+          <div class="dallalto">
+            <img src="{{ASSET:n9.webp}}" alt="La spiaggia dei Bagni Tortuga vista dall'alto">
+            <span>La spiaggia vista dall'alto. La mappa qui sotto ricalca questa disposizione:
+              stesse file, stesso corridoio centrale, stesse cabine sul fondo.</span>
           </div>
           <div class="mappa-scorri">
             <svg id="mappa" viewBox="0 0 900 560" role="img" aria-label="Mappa della spiaggia dei Bagni Tortuga"></svg>
@@ -466,4 +471,5 @@
 </section>
 
 <!-- ============ LENTE FOTO ============ -->
-<div class="lente" id="lente"><button class="x"><svg><use href="#i-x"/></svg></button><img id="lente-img" alt=""></div>
+<div class="lente" id="lente"><button class="x"><svg><use href="#i-x"/></svg></button>
+  <img id="lente-img" alt=""><p class="lente-dida" id="lente-dida"></p></div>

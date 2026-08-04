@@ -258,15 +258,21 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 .gal figure{position:relative;overflow:hidden;border-radius:var(--r);cursor:zoom-in;
   background-size:cover;background-position:center}
 .gal figure::after{content:"";display:block;padding-top:72%}
-.gal figure:nth-child(1){grid-column:span 4}
-.gal figure:nth-child(2){grid-column:span 2}
-.gal figure:nth-child(3){grid-column:span 2}
-.gal figure:nth-child(4){grid-column:span 2}
-.gal figure:nth-child(5){grid-column:span 2}
-.gal figure:nth-child(6){grid-column:span 6}
-.gal figure div{position:absolute;inset:0;background:inherit;background-size:cover;
+.gal figure div{position:absolute;inset:0;background-size:cover;
   background-position:center;transition:transform .7s cubic-bezier(.2,.6,.2,1)}
 .gal figure:hover div{transform:scale(1.06)}
+.gal figcaption{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;color:#fff;
+  font-size:.79rem;line-height:1.35;opacity:0;transition:opacity .3s;
+  background:linear-gradient(180deg,transparent,rgba(3,18,28,.82))}
+.gal figure:hover figcaption,.gal figure:focus-within figcaption{opacity:1}
+.lente-dida{position:absolute;left:0;right:0;bottom:26px;text-align:center;color:rgba(255,255,255,.85);
+  font-size:.86rem;padding:0 26px}
+
+/* la foto dall'alto sopra la mappa */
+.dallalto{position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.dallalto img{width:100%;height:clamp(120px,17vw,190px);object-fit:cover;object-position:center 42%}
+.dallalto span{position:absolute;left:0;right:0;bottom:0;padding:22px 14px 10px;color:#fff;
+  font-size:.78rem;background:linear-gradient(180deg,transparent,rgba(3,18,28,.8))}
 .lente{position:fixed;inset:0;background:rgba(4,16,26,.94);z-index:120;display:none;
   place-items:center;padding:26px}
 .lente.on{display:grid}

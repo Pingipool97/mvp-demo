@@ -33,11 +33,13 @@ img{max-width:100%;display:block}
 .marchio{display:flex;align-items:center;gap:10px;flex:none}
 .marchio .logo{width:40px;height:40px;border-radius:99px;overflow:hidden;background:#fff;flex:none}
 .menu{position:relative;flex:none}
-.menu-b{display:flex;align-items:center;gap:9px;padding:.5em .9em .5em .75em;border-radius:11px;
-  border:1.5px solid var(--bord);background:var(--card);transition:.16s;font-weight:600;font-size:.92rem}
-.menu-b:hover{border-color:var(--acc)}
-.menu-b .fre{width:15px;height:15px;color:var(--tx3);transition:transform .2s}
-.menu.on .menu-b{border-color:var(--acc);background:var(--card2)}
+.menu-b{display:flex;align-items:center;gap:9px;padding:.55em .95em .55em .8em;border-radius:11px;
+  border:1.5px solid var(--deep);background:var(--deep);color:#fff;transition:.16s;
+  font-weight:600;font-size:.92rem;box-shadow:0 4px 14px -6px var(--om)}
+.menu-b:hover{background:var(--deep-s);border-color:var(--deep-s)}
+.menu-b .sez-nome{opacity:.72;font-weight:400}
+.menu-b .fre{width:15px;height:15px;opacity:.8;transition:transform .2s}
+.menu.on .menu-b{background:var(--deep-s)}
 .menu.on .menu-b .fre{transform:rotate(180deg)}
 .menu-b .pallo{width:8px;height:8px;border-radius:99px;background:var(--acc);flex:none}
 .tendina{position:absolute;top:calc(100% + 7px);left:0;min-width:262px;background:var(--card);

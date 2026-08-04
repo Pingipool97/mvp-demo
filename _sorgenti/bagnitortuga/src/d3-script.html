@@ -31,6 +31,20 @@ const POSTI=[];
 FILE.forEach((f,ri)=>{ for(let i=1;i<=PERFILA;i++) POSTI.push({id:f+i,fila:f,ri:ri,col:i,
   fascia:FASCIA[f],occ:false,cli:null}); });
 
+/* ================= DISPOSIZIONE DELLA SPIAGGIA =================
+   Quali postazioni sono montate in questo periodo. A giugno se ne montano
+   meno che ad agosto: qui si decide, e il sito pubblico si adegua da solo. */
+function leggiDisposizione(){
+  let l=null;
+  try{ l=JSON.parse(localStorage.getItem('tortuga_mappa')||'null'); }catch(e){}
+  POSTI.forEach(p=>p.att = Array.isArray(l) ? l.indexOf(p.id)>=0 : true);
+}
+function salvaDisposizione(){
+  try{ localStorage.setItem('tortuga_mappa',
+    JSON.stringify(POSTI.filter(p=>p.att).map(p=>p.id))); }catch(e){}
+}
+leggiDisposizione();
+
 const OGGI=new Date();
 function piuGiorni(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
 function dataIt(d){ return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}); }
@@ -39,6 +53,7 @@ const DURATA={giorno:1,mezza:1,settimana:7,quindicina:15,mese:30,stagione:150};
 (function semina(){
   let n=0;
   POSTI.forEach(p=>{
+    if(!p.att) return;
     const base=[.72,.66,.58,.46,.38,.30][p.ri];
     if(rnd()<base){
       p.occ=true;
@@ -116,9 +131,53 @@ function glifo(){
       +' A16 16 0 0 1 '+(r*Math.cos(a2)).toFixed(2)+' '+(r*Math.sin(a2)).toFixed(2)+' Z" fill="'
       +(i%2?'var(--deep)':'var(--acc)')+'"/>';
   }
-  return '<g id="glifo-omb">'+d+'<circle r="3.1" fill="#fff" opacity=".92"/></g>';
+  /* i due lettini blu ai lati, come si vedono nella ripresa dall'alto */
+  const lettini='<rect x="-23" y="-11" width="7.5" height="22" rx="3" fill="var(--deep)" opacity=".8"/>'
+    +'<rect x="15.5" y="-11" width="7.5" height="22" rx="3" fill="var(--deep)" opacity=".8"/>';
+  return '<g id="glifo-omb">'+lettini+d+'<circle r="3.1" fill="#fff" opacity=".92"/></g>';
 }
 let filtroMappa='tutti';
+let modifica=false;
+
+/* monta o smonta una piazzola: serve a giugno, quando la spiaggia è più corta */
+function smontaMonta(p){
+  if(p.att && p.occ){
+    avvisa('La postazione '+p.id+' è occupata da '+p.cli.nome+'. Liberala prima di smontarla.');
+    return;
+  }
+  p.att=!p.att;
+  salvaDisposizione();
+  aggiornaMappa(); disegnaOggi(); disegnaCassa();
+  avvisa(p.att ? 'Postazione '+p.id+' montata' : 'Postazione '+p.id+' smontata');
+}
+function modoModifica(v){
+  modifica=v;
+  $('#b-modifica').textContent = v ? 'Ho finito' : 'Modifica disposizione';
+  $('#b-modifica').classList.toggle('b-p',v);
+  $('#b-modifica').classList.toggle('b-s',!v);
+  $('#barra-modifica').hidden=!v;
+  $('#filtri-mappa').hidden=v;
+  aggiornaMappa();
+}
+function tutteLeFile(v){
+  POSTI.forEach(p=>{ if(!(p.occ&&!v)) p.att=v; });
+  salvaDisposizione(); aggiornaMappa(); disegnaOggi();
+  avvisa(v?'Spiaggia completa: tutte le piazzole montate':'Smontate tutte le piazzole libere');
+}
+function fileDietro(n){
+  /* smonta le n file più lontane dal mare: ri 0 è la fila A, fronte mare */
+  let bloccate=0;
+  POSTI.forEach(p=>{
+    const dietro = p.ri >= FILE.length-n;
+    if(dietro && p.occ){ bloccate++; return; }
+    p.att = !dietro;
+  });
+  salvaDisposizione(); aggiornaMappa(); disegnaOggi();
+  const file=FILE.slice(FILE.length-n).join(', ');
+  avvisa('Smontate le file '+file+'. Restano '+POSTI.filter(p=>p.att).length+' postazioni'
+    +(bloccate? '. '+bloccate+(bloccate==1?' postazione è occupata e resta montata':
+      ' postazioni sono occupate e restano montate')+': vanno liberate prima.' : '.'));
+}
 function disegnaMappa(){
   const s=['<defs>'+glifo()
     +'<linearGradient id="grad-mare" x1="0" y1="0" x2="0" y2="1">'
@@ -141,6 +200,7 @@ function disegnaMappa(){
     const x=xdi(p.col),y=ydi(p.fila);
     s.push('<g class="omb" data-id="'+p.id+'" transform="translate('+x+','+y+')" tabindex="0" role="button">'
       +'<circle class="anello" r="23" fill="none" stroke="var(--ko)" stroke-width="3" opacity="0"/>'
+      +'<circle class="vuoto" r="15" fill="none" stroke="var(--tx3)" stroke-width="1.8" stroke-dasharray="4 4" opacity="0"/>'
       +'<ellipse cx="2" cy="4" rx="15" ry="13" fill="#000" opacity=".06"/>'
       +'<use href="#glifo-omb" class="disco"/>'
       +'<circle class="bimbo" cx="13" cy="-13" r="5.6" fill="#fff" stroke="var(--acc-s)" stroke-width="2.2" opacity="0"/>'
@@ -156,6 +216,7 @@ function disegnaMappa(){
   aggiornaMappa();
 }
 function inFiltro(p){
+  if(!p.att) return false;
   if(filtroMappa==='liberi') return !p.occ;
   if(filtroMappa==='saldare') return daSaldare(p);
   if(filtroMappa==='bimbi') return p.occ&&p.cli.bimbi>0;
@@ -165,6 +226,19 @@ function inFiltro(p){
 function aggiornaMappa(){
   POSTI.forEach(p=>{
     const g=$('#mappa .omb[data-id="'+p.id+'"]'); if(!g) return;
+    if(!p.att){
+      g.style.display=modifica?'':'none';
+      $('.vuoto',g).setAttribute('opacity',modifica?'1':'0');
+      $('.disco',g).setAttribute('opacity','0');
+      $('.anello',g).setAttribute('opacity','0');
+      $('.bimbo',g).setAttribute('opacity','0');
+      $('title',g).textContent=p.id+' · piazzola non montata';
+      g.style.opacity='1';
+      return;
+    }
+    g.style.display='';
+    $('.vuoto',g).setAttribute('opacity','0');
+    $('.disco',g).setAttribute('opacity','1');
     const dentro=inFiltro(p);
     g.style.opacity=dentro?(p.occ?'1':'.95'):'.16';
     if(p.occ){ g.style.setProperty('--acc','var(--deep)'); g.style.setProperty('--deep','var(--deep-s)'); }
@@ -175,14 +249,18 @@ function aggiornaMappa(){
       ? p.id+' · '+p.cli.nome+' · '+NOMEPER[p.cli.per]+' · '+p.cli.saldo
       : p.id+' · libero';
   });
-  const occ=POSTI.filter(p=>p.occ).length;
-  $('#conta-mappa').textContent=occ+' occupati, '+(POSTI.length-occ)+' liberi';
+  const mont=POSTI.filter(p=>p.att);
+  const occ=mont.filter(p=>p.occ).length;
+  $('#conta-mappa').textContent= modifica
+    ? mont.length+' postazioni montate su '+POSTI.length+' piazzole'
+    : occ+' occupati, '+(mont.length-occ)+' liberi';
 }
 
 /* ================= CASSETTO ================= */
 let postoAperto=null;
 function apriPosto(id){
   const p=POSTI.find(x=>x.id===id); if(!p) return;
+  if(modifica){ smontaMonta(p); return; }
   postoAperto=p;
   $('#cass-tit').textContent='Postazione '+p.id;
   $('#cass-sot').textContent=NOMEFASCIA[p.fascia];
@@ -265,7 +343,7 @@ function vaiA(p){
   $$('#tendina button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
   $('#titolo').textContent=TITOLI[p];
   $('#menu-et').textContent=TITOLI[p];
-  $('#menu-ic').innerHTML='<use href="#'+ICONE[p]+'"/>';
+
   apriMenu(false);
   scrollTo({top:0,behavior:'smooth'});
 }
@@ -276,13 +354,14 @@ function apriMenu(v){
 
 /* oggi */
 function disegnaOggi(){
-  const occ=POSTI.filter(p=>p.occ);
+  const MONT=POSTI.filter(p=>p.att);
+  const occ=MONT.filter(p=>p.occ);
   const incasso=occ.filter(p=>p.cli.saldo==='pagato'&&dataIt(p.cli.dal)===dataIt(OGGI))
     .reduce((t,p)=>t+importo(p),0) + CASSA.reduce((t,m)=>t+m.imp,0);
   $('#k-incasso').textContent=eur(incasso);
   $('#k-incasso-s').textContent=CASSA.length+' movimenti registrati';
-  $('#k-occ').textContent=occ.length+' su '+POSTI.length;
-  $('#k-occ-s').textContent=Math.round(occ.length/POSTI.length*100)+' per cento della spiaggia';
+  $('#k-occ').textContent=occ.length+' su '+MONT.length;
+  $('#k-occ-s').textContent=Math.round(occ.length/Math.max(1,MONT.length)*100)+' per cento della spiaggia';
   const pers=occ.reduce((t,p)=>t+p.cli.adulti+p.cli.bimbi,0);
   $('#k-persone').textContent=pers;
   $('#k-persone-s').textContent=occ.reduce((t,p)=>t+p.cli.bimbi,0)+' bambini sotto i 10 anni';
@@ -480,8 +559,13 @@ function tuttoAggiorna(){
     disegnaPren();
   });
   $('#b-salva-listino').onclick=salvaListino;
+  $('#b-modifica').onclick=()=>modoModifica(!modifica);
+  $('#m-tutte').onclick=()=>tutteLeFile(true);
+  $('#m-1').onclick=()=>fileDietro(1);
+  $('#m-2').onclick=()=>fileDietro(2);
+  $('#m-3').onclick=()=>fileDietro(3);
   $('#b-nuova').onclick=()=>{
-    const l=POSTI.find(p=>!p.occ);
+    const l=POSTI.find(p=>p.att&&!p.occ);
     if(l){ vaiA('spiaggia'); apriPosto(l.id); }
     else avvisa('Non ci sono postazioni libere');
   };

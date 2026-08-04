@@ -67,6 +67,15 @@ function semina(){
 }
 semina();
 
+/* la disposizione decisa nel gestionale: a giugno la spiaggia è più corta.
+   Le piazzole non montate spariscono dalla mappa e non si possono prenotare. */
+(function disposizione(){
+  let l=null;
+  try{ l=JSON.parse(localStorage.getItem('tortuga_mappa')||'null'); }catch(e){}
+  if(!Array.isArray(l)) return;
+  for(let i=POSTI.length-1;i>=0;i--) if(l.indexOf(POSTI[i].id)<0) POSTI.splice(i,1);
+})();
+
 const CABINE=24;
 const COLCAB=['#E94F37','#F6A413','#F7D708','#8DC63F','#39B54A','#00A99D','#27AAE1','#2E5FAA',
  '#7B5AA6','#D6449B','#F26D7D','#F58220'];
@@ -85,7 +94,10 @@ function glifo(){
       +' A16 16 0 0 1 '+(r*Math.cos(a2)).toFixed(2)+' '+(r*Math.sin(a2)).toFixed(2)+' Z" fill="'
       +(i%2?'var(--deep)':'var(--acc)')+'"/>';
   }
-  return '<g id="glifo-omb">'+d+'<circle r="3.1" fill="#fff" opacity=".92"/></g>';
+  /* i due lettini blu ai lati, come si vedono nella ripresa dall'alto */
+  const lettini='<rect x="-23" y="-11" width="7.5" height="22" rx="3" fill="var(--deep)" opacity=".8"/>'
+    +'<rect x="15.5" y="-11" width="7.5" height="22" rx="3" fill="var(--deep)" opacity=".8"/>';
+  return '<g id="glifo-omb">'+lettini+d+'<circle r="3.1" fill="#fff" opacity=".92"/></g>';
 }
 
 function disegnaMappa(){
@@ -313,24 +325,42 @@ function nascondiAvviso(){ $('#avviso').classList.remove('on'); }
    GALLERIA
    ========================================================= */
 const FOTO=[
-  
+  ['{{ASSET:n9.webp}}','La spiaggia vista dal drone: le file di ombrelloni gialli e blu e il corridoio centrale'],
+  ['{{ASSET:n8.webp}}','Le cabine colorate lungo la passerella, con il molo sullo sfondo'],
+  ['{{ASSET:p3.jpg}}','Gli ombrelloni chiusi al mattino e la passerella verso la battigia'],
+  ['{{ASSET:n7.webp}}','La postazione del bagnino sulla battigia, con il salvagente e la sedia'],
   ['{{ASSET:p4.jpg}}','Le cabine private, ognuna con il suo colore'],
+  ['{{ASSET:n10.webp}}','Kitesurf davanti alla spiaggia nelle giornate di vento'],
   ['{{ASSET:p5.jpg}}','Le file di lettini blu e la vista verso il molo'],
   ['{{ASSET:p1.jpg}}','L\'insegna dei Bagni Tortuga all\'ingresso, sulla passeggiata'],
   ['{{ASSET:p6.jpg}}','L\'angolo relax all\'ombra, con le poltroncine a righe gialle'],
-  ['{{ASSET:p2.jpg}}','La spiaggia vista dall\'alto: il molo, le cabine e le sei file di ombrelloni'],
-  ['{{ASSET:p3.jpg}}','Gli ombrelloni gialli e blu e la passerella che porta alla battigia']
+  ['{{ASSET:p2.jpg}}','La spiaggia dal molo in una giornata di nuvole basse']
 ];
 function disegnaGalleria(){
-  $('#galleria-lista').innerHTML=FOTO.map((f,i)=>
-    '<figure data-i="'+i+'"><div style="background-image:url('+f[0]+')"></div>'
-    +'<figcaption class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden">'+esc(f[1])+'</figcaption></figure>').join('');
+  /* righe che sommano sempre a sei colonne, qualunque sia il numero di foto */
+  const schemi=[[4,2],[2,2,2],[6],[3,3]];
+  const misure=[]; let i=0,s=0;
+  while(i<FOTO.length){
+    let r=schemi[s%schemi.length].slice(); s++;
+    if(i+r.length>FOTO.length){
+      const restano=FOTO.length-i;
+      r = restano===1?[6] : restano===2?[3,3] : restano===3?[2,2,2]
+        : restano===4?[3,3,3,3] : new Array(restano).fill(Math.floor(6/restano));
+    }
+    r.forEach(w=>misure.push(w)); i+=r.length;
+  }
+  $('#galleria-lista').innerHTML=FOTO.map((f,k)=>
+    '<figure data-i="'+k+'" style="grid-column:span '+(misure[k]||2)+'">'
+    +'<div style="background-image:url('+f[0]+')"></div>'
+    +'<figcaption>'+esc(f[1])+'</figcaption></figure>').join('');
   $$('#galleria-lista figure').forEach(f=>f.onclick=()=>{
     const d=FOTO[+f.dataset.i];
     $('#lente-img').src=d[0]; $('#lente-img').alt=d[1];
+    $('#lente-dida').textContent=d[1];
     $('#lente').classList.add('on');
   });
 }
+
 
 /* =========================================================
    AUDIT DEL SITO ATTUALE
@@ -527,6 +557,8 @@ function apriPres(v){ $('#pres').classList.toggle('on',v); $('#velo-pal').classL
 
 (function(){
   disegnaListino(); disegnaMappa(); disegnaGalleria(); disegnaBug(); riepilogo();
+  $('#n-postazioni').textContent=POSTI.length;
+  $('#n-file').textContent=[...new Set(POSTI.map(p=>p.fila))].length;
 
   /* data di partenza: domani */
   const d=new Date(); d.setDate(d.getDate()+1);

@@ -31,9 +31,11 @@
     </div>
 
     <div class="menu" id="menu">
-      <button class="menu-b" id="menu-b" aria-haspopup="true" aria-expanded="false">
-        <svg id="menu-ic"><use href="#i-oggi"/></svg>
-        <span id="menu-et">Oggi</span>
+      <button class="menu-b" id="menu-b" aria-haspopup="true" aria-expanded="false" aria-label="Apri il menu">
+        <svg><use href="#i-lista"/></svg>
+        <span>Menu</span>
+        <span class="sez-nome">·</span>
+        <span class="sez-nome" id="menu-et">Oggi</span>
         <span class="pallo" id="pallo-pren" hidden></span>
         <svg class="fre"><use href="#i-giu"/></svg>
       </button>
@@ -105,7 +107,8 @@
     <div class="scheda">
       <div class="tit">
         <div class="sx"><h2>Mappa della spiaggia</h2>
-          <span class="eti eti-neu" id="conta-mappa"></span></div>
+          <span class="eti eti-neu" id="conta-mappa"></span>
+          <button class="b b-s b-sm" id="b-modifica">Modifica disposizione</button></div>
         <div class="legenda">
           <span><i style="background:var(--acc)"></i>Libero</span>
           <span><i style="background:var(--deep)"></i>Occupato</span>
@@ -116,12 +119,27 @@
       <div class="mappa-scorri">
         <svg id="mappa" viewBox="0 0 900 560" role="img" aria-label="Mappa della spiaggia"></svg>
       </div>
-      <div class="filtri" style="margin-top:14px">
+      <div class="filtri" style="margin-top:14px" id="filtri-mappa">
         <button data-f="tutti" class="on">Tutti</button>
         <button data-f="liberi">Solo liberi</button>
         <button data-f="saldare">Da saldare</button>
         <button data-f="bimbi">Con bambini</button>
         <button data-f="oggi">In partenza oggi</button>
+      </div>
+
+      <div id="barra-modifica" hidden style="margin-top:14px">
+        <p class="nota" style="margin-bottom:11px">
+          Tocca una piazzola per montarla o smontarla. Quelle tratteggiate sono le piazzole
+          che esistono ma non sono in uso in questo periodo. Le postazioni occupate vanno
+          liberate prima. Quello che decidi qui si vede subito sul sito pubblico:
+          i clienti possono prenotare solo le postazioni montate.
+        </p>
+        <div class="filtri">
+          <button id="m-tutte">Monta tutto, 84 postazioni</button>
+          <button id="m-1">Smonta l'ultima fila</button>
+          <button id="m-2">Smonta le ultime due file</button>
+          <button id="m-3">Smonta le ultime tre file</button>
+        </div>
       </div>
     </div>
   </section>
