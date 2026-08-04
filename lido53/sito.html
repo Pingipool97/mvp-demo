@@ -1268,7 +1268,174 @@ table.price tr.hl td{background:rgba(237,166,12,.09)}
       </div>
     </div>
   </section>
+<!-- BACHECA:INIZIO -->
+<style>
+.bch{--bch-acc:var(--oro,#EFB402);--bch-deep:var(--notte,#014364);
+  --bch-bord:rgba(128,128,128,.24);--bch-card:rgba(255,255,255,.05)}
+.bch-griglia{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
+.bch-box{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-card)}
+.bch-box h3{margin:0 0 4px;font-size:1.05rem}
+.bch-data{font-size:.8rem;opacity:.6}
+.bch-piatto{display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--bch-bord)}
+.bch-piatto:last-of-type{border-bottom:none}
+.bch-piatto b{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bch-acc);
+  width:76px;flex:none;padding-top:3px}
+.bch-piatto span{font-size:.97rem;line-height:1.45}
+.bch-prezzo{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:12px;
+  padding-top:12px;border-top:1.5px solid var(--bch-bord)}
+.bch-prezzo b{font-size:1.45rem}
+.bch-prezzo small{opacity:.6;display:block;font-size:.78rem}
+.bch-band{display:inline-flex;align-items:center;gap:8px;padding:.35em .85em;border-radius:99px;
+  font-size:.83rem;font-weight:700}
+.bch-band i{width:11px;height:11px;border-radius:3px;display:block}
+.bch-avvisi{display:grid;gap:10px;margin-top:16px}
+.bch-av{display:flex;gap:13px;border:1px solid var(--bch-bord);border-left:4px solid var(--bch-acc);
+  border-radius:12px;padding:13px 15px;background:var(--bch-card)}
+.bch-av .q{font-weight:700;font-size:.79rem;color:var(--bch-acc);width:88px;flex:none}
+.bch-av h4{margin:0 0 2px;font-size:.94rem}
+.bch-av p{margin:0;font-size:.86rem;opacity:.78;line-height:1.45}
+.bch-meteo{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-deep);
+  color:#fff;position:relative}
+.bch-meteo .agg{position:absolute;top:16px;right:18px;font-size:.72rem;opacity:.55}
+.bch-meteo .big{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.bch-meteo .big b{font-size:3rem;line-height:1}
+.bch-meteo .big span{display:block;font-size:.92rem;opacity:.8}
+.bch-meteo .tre{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.18)}
+.bch-meteo .tre small{display:block;font-size:.71rem;opacity:.6}
+.bch-meteo .tre b{font-size:1.1rem}
+.bch-campo{margin-bottom:12px}
+.bch-campo label{display:block;font-size:.76rem;font-weight:700;opacity:.7;margin-bottom:5px}
+.bch-campo input{width:100%;padding:.6em .8em;border-radius:9px;border:1.5px solid var(--bch-bord);
+  background:rgba(128,128,128,.08);color:inherit;font:inherit;font-size:.9rem}
+.bch-campo input:focus{outline:none;border-color:var(--bch-acc)}
+.bch-btn{display:inline-flex;align-items:center;gap:7px;padding:.55em 1.05em;border-radius:10px;
+  font-weight:700;font-size:.86rem;cursor:pointer;border:1.5px solid var(--bch-bord);
+  background:transparent;color:inherit;font-family:inherit}
+.bch-btn:hover{border-color:var(--bch-acc)}
+.bch-btn.forte{background:var(--bch-acc);border-color:var(--bch-acc);color:#10222E}
+.bch-btn.on{background:var(--bch-deep);color:#fff;border-color:var(--bch-deep)}
+.bch-riga{display:flex;justify-content:space-between;gap:12px;padding:9px 0;
+  border-bottom:1px dashed var(--bch-bord);font-size:.88rem}
+.bch-riga:last-child{border:none}
+@media(max-width:900px){.bch-griglia{grid-template-columns:1fr}}
+</style>
+<section class="sec bch" id="bacheca-oggi" style="padding:34px 0">
+  <div class="container">
+    <p class="eyebrow">Oggi in spiaggia</p>
+    <h2 style="margin:6px 0 8px">Come sta la spiaggia adesso</h2>
+    <p class="lead" style="margin-bottom:22px">Meteo, mare, menù del giorno e avvisi della giornata.
+      Questa parte la aggiorna il personale dal gestionale.</p>
+
+    <div class="bch-griglia">
+      <div class="bch-meteo">
+        <span class="agg" id="bch-ora">in aggiornamento</span>
+        <div class="big"><b id="bch-t">--</b>
+          <div><span id="bch-desc">Rilevazione in corso</span></div></div>
+        <div class="tre">
+          <div><small>MARE</small><b id="bch-mare">--</b></div>
+          <div><small>ONDA</small><b id="bch-onda">--</b></div>
+          <div><small>VENTO</small><b id="bch-vento">--</b></div>
+        </div>
+      </div>
+
+      <div class="bch-box">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+          <h3>Il menù del giorno</h3><span class="bch-data" id="bch-data"></span>
+        </div>
+        <div id="bch-piatti" style="margin-top:10px"></div>
+        <div class="bch-prezzo">
+          <span>Menù completo<small>bevande escluse</small></span>
+          <b id="bch-prezzo">--</b>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px">
+      <span class="bch-band" id="bch-band"><i></i><span id="bch-band-t">--</span></span>
+    </div>
+    <div class="bch-avvisi" id="bch-avvisi"></div>
+  </div>
 </section>
+<script>
+(function(){
+  "use strict";
+  var CHIAVE='lido53_bacheca';
+  var DEF={menu:{primo:'Trofie al pesto genovese',secondo:'Pesce del giorno alla griglia',
+      contorno:'Insalata di pomodori e cipolla di Tropea',dolce:'Panna cotta ai frutti di bosco',prezzo:22},
+    bandiera:'verde',
+    avvisi:[
+      {quando:'11:00',titolo:'Acqua gym',testo:"Mezz'ora in acqua bassa con l'istruttore, compresa nel prezzo del posto."},
+      {quando:'16:30',titolo:'Giochi per i bambini',testo:'Ping pong e giochi in spiaggia, all\'ombra.'},
+      {quando:'Venerdì',titolo:'Aperitivo in riva',testo:'Dalle 18:30 musica e aperitivo al banco.'}
+    ]};
+  var B=JSON.parse(JSON.stringify(DEF));
+  try{ var s=JSON.parse(localStorage.getItem(CHIAVE)||'null'); if(s&&s.menu) B=s; }catch(e){}
+  function q(x){ return document.querySelector(x); }
+  function qq(x){ return [].slice.call(document.querySelectorAll(x)); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  var TESTI={verde:'Bandiera verde, mare tranquillo',
+    gialla:'Bandiera gialla, entrare con prudenza',
+    rossa:'Bandiera rossa, balneazione vietata'};
+  var COLORI={verde:'#2E8B57',gialla:'#EFB402',rossa:'#C0392B'};
+
+  
+  /* ---------- lato sito ---------- */
+  function piatto(et,t){ return '<div class="bch-piatto"><b>'+et+'</b><span>'
+    +esc(t||'da definire')+'</span></div>'; }
+  function disegna(){
+    if(!q('#bch-piatti')) return;
+    q('#bch-data').textContent=new Date().toLocaleDateString('it-IT',
+      {weekday:'long',day:'numeric',month:'long'});
+    q('#bch-piatti').innerHTML=piatto('Primo',B.menu.primo)+piatto('Secondo',B.menu.secondo)
+      +piatto('Contorno',B.menu.contorno)+piatto('Dolce',B.menu.dolce);
+    q('#bch-prezzo').textContent=(B.menu.prezzo||0)+' €';
+    var b=B.bandiera||'verde';
+    q('#bch-band-t').textContent=TESTI[b];
+    q('#bch-band').style.background=COLORI[b]+'22';
+    q('#bch-band').style.color=COLORI[b];
+    q('#bch-band').querySelector('i').style.background=COLORI[b];
+    q('#bch-avvisi').innerHTML=(B.avvisi||[]).map(function(a){
+      return '<div class="bch-av"><span class="q">'+esc(a.quando)+'</span>'
+        +'<div><h4>'+esc(a.titolo)+'</h4><p>'+esc(a.testo)+'</p></div></div>'; }).join('')
+      || '<p style="opacity:.6;font-size:.88rem">Nessun avviso per oggi.</p>';
+  }
+  var CIELO={0:'Sereno',1:'Poco nuvoloso',2:'Parzialmente nuvoloso',3:'Coperto',45:'Nebbia',48:'Nebbia',
+    51:'Pioviggine',53:'Pioviggine',55:'Pioviggine',61:'Pioggia debole',63:'Pioggia',65:'Pioggia forte',
+    80:'Rovesci',81:'Rovesci',82:'Rovesci forti',95:'Temporale',96:'Temporale',99:'Temporale'};
+  function meteo(){
+    if(!q('#bch-t')) return;
+    var base='https://api.open-meteo.com/v1/forecast?latitude=43.9497&longitude=8.1417'
+      +'&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FRome';
+    var mar='https://marine-api.open-meteo.com/v1/marine?latitude=43.9497&longitude=8.1417'
+      +'&current=sea_surface_temperature,wave_height&timezone=Europe%2FRome';
+    fetch(base).then(function(r){return r.json();}).then(function(a){
+      var c=a.current;
+      q('#bch-t').textContent=Math.round(c.temperature_2m)+'°';
+      q('#bch-desc').textContent=CIELO[c.weather_code]||'Variabile';
+      q('#bch-vento').textContent=Math.round(c.wind_speed_10m)+' km/h';
+      q('#bch-ora').textContent='aggiornato alle '+new Date().toLocaleTimeString('it-IT',
+        {hour:'2-digit',minute:'2-digit'});
+      return fetch(mar).then(function(r){return r.json();}).then(function(m){
+        if(m&&m.current){
+          q('#bch-mare').textContent=Math.round(m.current.sea_surface_temperature)+'°';
+          q('#bch-onda').textContent=String(m.current.wave_height.toFixed(1)).replace('.',',')+' m';
+        }
+      }).catch(function(){});
+    }).catch(function(){
+      q('#bch-desc').textContent='Meteo non disponibile senza connessione';
+      q('#bch-ora').textContent='non aggiornato';
+    });
+  }
+  function avvia(){ disegna(); meteo(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',avvia);
+  else avvia();
+  addEventListener('storage',function(e){ if(e.key===CHIAVE){
+    try{ var n=JSON.parse(e.newValue||'null'); if(n&&n.menu){ B=n; disegna(); } }catch(x){} }});
+  
+})();
+</script><!-- BACHECA:FINE --></section>
 
 <!-- ================= EVENTI ================= -->
 <section class="page" id="p-eventi" hidden>

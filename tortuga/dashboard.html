@@ -481,7 +481,7 @@ button > svg{max-width:26px;max-height:26px}
     <a href="#/fatture" data-p="fatture" title="Fatture"><svg><use href="#i-doc"/></svg><span class="lbl">Fatture</span><span class="pillN" id="n-fatt">0</span></a>
     <a href="#/clienti" data-p="clienti" title="Clienti"><svg><use href="#i-users"/></svg><span class="lbl">Clienti</span></a>
     <div class="grp">Comunicazione</div>
-    <a href="#/whatsapp" data-p="whatsapp" title="WhatsApp"><svg><use href="#i-wa"/></svg><span class="lbl">WhatsApp</span><span class="pillN" id="n-wa">0</span></a>
+    <a href="#/whatsapp" data-p="whatsapp" title="WhatsApp"><svg><use href="#i-wa"/></svg><span class="lbl">WhatsApp</span><span class="pillN" id="n-wa">0</span></a><!-- BACHECA:INIZIO --><a href="#/bacheca" data-p="bacheca" title="Bacheca e menù del giorno"><svg><use href="#i-doc"/></svg><span class="lbl">Bacheca</span></a><!-- BACHECA:FINE -->
     <a href="#/automazioni" data-p="automazioni" title="Automazioni"><svg><use href="#i-bolt"/></svg><span class="lbl">Automazioni</span></a>
     <a href="#/listino" data-p="listino" title="Listino e orari"><svg><use href="#i-cog"/></svg><span class="lbl">Listino e orari</span></a>
   </nav>
@@ -769,7 +769,193 @@ button > svg{max-width:26px;max-height:26px}
       <span class="bdg b-g">Ombrellone con 2 lettini, al giorno</span></div>
     <div class="card-b tight"><div class="tw"><table class="t" id="tListino"></table></div></div>
   </div>
+</section><!-- BACHECA:INIZIO -->
+<style>
+.bch{--bch-acc:var(--oro,#EFB402);--bch-deep:var(--notte,#014364);
+  --bch-bord:rgba(128,128,128,.24);--bch-card:rgba(255,255,255,.05)}
+.bch-griglia{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
+.bch-box{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-card)}
+.bch-box h3{margin:0 0 4px;font-size:1.05rem}
+.bch-data{font-size:.8rem;opacity:.6}
+.bch-piatto{display:flex;gap:14px;padding:10px 0;border-bottom:1px dashed var(--bch-bord)}
+.bch-piatto:last-of-type{border-bottom:none}
+.bch-piatto b{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--bch-acc);
+  width:76px;flex:none;padding-top:3px}
+.bch-piatto span{font-size:.97rem;line-height:1.45}
+.bch-prezzo{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:12px;
+  padding-top:12px;border-top:1.5px solid var(--bch-bord)}
+.bch-prezzo b{font-size:1.45rem}
+.bch-prezzo small{opacity:.6;display:block;font-size:.78rem}
+.bch-band{display:inline-flex;align-items:center;gap:8px;padding:.35em .85em;border-radius:99px;
+  font-size:.83rem;font-weight:700}
+.bch-band i{width:11px;height:11px;border-radius:3px;display:block}
+.bch-avvisi{display:grid;gap:10px;margin-top:16px}
+.bch-av{display:flex;gap:13px;border:1px solid var(--bch-bord);border-left:4px solid var(--bch-acc);
+  border-radius:12px;padding:13px 15px;background:var(--bch-card)}
+.bch-av .q{font-weight:700;font-size:.79rem;color:var(--bch-acc);width:88px;flex:none}
+.bch-av h4{margin:0 0 2px;font-size:.94rem}
+.bch-av p{margin:0;font-size:.86rem;opacity:.78;line-height:1.45}
+.bch-meteo{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-deep);
+  color:#fff;position:relative}
+.bch-meteo .agg{position:absolute;top:16px;right:18px;font-size:.72rem;opacity:.55}
+.bch-meteo .big{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.bch-meteo .big b{font-size:3rem;line-height:1}
+.bch-meteo .big span{display:block;font-size:.92rem;opacity:.8}
+.bch-meteo .tre{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.18)}
+.bch-meteo .tre small{display:block;font-size:.71rem;opacity:.6}
+.bch-meteo .tre b{font-size:1.1rem}
+.bch-campo{margin-bottom:12px}
+.bch-campo label{display:block;font-size:.76rem;font-weight:700;opacity:.7;margin-bottom:5px}
+.bch-campo input{width:100%;padding:.6em .8em;border-radius:9px;border:1.5px solid var(--bch-bord);
+  background:rgba(128,128,128,.08);color:inherit;font:inherit;font-size:.9rem}
+.bch-campo input:focus{outline:none;border-color:var(--bch-acc)}
+.bch-btn{display:inline-flex;align-items:center;gap:7px;padding:.55em 1.05em;border-radius:10px;
+  font-weight:700;font-size:.86rem;cursor:pointer;border:1.5px solid var(--bch-bord);
+  background:transparent;color:inherit;font-family:inherit}
+.bch-btn:hover{border-color:var(--bch-acc)}
+.bch-btn.forte{background:var(--bch-acc);border-color:var(--bch-acc);color:#10222E}
+.bch-btn.on{background:var(--bch-deep);color:#fff;border-color:var(--bch-deep)}
+.bch-riga{display:flex;justify-content:space-between;gap:12px;padding:9px 0;
+  border-bottom:1px dashed var(--bch-bord);font-size:.88rem}
+.bch-riga:last-child{border:none}
+@media(max-width:900px){.bch-griglia{grid-template-columns:1fr}}
+</style>
+<section class="page bch" id="p-bacheca">
+  <div class="bch-griglia">
+    <div class="bch-box">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+        <h3>Menù del giorno di oggi</h3><span class="bch-data" id="bch-g-data"></span>
+      </div>
+      <div style="margin-top:14px">
+        <div class="bch-campo"><label for="bch-primo">Primo</label><input id="bch-primo"></div>
+        <div class="bch-campo"><label for="bch-secondo">Secondo</label><input id="bch-secondo"></div>
+        <div class="bch-campo"><label for="bch-contorno">Contorno</label><input id="bch-contorno"></div>
+        <div class="bch-campo"><label for="bch-dolce">Dolce</label><input id="bch-dolce"></div>
+        <div class="bch-campo"><label for="bch-prezzo-in">Prezzo del menù completo, bevande escluse</label>
+          <input id="bch-prezzo-in" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <div style="display:grid;gap:16px;align-content:start">
+      <div class="bch-box">
+        <h3>Bandiera in battigia</h3>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px" id="bch-scelta-band">
+          <button class="bch-btn" data-b="verde">Verde, mare tranquillo</button>
+          <button class="bch-btn" data-b="gialla">Gialla, prudenza</button>
+          <button class="bch-btn" data-b="rossa">Rossa, vietato il bagno</button>
+        </div>
+      </div>
+      <div class="bch-box">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+          <h3>Avvisi ed eventi</h3><span class="bch-data" id="bch-conta"></span>
+        </div>
+        <div id="bch-elenco" style="margin-top:10px"></div>
+        <div style="display:grid;grid-template-columns:110px 1fr;gap:10px;margin-top:12px">
+          <div class="bch-campo" style="margin:0"><label for="bch-quando">Quando</label>
+            <input id="bch-quando" placeholder="11:00"></div>
+          <div class="bch-campo" style="margin:0"><label for="bch-titolo">Titolo</label>
+            <input id="bch-titolo" placeholder="Acqua gym"></div>
+        </div>
+        <div class="bch-campo" style="margin-top:10px"><label for="bch-testo">Testo</label>
+          <input id="bch-testo" placeholder="Mezz'ora in acqua bassa, compresa nel prezzo"></div>
+        <button class="bch-btn" id="bch-aggiungi">Aggiungi alla bacheca</button>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px">
+    <button class="bch-btn forte" id="bch-salva">Pubblica sul sito</button>
+    <button class="bch-btn" id="bch-ripristina">Rimetti i valori di partenza</button>
+    <span style="font-size:.83rem;opacity:.6">Compare subito nella sezione
+      "Oggi in spiaggia" del sito pubblico.</span>
+  </div>
 </section>
+<script>
+(function(){
+  "use strict";
+  var CHIAVE='tortugabeach_bacheca';
+  var DEF={menu:{primo:'Trofie al pesto genovese',secondo:'Pesce del giorno alla griglia',
+      contorno:'Insalata di pomodori e cipolla di Tropea',dolce:'Panna cotta ai frutti di bosco',prezzo:22},
+    bandiera:'verde',
+    avvisi:[
+      {quando:'11:00',titolo:'Acqua gym',testo:"Mezz'ora in acqua bassa con l'istruttore, compresa nel prezzo del posto."},
+      {quando:'16:30',titolo:'Giochi per i bambini',testo:'Ping pong e giochi in spiaggia, all\'ombra.'},
+      {quando:'Venerdì',titolo:'Aperitivo in riva',testo:'Dalle 18:30 musica e aperitivo al banco.'}
+    ]};
+  var B=JSON.parse(JSON.stringify(DEF));
+  try{ var s=JSON.parse(localStorage.getItem(CHIAVE)||'null'); if(s&&s.menu) B=s; }catch(e){}
+  function q(x){ return document.querySelector(x); }
+  function qq(x){ return [].slice.call(document.querySelectorAll(x)); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  var TESTI={verde:'Bandiera verde, mare tranquillo',
+    gialla:'Bandiera gialla, entrare con prudenza',
+    rossa:'Bandiera rossa, balneazione vietata'};
+  var COLORI={verde:'#2E8B57',gialla:'#EFB402',rossa:'#C0392B'};
+
+  
+  /* ---------- lato gestionale ---------- */
+  function riempiMenu(){
+    q('#bch-primo').value=B.menu.primo||''; q('#bch-secondo').value=B.menu.secondo||'';
+    q('#bch-contorno').value=B.menu.contorno||''; q('#bch-dolce').value=B.menu.dolce||'';
+    q('#bch-prezzo-in').value=B.menu.prezzo||'';
+  }
+  function elenco(){
+    q('#bch-conta').textContent=(B.avvisi||[]).length+' in bacheca';
+    q('#bch-elenco').innerHTML=(B.avvisi||[]).map(function(a,i){
+      return '<div class="bch-riga"><span><b>'+esc(a.quando)+' · '+esc(a.titolo)+'</b><br>'
+        +'<small style="opacity:.65">'+esc(a.testo)+'</small></span>'
+        +'<span><button class="bch-btn" data-el="'+i+'">Elimina</button></span></div>'; }).join('')
+      || '<p style="opacity:.6;font-size:.88rem">Nessun avviso in bacheca.</p>';
+    qq('#bch-elenco [data-el]').forEach(function(b){ b.onclick=function(){
+      B.avvisi.splice(+b.dataset.el,1); elenco(); }; });
+  }
+  function disegna(){
+    if(!q('#bch-primo')) return;
+    q('#bch-g-data').textContent=new Date().toLocaleDateString('it-IT',
+      {weekday:'long',day:'numeric',month:'long'});
+    riempiMenu();
+    qq('#bch-scelta-band button').forEach(function(b){
+      b.classList.toggle('on',b.dataset.b===B.bandiera); });
+    elenco();
+  }
+  function messaggio(t){
+    if(typeof toast==='function'){ try{ toast(t); return; }catch(e){} }
+    alert(t);
+  }
+  function avvia(){
+    if(!q('#bch-primo')) return;
+    disegna();
+    qq('#bch-scelta-band button').forEach(function(b){ b.onclick=function(){
+      B.bandiera=b.dataset.b;
+      qq('#bch-scelta-band button').forEach(function(x){ x.classList.toggle('on',x===b); }); }; });
+    q('#bch-aggiungi').onclick=function(){
+      var ti=q('#bch-titolo').value.trim();
+      if(ti.length<2){ messaggio("Serve almeno il titolo dell'avviso"); return; }
+      B.avvisi=B.avvisi||[];
+      B.avvisi.push({quando:q('#bch-quando').value.trim()||'Oggi',titolo:ti,
+        testo:q('#bch-testo').value.trim()});
+      q('#bch-quando').value=''; q('#bch-titolo').value=''; q('#bch-testo').value='';
+      elenco(); messaggio('Avviso aggiunto. Premi Pubblica per mandarlo sul sito.');
+    };
+    q('#bch-salva').onclick=function(){
+      B.menu={primo:q('#bch-primo').value.trim(),secondo:q('#bch-secondo').value.trim(),
+        contorno:q('#bch-contorno').value.trim(),dolce:q('#bch-dolce').value.trim(),
+        prezzo:parseInt(q('#bch-prezzo-in').value,10)||0};
+      try{ localStorage.setItem(CHIAVE,JSON.stringify(B)); }catch(e){}
+      elenco(); messaggio('Bacheca pubblicata sul sito');
+    };
+    q('#bch-ripristina').onclick=function(){
+      B=JSON.parse(JSON.stringify(DEF));
+      try{ localStorage.removeItem(CHIAVE); }catch(e){}
+      disegna(); messaggio('Bacheca riportata ai valori di partenza');
+    };
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',avvia);
+  else avvia();
+  
+})();
+</script><!-- BACHECA:FINE -->
 
 </div>
 
@@ -1056,8 +1242,8 @@ function statsMese(m){ /* m = 0..11 */
 const MESI_ST=[4,5,6,7,8].map(statsMese);
 
 /* ---------------- ROUTER ---------------- */
-const PAGES=['panoramica','spiaggia','prenotazioni','calendario','attesa','incassi','fatture','clienti','whatsapp','automazioni','listino'];
-const TITOLI={panoramica:'Panoramica',spiaggia:'Mappa spiaggia',prenotazioni:'Prenotazioni',calendario:'Calendario',
+const PAGES=['panoramica','spiaggia','prenotazioni','calendario','attesa','incassi','fatture','clienti','whatsapp','automazioni','bacheca','listino'];
+const TITOLI={bacheca:'Bacheca e menù del giorno',panoramica:'Panoramica',spiaggia:'Mappa spiaggia',prenotazioni:'Prenotazioni',calendario:'Calendario',
   attesa:"Lista d'attesa",incassi:'Incassi',fatture:'Fatture',clienti:'Clienti',whatsapp:'Conversazioni WhatsApp',
   automazioni:'Automazioni',listino:'Listino e orari'};
 function route(){

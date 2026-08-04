@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* =====================================================================
-   Innesta la bacheca del giorno e il menù del pranzo dentro un sito
+   Innesta la bacheca del giorno e il menù del giorno dentro un sito
    e un gestionale già costruiti, senza toccare il resto del file.
 
    Uso:
@@ -93,7 +93,7 @@ const SITO=`
   <div class="container">
     <p class="eyebrow">Oggi in spiaggia</p>
     <h2 style="margin:6px 0 8px">Come sta la spiaggia adesso</h2>
-    <p class="lead" style="margin-bottom:22px">Meteo, mare, menù del pranzo e avvisi della giornata.
+    <p class="lead" style="margin-bottom:22px">Meteo, mare, menù del giorno e avvisi della giornata.
       Questa parte la aggiorna il personale dal gestionale.</p>
 
     <div class="bch-griglia">
@@ -110,7 +110,7 @@ const SITO=`
 
       <div class="bch-box">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
-          <h3>Il menù del pranzo</h3><span class="bch-data" id="bch-data"></span>
+          <h3>Il menù del giorno</h3><span class="bch-data" id="bch-data"></span>
         </div>
         <div id="bch-piatti" style="margin-top:10px"></div>
         <div class="bch-prezzo">
@@ -129,11 +129,11 @@ const SITO=`
 
 /* ---------------- pagina dell'editor nel gestionale ---------------- */
 const GEST=`
-<section class="page bch" id="p-bacheca" hidden>
+<section class="page bch" id="p-bacheca">
   <div class="bch-griglia">
     <div class="bch-box">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
-        <h3>Menù del pranzo di oggi</h3><span class="bch-data" id="bch-g-data"></span>
+        <h3>Menù del giorno di oggi</h3><span class="bch-data" id="bch-g-data"></span>
       </div>
       <div style="margin-top:14px">
         <div class="bch-campo"><label for="bch-primo">Primo</label><input id="bch-primo"></div>
@@ -361,6 +361,15 @@ function innestaGestionale(file,pref){
   const chiusura=trovaChiusuraPagina(t,ult);
   const fine=chiusura+'</section>'.length;
   t=t.slice(0,fine)+APRI+STILE+GEST+script(pref,'gestionale',0,0)+CHIUDI+t.slice(fine);
+  /* la rotta va aggiunta all'elenco chiuso delle pagine, altrimenti il loro
+     instradatore rimanda alla panoramica */
+  const rot=t.match(/const PAGES=\[[^\]]*\]/);
+  if(!rot) throw new Error('non trovo l elenco delle pagine in '+file);
+  if(rot[0].indexOf("'bacheca'")<0)
+    t=t.replace(rot[0], rot[0].replace("'listino'", "'bacheca','listino'"));
+  const tit=t.match(/const TITOLI={/);
+  if(tit && t.indexOf('bacheca:')<0)
+    t=t.replace('const TITOLI={', "const TITOLI={bacheca:'Bacheca e menù del giorno',");
   fs.writeFileSync(file,t);
   return t.length;
 }
