@@ -423,6 +423,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 
 /* ======================= SOGLIE ======================= */
 @media(max-width:940px){
+  .bach{grid-template-columns:1fr}
   #griglia-pren{grid-template-columns:1fr!important}
   #col-riepilogo .scheda{position:static!important}
   .piede .griglia{grid-template-columns:1fr 1fr!important}
@@ -450,6 +451,15 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
   .chat{right:9px;left:9px;width:auto}
   .chat-b{right:12px}
   .ora{grid-template-columns:62px 1fr;gap:12px}
+  .menu-g .piatto{flex-direction:column;gap:2px;padding:12px 0}
+  .menu-g .piatto span.et{width:auto}
+  .meteo{padding:20px}
+  .meteo .grande b{font-size:2.6rem}
+  .meteo .righe{gap:8px}
+  .meteo .righe div b{font-size:1rem}
+  .avviso-r{flex-direction:column;gap:4px}
+  .avviso-r .quando{width:auto}
+  .wa-b{bottom:calc(var(--barra) + 86px)}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition-duration:.01ms!important}
