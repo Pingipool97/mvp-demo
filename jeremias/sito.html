@@ -76,6 +76,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 .contenuto{grid-column:2;min-width:0}
 .wrap{max-width:1060px;padding:0 clamp(22px,4vw,64px)}
 .sez{padding:clamp(64px,8vw,110px) 0;position:relative}
+.sez-bianca{background:var(--card);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord)}
 .sez-scuro{background:var(--nero);color:#fff}
 .sez-scuro p{color:rgba(255,255,255,.68)}
 .sez-verde{background:var(--verde);color:var(--verde-t)}
@@ -290,6 +291,12 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 .orari td:last-child{text-align:right;font-family:'Oswald',sans-serif;font-size:1.02rem}
 .orari tr.oggi td{color:var(--verde-s);font-weight:700}
 .orari tr.chiuso td:last-child{color:var(--tx3)}
+/* sul fondo verde il verde non si legge: il giorno di oggi si segna in scuro */
+.sez-verde .orari td{border-bottom-color:rgba(18,22,11,.2)}
+.sez-verde .orari tr.oggi td{color:var(--verde-t);font-weight:800}
+.sez-verde .orari tr.oggi td:first-child::after{content:" · oggi";font-weight:600;
+  font-size:.74rem;opacity:.6;letter-spacing:.04em}
+.sez-verde .orari tr.chiuso td{color:rgba(18,22,11,.5)}
 
 /* pannello presentazione */
 .pres{position:fixed;left:0;top:0;bottom:0;width:min(430px,92vw);z-index:96;background:var(--card);
@@ -424,18 +431,12 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
       <a class="b b-p" href="#prenota"><svg><use href="#i-cal"/></svg>Prenota adesso</a>
       <a class="b b-s" href="#trattamenti">Guarda i trattamenti</a>
     </div>
-    <div class="dati">
-      <div><b>4,9</b><span>su 1530 recensioni</span></div>
-      <div><b id="n-tratt">6</b><span>Trattamenti</span></div>
-      <div><b>2</b><span>Barbieri</span></div>
-      <div><b>30'</b><span>Durata media</span></div>
-    </div>
   </div>
   <div class="bollo">Top<br>Rated<br>2024</div>
 </section>
 
 <!-- ================= TRATTAMENTI ================= -->
-<section class="sez" id="trattamenti">
+<section class="sez sez-bianca" id="trattamenti">
   <div class="wrap">
     <div class="testa">
       <p class="occhio">02 · Trattamenti</p>
@@ -599,7 +600,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke
 </section>
 
 <!-- ================= GALLERIA ================= -->
-<section class="sez" id="galleria">
+<section class="sez sez-bianca" id="galleria">
   <div class="wrap">
     <div class="testa">
       <p class="occhio">06 · Il negozio</p>
@@ -754,7 +755,6 @@ function disegnaListino(){
   $$('#listino [data-pren]').forEach(b=>b.onclick=()=>{
     scegliTratt(b.dataset.pren); vaiA('#prenota');
   });
-  $('#n-tratt').textContent=attivi().length;
 }
 
 /* =========================================================
