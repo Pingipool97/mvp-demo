@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Jeremias Barbiere · Paderno Dugnano</title>
+<meta name="description" content="Barbiere a Paderno Dugnano. Taglio, barba e trattamenti con Jeremias e Luca. Prenota online, si paga in negozio.">
+<style>
+@font-face{font-family:'Oswald';src:url({{ASSET:oswald.woff2}}) format('woff2');font-weight:400 700;font-display:swap}
+@font-face{font-family:'Inter';src:url({{ASSET:inter.woff2}}) format('woff2');font-weight:400 800;font-display:swap}
+
+/* colori presi dal salone: la parete di muschio, i mobili petrolio, le poltrone nere */
+:root{
+  --verde:#93C01F; --verde-s:#7BA318; --verde-t:#12160B;
+  --petrolio:#0F7E9B; --petrolio-s:#0B6178;
+  --nero:#16181A; --nero-2:#22262A;
+  --panna:#F5F4F0; --panna-2:#FBFAF7; --card:#FFFFFF;
+  --tx:#16181A; --tx2:#4E555B; --tx3:#8A9299;
+  --bord:#E2E0DA; --om:rgba(22,24,26,.13);
+  --lato:302px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--panna);color:var(--tx);
+  font-size:16px;line-height:1.6;overflow-x:hidden}
+h1,h2,h3,h4,.os{font-family:'Oswald',Impact,sans-serif;font-weight:600;line-height:1.03;
+  letter-spacing:.01em;text-transform:uppercase}
+h1{font-size:clamp(3.2rem,8vw,6.4rem);font-weight:700;letter-spacing:-.005em}
+h2{font-size:clamp(2.1rem,4.6vw,3.4rem)}
+h3{font-size:1.28rem}
+p{color:var(--tx2)}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+img{max-width:100%;display:block}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+::selection{background:var(--verde);color:var(--verde-t)}
+:focus-visible{outline:2.5px solid var(--verde);outline-offset:3px}
+
+/* ================= IMPIANTO: colonna fissa a sinistra ================= */
+.guscio{display:grid;grid-template-columns:var(--lato) 1fr;min-height:100vh}
+.lato{position:fixed;left:0;top:0;bottom:0;width:var(--lato);background:var(--nero);color:#fff;
+  display:flex;flex-direction:column;padding:26px 24px;z-index:60;overflow-y:auto}
+.lato .stemma{width:118px;height:118px;border-radius:99px;background:#fff;padding:6px;
+  margin-bottom:16px;flex:none}
+.lato .stemma img{width:100%;height:100%;object-fit:contain;border-radius:99px}
+.lato .nome{font-family:'Oswald',sans-serif;font-size:1.5rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.06em;line-height:1.1}
+.lato .sotto{font-size:.79rem;color:rgba(255,255,255,.5);letter-spacing:.14em;text-transform:uppercase;
+  margin-top:3px}
+.stato{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:.34em .8em;
+  border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(147,192,31,.16);color:var(--verde)}
+.stato.chiuso{background:rgba(255,255,255,.09);color:rgba(255,255,255,.65)}
+.stato i{width:8px;height:8px;border-radius:99px;background:currentColor;display:block}
+.lato nav{margin:26px 0;display:grid;gap:1px}
+.lato nav a{display:flex;align-items:baseline;gap:12px;padding:9px 0;font-family:'Oswald',sans-serif;
+  font-size:1.02rem;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.6);
+  transition:.16s;border-bottom:1px solid rgba(255,255,255,.08)}
+.lato nav a:hover{color:#fff;padding-left:6px}
+.lato nav a.on{color:var(--verde)}
+.lato nav a b{font-size:.68rem;color:rgba(255,255,255,.3);font-family:'Inter',sans-serif;
+  font-weight:700;flex:none;width:20px}
+.lato nav a.on b{color:var(--verde)}
+.lato .fondo{margin-top:auto;font-size:.79rem;color:rgba(255,255,255,.52);line-height:1.65}
+.lato .fondo b{color:#fff;font-weight:600;display:block;font-size:.83rem;margin-bottom:2px}
+.lato .fondo .riga{padding:11px 0;border-top:1px solid rgba(255,255,255,.1)}
+.lato .wa{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:14px;
+  padding:.72em 1em;border-radius:11px;background:#25D366;color:#0B2117;font-weight:700;
+  font-size:.87rem;transition:.16s}
+.lato .wa:hover{background:#1FBA59}
+
+.contenuto{grid-column:2;min-width:0}
+.wrap{max-width:1060px;padding:0 clamp(22px,4vw,64px)}
+.sez{padding:clamp(64px,8vw,110px) 0;position:relative}
+.sez-scuro{background:var(--nero);color:#fff}
+.sez-scuro p{color:rgba(255,255,255,.68)}
+.sez-verde{background:var(--verde);color:var(--verde-t)}
+.sez-verde p{color:rgba(18,22,11,.75)}
+
+/* testate di sezione */
+.occhio{font-size:.7rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--petrolio);display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.occhio::before{content:"";width:26px;height:2px;background:currentColor;flex:none}
+.sez-scuro .occhio{color:var(--verde)}
+.sez-verde .occhio{color:var(--verde-t);opacity:.6}
+.testa{max-width:660px;margin-bottom:clamp(30px,4vw,48px)}
+.testa p{margin-top:14px;font-size:1.04rem}
+
+/* bottoni */
+.b{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:.86em 1.6em;
+  border-radius:2px;font-family:'Oswald',sans-serif;font-weight:600;font-size:.98rem;
+  text-transform:uppercase;letter-spacing:.07em;cursor:pointer;border:2px solid transparent;
+  transition:.18s;white-space:nowrap}
+.b svg{width:17px;height:17px}
+.b-p{background:var(--verde);color:var(--verde-t)}
+.b-p:hover{background:var(--verde-s)}
+.b-n{background:var(--nero);color:#fff}
+.b-n:hover{background:var(--nero-2)}
+.b-s{border-color:currentColor}
+.b-s:hover{background:var(--nero);color:#fff;border-color:var(--nero)}
+.sez-scuro .b-s:hover{background:#fff;color:var(--nero);border-color:#fff}
+.b-sm{padding:.55em 1.05em;font-size:.85rem}
+.b[disabled]{opacity:.4;pointer-events:none}
+
+/* ================= APERTURA ================= */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(70px,9vw,120px) 0;position:relative;overflow:hidden}
+.hero .foto{position:absolute;right:0;top:0;bottom:0;width:44%;background-size:cover;
+  background-position:center;clip-path:polygon(18% 0,100% 0,100% 100%,0 100%)}
+.hero .foto::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--panna),transparent 42%)}
+.hero .wrap{position:relative;z-index:2}
+.hero h1 span{display:block}
+.hero h1 .verde{color:var(--verde)}
+.hero .paga{font-size:1.08rem;max-width:430px;margin:24px 0 32px}
+.hero .azioni{display:flex;gap:12px;flex-wrap:wrap}
+.hero .dati{display:flex;gap:clamp(20px,3vw,44px);margin-top:clamp(40px,6vw,70px);flex-wrap:wrap;
+  padding-top:24px;border-top:2px solid var(--nero)}
+.hero .dati b{display:block;font-family:'Oswald',sans-serif;font-size:2.1rem;font-weight:700;line-height:1}
+.hero .dati span{font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3)}
+.bollo{position:absolute;right:6%;bottom:9%;z-index:3;width:112px;height:112px;border-radius:99px;
+  background:var(--verde);color:var(--verde-t);display:grid;place-items:center;text-align:center;
+  font-family:'Oswald',sans-serif;font-size:.74rem;font-weight:700;text-transform:uppercase;
+  line-height:1.25;letter-spacing:.04em;transform:rotate(-9deg)}
+
+/* ================= TRATTAMENTI ================= */
+.gruppo{margin-bottom:38px}
+.gruppo > h3{font-size:.78rem;letter-spacing:.2em;color:var(--tx3);margin-bottom:6px;
+  font-family:'Inter',sans-serif;font-weight:800}
+.tratt{display:grid;grid-template-columns:1fr auto;gap:14px 22px;align-items:center;
+  padding:20px 0;border-top:1px solid var(--bord);transition:.16s}
+.tratt:last-child{border-bottom:1px solid var(--bord)}
+.tratt:hover{padding-left:8px}
+.tratt h4{font-size:1.32rem;font-weight:600}
+.tratt .desc{font-size:.9rem;color:var(--tx2);margin-top:4px;max-width:62ch}
+.tratt .meta{display:flex;gap:14px;align-items:center;margin-top:8px;font-size:.8rem;color:var(--tx3);
+  flex-wrap:wrap}
+.tratt .meta span{display:flex;align-items:center;gap:5px}
+.tratt .meta svg{width:14px;height:14px}
+.tratt .dx{display:flex;align-items:center;gap:16px}
+.tratt .prezzo{font-family:'Oswald',sans-serif;font-size:1.9rem;font-weight:600;white-space:nowrap}
+
+/* ================= PRENOTAZIONE ================= */
+.passi{display:flex;gap:0;margin-bottom:30px;border:2px solid var(--nero);border-radius:2px;
+  overflow:hidden}
+.passi div{flex:1;padding:12px 10px;text-align:center;font-family:'Oswald',sans-serif;
+  font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);
+  border-right:2px solid var(--nero);transition:.2s}
+.passi div:last-child{border-right:none}
+.passi div.on{background:var(--nero);color:#fff}
+.passi div.fatto{background:var(--verde);color:var(--verde-t)}
+.passi div b{display:block;font-size:.68rem;opacity:.6;font-family:'Inter',sans-serif}
+
+.scelte{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.scelta{border:2px solid var(--bord);border-radius:3px;padding:16px 18px;cursor:pointer;
+  transition:.16s;text-align:left;background:var(--card)}
+.scelta:hover{border-color:var(--nero)}
+.scelta.on{border-color:var(--verde);background:color-mix(in srgb,var(--verde) 8%,#fff)}
+.scelta b{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:600;text-transform:uppercase;
+  display:block}
+.scelta small{color:var(--tx3);font-size:.83rem;display:block;margin-top:3px}
+.scelta .p{font-family:'Oswald',sans-serif;font-size:1.3rem;margin-top:8px;display:block}
+
+.barbiere-scelta{display:flex;align-items:center;gap:13px}
+.barbiere-scelta .tondo{width:44px;height:44px;border-radius:99px;background:var(--nero);color:#fff;
+  display:grid;place-items:center;font-family:'Oswald',sans-serif;font-size:1.05rem;flex:none}
+
+.giorni{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.giorno{flex:none;width:78px;padding:11px 6px;border:2px solid var(--bord);border-radius:3px;
+  text-align:center;cursor:pointer;transition:.16s;background:var(--card)}
+.giorno:hover{border-color:var(--nero)}
+.giorno.on{background:var(--nero);color:#fff;border-color:var(--nero)}
+.giorno.chiuso{opacity:.32;pointer-events:none}
+.giorno span{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;opacity:.65}
+.giorno b{display:block;font-family:'Oswald',sans-serif;font-size:1.45rem;font-weight:600;line-height:1.1}
+.giorno small{font-size:.68rem;opacity:.6}
+
+.ore{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:18px}
+.ora{padding:.72em 0;border:2px solid var(--bord);border-radius:3px;font-family:'Oswald',sans-serif;
+  font-size:1rem;text-align:center;cursor:pointer;transition:.14s;background:var(--card)}
+.ora:hover{border-color:var(--nero)}
+.ora.on{background:var(--verde);border-color:var(--verde);color:var(--verde-t)}
+.ora.pieno{opacity:.3;pointer-events:none;text-decoration:line-through}
+
+.riepilogo{border:2px solid var(--nero);border-radius:3px;padding:24px;background:var(--card)}
+.riepilogo .r{display:flex;justify-content:space-between;gap:14px;padding:10px 0;
+  border-bottom:1px dashed var(--bord);font-size:.93rem}
+.riepilogo .r:last-of-type{border-bottom:none}
+.riepilogo .r span:first-child{color:var(--tx3)}
+.riepilogo .r b{font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:600}
+.riepilogo .tot{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  margin-top:14px;padding-top:14px;border-top:2px solid var(--nero)}
+.riepilogo .tot b{font-family:'Oswald',sans-serif;font-size:2rem;font-weight:700}
+
+.campo{margin-bottom:14px}
+.campo label{display:block;font-size:.74rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--tx3);margin-bottom:6px}
+.campo input,.campo textarea{width:100%;padding:.78em .9em;border:2px solid var(--bord);border-radius:3px;
+  background:var(--card);font-size:.95rem;transition:.15s}
+.campo input:focus,.campo textarea:focus{outline:none;border-color:var(--nero)}
+.campo .err{display:none;color:#C0392B;font-size:.78rem;margin-top:4px;font-weight:600}
+.campo.ko input{border-color:#C0392B}
+.campo.ko .err{display:block}
+
+.avviso{padding:15px 17px;border-left:4px solid var(--petrolio);background:var(--panna-2);
+  font-size:.87rem;color:var(--tx2);border-radius:0 3px 3px 0;line-height:1.55}
+
+/* ================= BARBIERI ================= */
+.barbieri{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.barbiere{background:var(--card);border:1px solid var(--bord);border-radius:3px;overflow:hidden}
+.barbiere .img{aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--nero)}
+.barbiere .in{padding:22px}
+.barbiere h3{font-size:1.6rem}
+.barbiere .ruolo{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--petrolio);
+  font-weight:800;margin-bottom:10px}
+.barbiere p{font-size:.9rem}
+.barbiere .voto{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;
+  border-top:1px solid var(--bord);font-size:.85rem;color:var(--tx3)}
+.barbiere .voto b{font-family:'Oswald',sans-serif;font-size:1.3rem;color:var(--tx)}
+
+/* recensioni */
+.rec{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.recensione{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:3px;padding:20px}
+.recensione .stelle{color:var(--verde);font-size:.9rem;letter-spacing:.14em;margin-bottom:9px}
+.recensione p{font-size:.93rem;color:rgba(255,255,255,.86);line-height:1.55}
+.recensione .chi{margin-top:13px;font-size:.79rem;color:rgba(255,255,255,.5)}
+.recensione .chi b{color:#fff;font-weight:600}
+
+/* galleria */
+.gal{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gal figure{position:relative;overflow:hidden;cursor:zoom-in;background:var(--nero)}
+.gal figure::after{content:"";display:block;padding-top:68%}
+.gal figure div{position:absolute;inset:0;background-size:cover;background-position:center;
+  transition:transform .6s cubic-bezier(.2,.6,.2,1)}
+.gal figure:hover div{transform:scale(1.07)}
+.lente{position:fixed;inset:0;background:rgba(10,12,13,.95);z-index:120;display:none;place-items:center;
+  padding:26px}
+.lente.on{display:grid}
+.lente img{max-width:min(1100px,94vw);max-height:88vh;object-fit:contain}
+.lente .x{position:absolute;top:20px;right:24px;color:#fff;width:44px;height:44px;border-radius:99px;
+  background:rgba(255,255,255,.14);display:grid;place-items:center}
+
+/* contatti */
+.info{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px}
+.info .v{display:flex;gap:14px;padding:17px 0;border-bottom:1px solid var(--bord)}
+.info .v .ic{width:40px;height:40px;border-radius:3px;background:var(--nero);color:var(--verde);
+  display:grid;place-items:center;flex:none}
+.info .v h4{font-size:1rem;margin-bottom:2px}
+.info .v p{font-size:.9rem}
+.orari{width:100%;border-collapse:collapse;font-size:.92rem}
+.orari td{padding:9px 0;border-bottom:1px solid var(--bord)}
+.orari td:last-child{text-align:right;font-family:'Oswald',sans-serif;font-size:1.02rem}
+.orari tr.oggi td{color:var(--verde-s);font-weight:700}
+.orari tr.chiuso td:last-child{color:var(--tx3)}
+
+/* pannello presentazione */
+.pres{position:fixed;left:0;top:0;bottom:0;width:min(430px,92vw);z-index:96;background:var(--card);
+  box-shadow:20px 0 60px -20px var(--om);transform:translateX(-101%);
+  transition:transform .4s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:26px}
+.pres.on{transform:none}
+.velo{position:fixed;inset:0;background:rgba(10,12,13,.45);z-index:95;opacity:0;pointer-events:none;
+  transition:.3s}
+.velo.on{opacity:1;pointer-events:auto}
+.bug{padding:15px 0;border-bottom:1px solid var(--bord)}
+.bug h4{font-size:1rem;display:flex;gap:9px;align-items:flex-start;text-transform:none;
+  font-family:'Inter',sans-serif;font-weight:700}
+.bug h4 i{width:20px;height:20px;border-radius:3px;background:var(--nero);color:var(--verde);flex:none;
+  display:grid;place-items:center;font-size:.68rem;font-style:normal;font-weight:700;margin-top:2px}
+.bug p{font-size:.85rem;margin-top:6px;padding-left:29px}
+.bug .fix{font-size:.83rem;margin-top:7px;padding-left:29px;color:var(--petrolio);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:.42em .85em;border:1.5px solid var(--bord);
+  border-radius:99px;font-size:.78rem;font-weight:600;cursor:pointer;transition:.16s;background:var(--card)}
+.chip:hover{border-color:var(--nero)}
+.apri-pres{position:fixed;top:18px;right:18px;z-index:70}
+
+/* messaggio */
+.toast{position:fixed;left:calc(var(--lato) + 20px);bottom:22px;z-index:110;background:var(--nero);
+  color:#fff;padding:15px 20px;border-radius:3px;font-size:.9rem;max-width:min(440px,80vw);
+  box-shadow:0 20px 44px -16px rgba(0,0,0,.5);opacity:0;transform:translateY(14px);
+  pointer-events:none;transition:.3s;border-left:4px solid var(--verde)}
+.toast.on{opacity:1;transform:none;pointer-events:auto}
+
+.piede{background:var(--nero);color:rgba(255,255,255,.55);padding:40px 0;font-size:.82rem}
+.piede a:hover{color:var(--verde)}
+
+/* ================= SOGLIE ================= */
+@media(max-width:1080px){
+  :root{--lato:0px}
+  .guscio{grid-template-columns:1fr}
+  .contenuto{grid-column:1}
+  .lato{position:sticky;top:0;left:auto;bottom:auto;width:auto;height:auto;flex-direction:row;
+    align-items:center;gap:14px;padding:11px 16px;overflow:visible}
+  .lato .stemma{width:46px;height:46px;margin:0;padding:3px}
+  .lato .nome{font-size:1.06rem}
+  .lato .sotto,.lato .fondo,.lato .wa{display:none}
+  .lato .stato{margin:0 0 0 auto;font-size:.72rem}
+  .lato nav{position:fixed;left:0;right:0;top:68px;background:var(--nero);margin:0;padding:8px 16px 16px;
+    display:none;box-shadow:0 20px 40px -14px rgba(0,0,0,.6);max-height:70vh;overflow-y:auto}
+  .lato nav.aperto{display:grid}
+  .menu-b{display:grid!important;place-items:center;width:42px;height:42px;border-radius:3px;
+    background:rgba(255,255,255,.1);color:#fff;flex:none}
+  .hero .foto{width:100%;clip-path:none;opacity:.22}
+  .hero .foto::after{background:linear-gradient(180deg,var(--panna),transparent 40%,var(--panna))}
+  .toast{left:16px;right:16px;max-width:none}
+  .bollo{right:4%;bottom:5%;width:92px;height:92px;font-size:.66rem}
+  .gal{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:760px){
+  .barbieri,.info{grid-template-columns:1fr}
+  .rec{grid-template-columns:1fr}
+  .gal{grid-template-columns:repeat(2,1fr)}
+  .tratt{grid-template-columns:1fr;gap:12px}
+  .tratt .dx{justify-content:space-between}
+  .passi div{font-size:.68rem;padding:9px 4px}
+  .passi div b{display:none}
+  .scelte{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}html{scroll-behavior:auto}}
+.menu-b{display:none}
+</style>
+</head>
+<body>

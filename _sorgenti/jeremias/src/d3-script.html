@@ -1,0 +1,755 @@
+<script>
+"use strict";
+const $=(s,e)=>(e||document).querySelector(s);
+const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const eur=n=>Math.round(n).toLocaleString('it-IT')+' €';
+
+/* =========================================================
+   DATI
+   ========================================================= */
+const TRATT_DEF=[
+ {id:'taglio-trad',cat:'Taglio uomo',nome:'Taglio Uomo Tradizionale',
+  desc:'Sfumatura a macchinetta e forbice, lavaggio e piega finale.',min:30,prezzo:20,attivo:true},
+ {id:'taglio-barba',cat:'Taglio uomo',nome:'Taglio + Shampoo + Barba',
+  desc:'Il servizio completo: taglio, shampoo e barba rifinita.',min:30,prezzo:28,attivo:true},
+ {id:'barba',cat:'Barba',nome:'Barba',
+  desc:'Spuntata e rifinitura con forbice e rasoio, olio finale.',min:30,prezzo:15,attivo:true},
+ {id:'rasatura',cat:'Barba',nome:'Rasatura Barba Tradizionale',
+  desc:'Panno caldo, sapone da barba e rasoio a mano libera.',min:30,prezzo:20,attivo:true},
+ {id:'anticaduta',cat:'Trattamenti per cute e capello',nome:'Trattamento Anticaduta',
+  desc:'Lozione e massaggio del cuoio capelluto. Ciclo consigliato di sei sedute.',min:30,prezzo:25,attivo:true},
+ {id:'bambino',cat:'Taglio bambini e teenager',nome:'Taglio Bambino',
+  desc:'Da 0 a 10 anni, con la poltrona alta e i cartoni animati.',min:30,prezzo:15,attivo:true}
+];
+const ORARI_DEF=[{ap:null,ch:null},{ap:null,ch:null},{ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'20:00'},
+ {ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'19:00'}];
+const GIORNI=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const GG=['dom','lun','mar','mer','gio','ven','sab'];
+const BARBIERI=[{id:'jeremias',nome:'Jeremias',ini:'J'},{id:'luca',nome:'Luca Terragni',ini:'LT'}];
+const nomeB=id=>{const b=BARBIERI.find(x=>x.id===id);return b?b.nome:id;};
+
+let TRATT=JSON.parse(JSON.stringify(TRATT_DEF));
+let ORARI=JSON.parse(JSON.stringify(ORARI_DEF));
+let CHIUSURE=[], PREN=[];
+function leggi(){
+  try{ const t=JSON.parse(localStorage.getItem('jeremias_trattamenti')||'null');
+    if(Array.isArray(t)&&t.length) TRATT=t; }catch(e){}
+  try{ const o=JSON.parse(localStorage.getItem('jeremias_orari')||'null');
+    if(Array.isArray(o)&&o.length===7) ORARI=o; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem('jeremias_chiusure')||'null');
+    if(Array.isArray(c)) CHIUSURE=c; }catch(e){}
+  try{ PREN=JSON.parse(localStorage.getItem('jeremias_prenotazioni')||'[]'); }catch(e){ PREN=[]; }
+}
+function salva(chiave,valore){ try{ localStorage.setItem(chiave,JSON.stringify(valore)); }catch(e){} }
+leggi();
+
+const OGGI=new Date();
+const iso=d=>{const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10);};
+const piu=(d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x;};
+const minuti=s=>{const[h,m]=s.split(':').map(Number); return h*60+m;};
+const hhmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const tratt=id=>TRATT.find(t=>t.id===id)||{nome:'trattamento tolto',min:30,prezzo:0,cat:''};
+const chiuso=g=>{ const d=new Date(g+'T12:00:00');
+  return CHIUSURE.some(c=>c.data===g) || !ORARI[d.getDay()].ap; };
+
+/* ---------- semina dimostrativa: sei mesi di storico e due settimane avanti ---------- */
+let seme=20260805;
+const rnd=()=>{ seme=(seme*1103515245+12345)&0x7fffffff; return seme/0x7fffffff; };
+const NOMI=['Marco Riva','Andrea Sala','Fabio Mauri','Davide Corti','Stefano Longhi','Luca Bianchi',
+ 'Simone Ferrari','Alessio Gatti','Matteo Villa','Paolo Brambilla','Nicola Rossi','Giorgio Fumagalli',
+ 'Enrico Colombo','Samuele Motta','Federico Beretta','Christian Pozzi','Omar Nasr','Youssef El Amrani',
+ 'Riccardo Meroni','Tommaso Galli','Diego Sironi','Emanuele Crippa','Filippo Rota','Gabriele Sada',
+ 'Alberto Monti','Michele Pini','Cristian Vago','Dario Testa','Lorenzo Arosio','Ivan Barbieri'];
+const METODI=['contanti','bancomat','carta'];
+
+(function semina(){
+  if(PREN.some(p=>p.semina)) return;         /* già seminato in questa memoria */
+  const nuovi=[];
+  for(let g=-182; g<=45; g++){
+    const d=piu(OGGI,g), gi=iso(d);
+    if(!ORARI[d.getDay()].ap) continue;
+    const o=ORARI[d.getDay()];
+    /* più lavoro il venerdì e il sabato, meno a metà settimana */
+    const carico=[0,0,.42,.46,.52,.72,.86][d.getDay()];
+    BARBIERI.forEach(b=>{
+      for(let m=minuti(o.ap); m+30<=minuti(o.ch); m+=30){
+        if(rnd()>carico) continue;
+        const t=TRATT_DEF[Math.floor(rnd()*TRATT_DEF.length)];
+        const passato=g<0 || (g===0 && m<OGGI.getHours()*60+OGGI.getMinutes());
+        nuovi.push({id:'s'+g+'-'+b.id+'-'+m, semina:true, giorno:gi, ora:hhmm(m),
+          barbiere:b.id, tratt:t.id, prezzo:t.prezzo,
+          nome:NOMI[Math.floor(rnd()*NOMI.length)],
+          tel:'+39 3'+(Math.floor(rnd()*9)+1)+String(Math.floor(rnd()*9e7+1e7)),
+          origine: rnd()<.55?'sito':(rnd()<.5?'telefono':'negozio'),
+          stato: passato ? (rnd()<.04?'non presentato':'completata') : 'confermata',
+          metodo: passato ? METODI[Math.floor(rnd()*3)] : null,
+          note:''});
+      }
+    });
+  }
+  PREN=PREN.concat(nuovi);
+  salva('jeremias_prenotazioni',PREN);
+})();
+
+/* =========================================================
+   AGENDA
+   ========================================================= */
+let giornoVisto=iso(OGGI);
+function disegnaAgenda(){
+  const d=new Date(giornoVisto+'T12:00:00'), o=ORARI[d.getDay()];
+  $('#giorno-et').textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '+
+    d.toLocaleDateString('it-IT',{month:'long'});
+  const cont=$('#agenda');
+  if(chiuso(giornoVisto)){
+    const c=CHIUSURE.find(x=>x.data===giornoVisto);
+    cont.innerHTML='<div style="grid-column:1/-1"><div class="vuoto">Negozio chiuso'
+      +(c?': '+esc(c.motivo):' in questo giorno della settimana')+'.</div></div>';
+    return;
+  }
+  let h='<div class="testa-col"></div>';
+  BARBIERI.forEach(b=>{
+    const n=PREN.filter(p=>p.giorno===giornoVisto&&p.barbiere===b.id&&p.stato!=='annullata').length;
+    h+='<div class="testa-col"><b>'+esc(b.nome)+'</b><small>'+n+' appuntamenti</small></div>';
+  });
+  const dal=minuti(o.ap), al=minuti(o.ch);
+  for(let m=dal;m<al;m+=30){
+    h+='<div class="ora-et">'+hhmm(m)+'</div>';
+    BARBIERI.forEach(b=>{
+      const p=PREN.find(x=>x.giorno===giornoVisto&&x.barbiere===b.id&&x.ora===hhmm(m));
+      if(p){
+        const t=tratt(p.tratt);
+        h+='<div class="cella"><div class="app '+(p.origine==='sito'?'web ':'')
+          +(p.stato==='completata'?'fatto ':'')+(p.stato==='annullata'?'annullata ':'')
+          +'" data-id="'+esc(p.id)+'"><b>'+esc(p.nome)+'</b><small>'+esc(t.nome)+'</small></div></div>';
+      } else {
+        h+='<div class="cella" data-nuovo="'+b.id+'|'+hhmm(m)+'"></div>';
+      }
+    });
+  }
+  cont.innerHTML=h;
+  $$('#agenda .app').forEach(a=>a.onclick=e=>{ e.stopPropagation(); apriApp(a.dataset.id); });
+  $$('#agenda [data-nuovo]').forEach(c=>c.onclick=()=>{
+    const [b,ora]=c.dataset.nuovo.split('|');
+    nuovoApp(giornoVisto,ora,b);
+  });
+}
+
+/* ---------- cassetto ---------- */
+function cass(v){ $('#cass').classList.toggle('on',v); $('#velo').classList.toggle('on',v); }
+function apriApp(id){
+  const p=PREN.find(x=>x.id===id); if(!p) return;
+  const t=tratt(p.tratt);
+  const d=new Date(p.giorno+'T12:00:00');
+  $('#cass-tit').textContent=p.nome;
+  $('#cass-sot').textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '
+    +d.toLocaleDateString('it-IT',{month:'long'})+', alle '+p.ora;
+  const st={'confermata':'eti-att','completata':'eti-ok','annullata':'eti-ko','non presentato':'eti-ko',
+    'arrivato':'eti-web'}[p.stato]||'eti-neu';
+  $('#cass-corpo').innerHTML=
+    '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px">'
+    +'<span class="eti '+st+'">'+esc(p.stato)+'</span>'
+    +(p.origine==='sito'?'<span class="eti eti-web">prenotato dal sito</span>':
+      '<span class="eti eti-neu">'+esc(p.origine)+'</span>')+'</div>'
+    +dato('Trattamento',esc(t.nome))
+    +dato('Barbiere',esc(nomeB(p.barbiere)))
+    +dato('Durata',t.min+' minuti')
+    +dato('Telefono',esc(p.tel||'non indicato'))
+    +dato('Importo','<b>'+eur(p.prezzo)+'</b>')
+    +(p.metodo?dato('Pagato con',esc(p.metodo)):'')
+    +(p.note?'<p class="nota" style="margin-top:12px">'+esc(p.note)+'</p>':'')
+    +'<div class="campo" style="margin-top:14px"><label>Come ha pagato</label>'
+    +'<select id="sel-metodo"><option value="">non ancora</option>'
+    +METODI.map(m=>'<option'+(p.metodo===m?' selected':'')+'>'+m+'</option>').join('')+'</select></div>';
+  $('#cass-piede').innerHTML=
+    (p.stato==='confermata'?'<button class="b b-p b-sm" id="b-fatto">Segna come fatto</button>':'')
+    +(p.stato==='confermata'?'<button class="b b-s b-sm" id="b-noshow">Non presentato</button>':'')
+    +'<button class="b b-s b-sm" id="b-wa">WhatsApp</button>'
+    +'<button class="b b-ko b-sm" id="b-annulla">Annulla</button>';
+  $('#sel-metodo').onchange=e=>{ p.metodo=e.target.value||null; salva('jeremias_prenotazioni',PREN);
+    tutto(); avvisa('Pagamento aggiornato'); };
+  const bf=$('#b-fatto'); if(bf) bf.onclick=()=>{ p.stato='completata';
+    if(!p.metodo) p.metodo='contanti';
+    salva('jeremias_prenotazioni',PREN); cass(false); tutto();
+    avvisa('Appuntamento chiuso: '+eur(p.prezzo)+' sul fatturato di '+nomeB(p.barbiere)); };
+  const bn=$('#b-noshow'); if(bn) bn.onclick=()=>{ p.stato='non presentato';
+    salva('jeremias_prenotazioni',PREN); cass(false); tutto(); avvisa('Segnato come non presentato'); };
+  $('#b-wa').onclick=()=>avvisa('In una versione vera partirebbe un messaggio a '+(p.tel||'questo cliente')+'. Qui non viene inviato niente.');
+  $('#b-annulla').onclick=()=>{ p.stato='annullata'; salva('jeremias_prenotazioni',PREN);
+    cass(false); tutto(); avvisa('Appuntamento annullato, la casella torna libera'); };
+  cass(true);
+}
+function dato(a,b){ return '<div class="dato"><span>'+a+'</span><span>'+b+'</span></div>'; }
+
+function nuovoApp(giorno,ora,barbiere){
+  $('#cass-tit').textContent='Nuovo appuntamento';
+  $('#cass-sot').textContent='Si paga in negozio a fine servizio';
+  $('#cass-corpo').innerHTML=
+    '<div class="campo"><label>Cliente</label><input id="n-nome" placeholder="Nome e cognome"></div>'
+    +'<div class="campo"><label>Telefono</label><input id="n-tel" placeholder="+39"></div>'
+    +'<div class="campo"><label>Trattamento</label><select id="n-tratt">'
+    + TRATT.filter(t=>t.attivo!==false).map(t=>'<option value="'+t.id+'">'+esc(t.nome)+' · '+t.min+"' · "+eur(t.prezzo)+'</option>').join('')
+    +'</select></div>'
+    +'<div class="campo"><label>Barbiere</label><select id="n-barb">'
+    + BARBIERI.map(b=>'<option value="'+b.id+'"'+(b.id===barbiere?' selected':'')+'>'+esc(b.nome)+'</option>').join('')
+    +'</select></div>'
+    +'<div class="griglia g2" style="gap:10px">'
+    +'<div class="campo" style="margin:0"><label>Giorno</label><input type="date" id="n-giorno" value="'+giorno+'"></div>'
+    +'<div class="campo" style="margin:0"><label>Ora</label><input id="n-ora" value="'+ora+'" placeholder="09:00"></div></div>'
+    +'<div class="campo" style="margin-top:11px"><label>Note</label><textarea id="n-note" rows="2"></textarea></div>'
+    +'<p class="nota">Puoi mettere anche un orario fuori dalle fasce standard: serve per chi passa '
+    +'in negozio e chiede un favore.</p>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="b-crea">Aggiungi in agenda</button>'
+    +'<button class="b b-s" id="b-ann">Annulla</button>';
+  $('#b-ann').onclick=()=>cass(false);
+  $('#b-crea').onclick=()=>{
+    const nome=$('#n-nome').value.trim();
+    if(nome.length<2){ avvisa('Serve il nome del cliente'); return; }
+    const idt=$('#n-tratt').value, t=tratt(idt);
+    const g=$('#n-giorno').value, o=$('#n-ora').value.trim(), b=$('#n-barb').value;
+    if(!/^\d{1,2}:\d{2}$/.test(o)){ avvisa('Ora non valida, scrivila come 09:30'); return; }
+    const gia=PREN.find(x=>x.giorno===g&&x.barbiere===b&&x.ora===o&&x.stato!=='annullata');
+    if(gia){ avvisa('In quella casella c\'è già '+gia.nome); return; }
+    PREN.push({id:'m'+Date.now(),giorno:g,ora:o,barbiere:b,tratt:idt,prezzo:t.prezzo,
+      nome:nome,tel:$('#n-tel').value.trim(),origine:'negozio',stato:'confermata',
+      metodo:null,note:$('#n-note').value.trim()});
+    salva('jeremias_prenotazioni',PREN);
+    giornoVisto=g; cass(false); tutto();
+    avvisa('Appuntamento aggiunto: '+nome+', '+t.nome+' con '+nomeB(b));
+  };
+  cass(true);
+}
+
+/* =========================================================
+   ELENCHI
+   ========================================================= */
+let filtroPren='futuri';
+function disegnaPren(){
+  const q=($('#q').value||'').toLowerCase();
+  let l=PREN.slice();
+  const oggi=iso(OGGI);
+  if(filtroPren==='futuri') l=l.filter(p=>p.giorno>=oggi);
+  if(filtroPren==='oggi') l=l.filter(p=>p.giorno===oggi);
+  if(filtroPren==='passati') l=l.filter(p=>p.giorno<oggi);
+  if(filtroPren==='jeremias') l=l.filter(p=>p.barbiere==='jeremias'&&p.giorno>=oggi);
+  if(filtroPren==='luca') l=l.filter(p=>p.barbiere==='luca'&&p.giorno>=oggi);
+  if(filtroPren==='sito') l=l.filter(p=>p.origine==='sito'&&p.giorno>=oggi);
+  if(q) l=l.filter(p=>(p.nome+' '+(p.tel||'')).toLowerCase().includes(q));
+  l.sort((a,b)=>(a.giorno+a.ora).localeCompare(b.giorno+b.ora));
+  if(filtroPren==='passati') l.reverse();
+  l=l.slice(0,200);
+  $('#conta-pren').textContent=l.length+(l.length===200?'+':'')+' appuntamenti';
+  $('#tab-pren').innerHTML= l.length? l.map(p=>{
+    const t=tratt(p.tratt), d=new Date(p.giorno+'T12:00:00');
+    const st={'confermata':'eti-att','completata':'eti-ok','annullata':'eti-ko',
+      'non presentato':'eti-ko'}[p.stato]||'eti-neu';
+    return '<tr data-id="'+esc(p.id)+'"><td>'+GG[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)
+      +'<br><small style="color:var(--tx3)">'+p.ora+'</small></td>'
+      +'<td><b>'+esc(p.nome)+'</b><br><small style="color:var(--tx3)">'+esc(p.tel||'')+'</small></td>'
+      +'<td>'+esc(t.nome)+'</td><td>'+esc(nomeB(p.barbiere))+'</td>'
+      +'<td><span class="eti '+(p.origine==='sito'?'eti-web':'eti-neu')+'">'+esc(p.origine)+'</span></td>'
+      +'<td class="num">'+eur(p.prezzo)+'</td>'
+      +'<td><span class="eti '+st+'">'+esc(p.stato)+'</span></td></tr>';
+  }).join('') : '<tr><td colspan="7"><div class="vuoto">Nessun appuntamento con questi criteri.</div></td></tr>';
+  $$('#tab-pren tr[data-id]').forEach(r=>r.onclick=()=>apriApp(r.dataset.id));
+  const nuove=PREN.filter(p=>p.origine==='sito'&&p.nuova).length;
+  $('#n-pren').hidden=!nuove; $('#n-pren').textContent=nuove;
+}
+function clienti(){
+  const m={};
+  PREN.forEach(p=>{
+    if(p.stato==='annullata') return;
+    const k=p.nome;
+    if(!m[k]) m[k]={nome:p.nome,tel:p.tel,visite:0,speso:0,ultimo:'',barb:{}};
+    m[k].visite++; if(p.stato==='completata') m[k].speso+=p.prezzo;
+    if(p.giorno>m[k].ultimo) m[k].ultimo=p.giorno;
+    m[k].barb[p.barbiere]=(m[k].barb[p.barbiere]||0)+1;
+  });
+  return Object.values(m).sort((a,b)=>b.speso-a.speso);
+}
+function disegnaClienti(){
+  const q=($('#q').value||'').toLowerCase();
+  let l=clienti();
+  if(q) l=l.filter(c=>(c.nome+' '+(c.tel||'')).toLowerCase().includes(q));
+  $('#conta-cli').textContent=l.length+' clienti';
+  $('#tab-cli').innerHTML=l.slice(0,150).map(c=>{
+    const pref=Object.entries(c.barb).sort((a,b)=>b[1]-a[1])[0];
+    const d=new Date(c.ultimo+'T12:00:00');
+    return '<tr><td><b>'+esc(c.nome)+'</b></td><td>'+esc(c.tel||'')+'</td>'
+      +'<td>'+c.visite+(c.visite>7?' <span class="eti eti-ok">affezionato</span>':'')+'</td>'
+      +'<td>'+d.getDate()+'/'+(d.getMonth()+1)+'</td>'
+      +'<td>'+esc(nomeB(pref[0]))+'</td><td class="num">'+eur(c.speso)+'</td></tr>';
+  }).join('');
+}
+
+/* =========================================================
+   TRATTAMENTI
+   ========================================================= */
+function disegnaTratt(){
+  $('#conta-tratt').textContent=TRATT.filter(t=>t.attivo!==false).length+' attivi su '+TRATT.length;
+  $('#tab-tratt').innerHTML=TRATT.map((t,i)=>
+    '<tr><td><b>'+esc(t.nome)+'</b><br><small style="color:var(--tx3)">'+esc(t.desc||'')+'</small></td>'
+    +'<td>'+esc(t.cat)+'</td>'
+    +'<td class="num"><input data-c="min" data-i="'+i+'" value="'+t.min+'" style="width:58px;text-align:right;padding:.28em .4em;border:1.5px solid var(--bord);border-radius:5px;background:var(--card2)"></td>'
+    +'<td class="num"><input data-c="prezzo" data-i="'+i+'" value="'+t.prezzo+'" style="width:64px;text-align:right;padding:.28em .4em;border:1.5px solid var(--bord);border-radius:5px;background:var(--card2)"></td>'
+    +'<td><button class="b b-sm '+(t.attivo!==false?'b-p':'b-s')+'" data-att="'+i+'">'
+    +(t.attivo!==false?'visibile':'nascosto')+'</button></td>'
+    +'<td><button class="b b-ko b-sm" data-del="'+i+'">Elimina</button></td></tr>').join('');
+  $$('#tab-tratt input').forEach(inp=>inp.onchange=()=>{
+    const v=parseInt(inp.value,10); if(isNaN(v)||v<0) return;
+    TRATT[+inp.dataset.i][inp.dataset.c]=v;
+    salva('jeremias_trattamenti',TRATT); tutto(); avvisa('Aggiornato, il sito è già cambiato');
+  });
+  $$('#tab-tratt [data-att]').forEach(b=>b.onclick=()=>{
+    const t=TRATT[+b.dataset.att]; t.attivo=(t.attivo===false);
+    salva('jeremias_trattamenti',TRATT); disegnaTratt();
+    avvisa(t.attivo?'"'+t.nome+'" ora è prenotabile sul sito':'"'+t.nome+'" non compare più sul sito');
+  });
+  $$('#tab-tratt [data-del]').forEach(b=>b.onclick=()=>{
+    const t=TRATT[+b.dataset.del];
+    if(PREN.some(p=>p.tratt===t.id&&p.giorno>=iso(OGGI)&&p.stato==='confermata')){
+      avvisa('Non lo tolgo: ci sono appuntamenti futuri con questo trattamento. Nascondilo invece.');
+      return;
+    }
+    TRATT.splice(+b.dataset.del,1);
+    salva('jeremias_trattamenti',TRATT); tutto(); avvisa('Trattamento eliminato');
+  });
+}
+function nuovoTratt(){
+  $('#cass-tit').textContent='Nuovo trattamento';
+  $('#cass-sot').textContent='Comparirà subito sul sito';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label>Nome</label><input id="t-nome" placeholder="Taglio + Barba express"></div>'
+   +'<div class="campo"><label>Categoria</label><input id="t-cat" list="cats" placeholder="Taglio uomo">'
+   +'<datalist id="cats">'+[...new Set(TRATT.map(t=>t.cat))].map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></div>'
+   +'<div class="campo"><label>Descrizione</label><textarea id="t-desc" rows="2"></textarea></div>'
+   +'<div class="griglia g2" style="gap:10px">'
+   +'<div class="campo" style="margin:0"><label>Minuti</label><input id="t-min" value="30" inputmode="numeric"></div>'
+   +'<div class="campo" style="margin:0"><label>Prezzo</label><input id="t-prezzo" value="20" inputmode="numeric"></div></div>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="b-crea-t">Aggiungi</button>'
+    +'<button class="b b-s" id="b-ann-t">Annulla</button>';
+  $('#b-ann-t').onclick=()=>cass(false);
+  $('#b-crea-t').onclick=()=>{
+    const nome=$('#t-nome').value.trim();
+    if(nome.length<3){ avvisa('Serve il nome del trattamento'); return; }
+    TRATT.push({id:'t'+Date.now(),cat:$('#t-cat').value.trim()||'Altri servizi',nome:nome,
+      desc:$('#t-desc').value.trim(),min:parseInt($('#t-min').value,10)||30,
+      prezzo:parseInt($('#t-prezzo').value,10)||0,attivo:true});
+    salva('jeremias_trattamenti',TRATT); cass(false); tutto();
+    avvisa('"'+nome+'" aggiunto ed è già prenotabile sul sito');
+  };
+  cass(true);
+}
+
+/* =========================================================
+   ORARI E CHIUSURE
+   ========================================================= */
+function disegnaOrari(){
+  $('#tab-orari').innerHTML=[1,2,3,4,5,6,0].map(g=>{
+    const o=ORARI[g];
+    return '<tr><td><b>'+GIORNI[g]+'</b></td>'
+      +'<td><input data-g="'+g+'" data-c="ap" value="'+(o.ap||'')+'" placeholder="08:30" style="width:74px;padding:.28em .4em;border:1.5px solid var(--bord);border-radius:5px;background:var(--card2)"></td>'
+      +'<td><input data-g="'+g+'" data-c="ch" value="'+(o.ch||'')+'" placeholder="20:00" style="width:74px;padding:.28em .4em;border:1.5px solid var(--bord);border-radius:5px;background:var(--card2)"></td>'
+      +'<td><input type="checkbox" data-g="'+g+'" data-c="chiuso"'+(o.ap?'':' checked')+'></td></tr>';
+  }).join('');
+  disegnaChiusure();
+}
+function salvaOrari(){
+  $$('#tab-orari input').forEach(i=>{
+    const g=+i.dataset.g;
+    if(i.dataset.c==='chiuso'){ if(i.checked){ ORARI[g].ap=null; ORARI[g].ch=null; } }
+    else if(i.value.trim() && /^\d{1,2}:\d{2}$/.test(i.value.trim())) ORARI[g][i.dataset.c]=i.value.trim();
+  });
+  ORARI.forEach(o=>{ if(o.ap&&!o.ch) o.ch='20:00'; });
+  salva('jeremias_orari',ORARI); tutto(); avvisa('Orari salvati, il sito li usa già');
+}
+function disegnaChiusure(){
+  const f=CHIUSURE.filter(c=>c.data>=iso(OGGI)).sort((a,b)=>a.data.localeCompare(b.data));
+  $('#lista-chiusure').innerHTML= f.length? f.map((c,i)=>{
+    const d=new Date(c.data+'T12:00:00');
+    return '<div class="dato"><span><b>'+GG[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'</b>'
+      +' · '+esc(c.motivo)+'</span>'
+      +'<span><button class="b b-ko b-sm" data-ch="'+esc(c.data)+'">Togli</button></span></div>';
+  }).join('') : '<div class="vuoto">Nessuna chiusura in programma.</div>';
+  $$('#lista-chiusure [data-ch]').forEach(b=>b.onclick=()=>{
+    CHIUSURE=CHIUSURE.filter(c=>c.data!==b.dataset.ch);
+    salva('jeremias_chiusure',CHIUSURE); tutto(); avvisa('Chiusura tolta');
+  });
+}
+
+/* =========================================================
+   INCASSI E PREVISIONE
+   ========================================================= */
+const meseDi=g=>g.slice(0,7);
+function incassoMese(m,barb){
+  return PREN.filter(p=>meseDi(p.giorno)===m && p.stato==='completata'
+    && (!barb||p.barbiere===barb)).reduce((t,p)=>t+p.prezzo,0);
+}
+function giorniLavorati(m){
+  return new Set(PREN.filter(p=>meseDi(p.giorno)===m&&p.stato==='completata').map(p=>p.giorno)).size;
+}
+function giorniApertiDelMese(anno,mese){
+  let n=0;
+  const ultimo=new Date(anno,mese+1,0).getDate();
+  for(let d=1;d<=ultimo;d++){
+    const data=new Date(anno,mese,d);
+    if(ORARI[data.getDay()].ap && !CHIUSURE.some(c=>c.data===iso(data))) n++;
+  }
+  return n;
+}
+function previsione(){
+  const ora=new Date();
+  const mCorr=iso(ora).slice(0,7);
+  const prec=new Date(ora.getFullYear(),ora.getMonth()-1,1);
+  const prec2=new Date(ora.getFullYear(),ora.getMonth()-2,1);
+  const mPrec=iso(prec).slice(0,7), mPrec2=iso(prec2).slice(0,7);
+  const iPrec=incassoMese(mPrec), iPrec2=incassoMese(mPrec2);
+  const gLav=giorniLavorati(mPrec)||1;
+  const mediaGiorno=iPrec/gLav;
+  /* tendenza fra i due mesi precedenti, tenuta entro un intervallo prudente */
+  let tend = iPrec2>0 ? iPrec/iPrec2 : 1;
+  tend = Math.max(.85,Math.min(1.15,tend));
+  const pros=new Date(ora.getFullYear(),ora.getMonth()+1,1);
+  const gApertiPros=giorniApertiDelMese(pros.getFullYear(),pros.getMonth());
+  const stima=mediaGiorno*gApertiPros*tend;
+  const mPros=iso(pros).slice(0,7);
+  const gia=PREN.filter(p=>meseDi(p.giorno)===mPros&&p.stato==='confermata')
+    .reduce((t,p)=>t+p.prezzo,0);
+  return {stima:stima,gia:gia,mediaGiorno:mediaGiorno,gApertiPros:gApertiPros,tend:tend,
+    mPrec:mPrec,iPrec:iPrec,gLav:gLav,mPros:mPros};
+}
+function disegnaIncassi(){
+  const ora=new Date(), mCorr=iso(ora).slice(0,7);
+  const p=previsione();
+  const iCorr=incassoMese(mCorr);
+  $('#i-mese').textContent=eur(iCorr);
+  $('#i-mese-s').textContent=giorniLavorati(mCorr)+' giornate lavorate finora';
+  $('#i-prec').textContent=eur(p.iPrec);
+  $('#i-prec-s').textContent=p.gLav+' giornate, media '+eur(p.mediaGiorno)+' al giorno';
+  $('#i-prev').textContent=eur(p.stima);
+  $('#i-prev-s').textContent=p.gApertiPros+' giorni di apertura, tendenza '
+    +(p.tend>=1?'+':'')+Math.round((p.tend-1)*100)+'%';
+  $('#i-gia').textContent=eur(p.gia);
+
+  /* sei mesi indietro e la previsione */
+  const barre=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(ora.getFullYear(),ora.getMonth()-i,1);
+    barre.push({et:d.toLocaleDateString('it-IT',{month:'short'}),v:incassoMese(iso(d).slice(0,7)),prev:false});
+  }
+  const pros=new Date(ora.getFullYear(),ora.getMonth()+1,1);
+  barre.push({et:pros.toLocaleDateString('it-IT',{month:'short'}),v:p.stima,prev:true});
+  const max=Math.max(...barre.map(b=>b.v))||1;
+  $('#barre').innerHTML=barre.map(b=>
+    '<div><small>'+eur(b.v)+'</small><i class="'+(b.prev?'prev':'')+'" style="height:'
+    +Math.max(3,b.v/max*100)+'%"></i><small>'+b.et+'</small></div>').join('');
+  $('#spiega-prev').innerHTML='La previsione non è un numero a caso: prende la media giornaliera del '
+    +'mese scorso ('+eur(p.mediaGiorno)+'), la moltiplica per i '+p.gApertiPros+' giorni in cui il '
+    +'negozio sarà aperto il mese prossimo, e la corregge con la tendenza fra gli ultimi due mesi ('
+    +(p.tend>=1?'+':'')+Math.round((p.tend-1)*100)+'%). Le chiusure che segni negli orari entrano '
+    +'subito nel conto. Dei '+eur(p.stima)+' previsti, '+eur(p.gia)+' sono già in agenda.';
+
+  /* diviso fra i due */
+  const j=incassoMese(mCorr,'jeremias'), l=incassoMese(mCorr,'luca'), tot=j+l||1;
+  $('#quota').innerHTML='<span class="j" style="width:'+(j/tot*100)+'%">'+Math.round(j/tot*100)+'%</span>'
+    +'<span class="l" style="width:'+(l/tot*100)+'%">'+Math.round(l/tot*100)+'%</span>';
+  $('#dett-quota').innerHTML=
+    dato('Jeremias','<b>'+eur(j)+'</b>')+dato('Luca Terragni','<b>'+eur(l)+'</b>')
+    +dato('Totale del mese','<b>'+eur(j+l)+'</b>')
+    +'<p class="nota" style="margin-top:10px">Ogni appuntamento chiuso finisce nel fatturato di chi '
+    +'lo ha eseguito. In una versione con accessi separati ognuno vedrebbe solo il proprio.</p>';
+
+  /* metodi di pagamento */
+  const m={};
+  PREN.filter(x=>meseDi(x.giorno)===mCorr&&x.stato==='completata'&&x.metodo)
+    .forEach(x=>m[x.metodo]=(m[x.metodo]||0)+x.prezzo);
+  const somma=Object.values(m).reduce((a,b)=>a+b,0)||1;
+  $('#metodi').innerHTML=Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+    dato(k,'<b>'+eur(v)+'</b> · '+Math.round(v/somma*100)+'%')).join('')
+    || '<div class="vuoto">Nessun incasso registrato questo mese.</div>';
+}
+
+/* =========================================================
+   FORNITORI
+   ========================================================= */
+let FORN=[];
+(function seminaForn(){
+  try{ const f=JSON.parse(localStorage.getItem('jeremias_fornitori')||'null');
+    if(Array.isArray(f)&&f.length){ FORN=f; return; } }catch(e){}
+  const base=[
+   ['2026/0412','American Crew','Cere, paste e shampoo',248,-38,-8,'pagata'],
+   ['2026/0455','Barber Store Milano','Lame, rasoi e forbici',186,-24,6,'da pagare'],
+   ['2026/0478','Proraso','Linea barba e dopobarba',132,-12,18,'da pagare'],
+   ['2026/0501','Fixi Detergenti','Prodotti per la pulizia',64,-6,24,'da pagare'],
+   ['2026/0388','Wahl Italia','Ricambi macchinette',97,-52,-22,'pagata'],
+   ['2026/0350','Tessil Service','Noleggio asciugamani, trimestre',210,-64,-34,'pagata']
+  ];
+  FORN=base.map(([num,forn,cosa,imp,gEmiss,gScad,stato])=>({
+    num:num,forn:forn,cosa:cosa,importo:imp,
+    data:iso(piu(OGGI,gEmiss)), scadenza:iso(piu(OGGI,gScad)), stato:stato}));
+  salva('jeremias_fornitori',FORN);
+})();
+function disegnaForn(){
+  const oggi=iso(OGGI);
+  const dovuto=FORN.filter(f=>f.stato!=='pagata').reduce((t,f)=>t+f.importo,0);
+  const scadute=FORN.filter(f=>f.stato!=='pagata'&&f.scadenza<oggi);
+  $('#f-dovuto').textContent=eur(dovuto);
+  $('#f-dovuto-s').textContent=FORN.filter(f=>f.stato!=='pagata').length+' fatture aperte';
+  $('#f-scadute').textContent=scadute.length;
+  $('#f-anno').textContent=eur(FORN.reduce((t,f)=>t+f.importo,0));
+  $('#conta-forn').textContent=FORN.length+' fatture';
+  $('#n-forn').hidden=!scadute.length; $('#n-forn').textContent=scadute.length;
+  const l=FORN.slice().sort((a,b)=>a.scadenza.localeCompare(b.scadenza));
+  $('#tab-forn').innerHTML=l.map((f,i)=>{
+    const scaduta=f.stato!=='pagata'&&f.scadenza<oggi;
+    const d=new Date(f.data+'T12:00:00'), s=new Date(f.scadenza+'T12:00:00');
+    return '<tr><td><b>'+esc(f.num)+'</b></td><td>'+esc(f.forn)+'</td><td>'+esc(f.cosa)+'</td>'
+      +'<td>'+d.getDate()+'/'+(d.getMonth()+1)+'</td>'
+      +'<td'+(scaduta?' style="color:var(--ko);font-weight:700"':'')+'>'+s.getDate()+'/'+(s.getMonth()+1)+'</td>'
+      +'<td class="num">'+eur(f.importo)+'</td>'
+      +'<td>'+(f.stato==='pagata'?'<span class="eti eti-ok">pagata</span>'
+        :'<button class="b b-sm '+(scaduta?'b-ko':'b-s')+'" data-pag="'+i+'">'
+        +(scaduta?'scaduta, paga':'segna pagata')+'</button>')+'</td></tr>';
+  }).join('');
+  $$('#tab-forn [data-pag]').forEach(b=>b.onclick=()=>{
+    const f=l[+b.dataset.pag];
+    FORN.find(x=>x.num===f.num).stato='pagata';
+    salva('jeremias_fornitori',FORN); disegnaForn(); disegnaAssistente();
+    avvisa('Fattura '+f.num+' segnata come pagata');
+  });
+}
+function nuovaFattura(){
+  $('#cass-tit').textContent='Registra una fattura';
+  $('#cass-sot').textContent='Fornitori e materiali di consumo';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label>Numero</label><input id="f-num" placeholder="2026/0512"></div>'
+   +'<div class="campo"><label>Fornitore</label><input id="f-forn"></div>'
+   +'<div class="campo"><label>Cosa</label><input id="f-cosa" placeholder="Prodotti, attrezzatura, servizi"></div>'
+   +'<div class="griglia g2" style="gap:10px">'
+   +'<div class="campo" style="margin:0"><label>Importo</label><input id="f-imp" inputmode="numeric"></div>'
+   +'<div class="campo" style="margin:0"><label>Scadenza</label><input type="date" id="f-scad"></div></div>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="b-crea-f">Registra</button>'
+    +'<button class="b b-s" id="b-ann-f">Annulla</button>';
+  $('#b-ann-f').onclick=()=>cass(false);
+  $('#b-crea-f').onclick=()=>{
+    const num=$('#f-num').value.trim(), forn=$('#f-forn').value.trim();
+    if(!num||!forn){ avvisa('Servono numero e fornitore'); return; }
+    FORN.push({num:num,forn:forn,cosa:$('#f-cosa').value.trim()||'materiali',
+      importo:parseInt($('#f-imp').value,10)||0,data:iso(OGGI),
+      scadenza:$('#f-scad').value||iso(piu(OGGI,30)),stato:'da pagare'});
+    salva('jeremias_fornitori',FORN); cass(false); disegnaForn(); disegnaAssistente();
+    avvisa('Fattura registrata');
+  };
+  cass(true);
+}
+
+/* =========================================================
+   WHATSAPP
+   ========================================================= */
+let CONV=[
+ {nome:'Andrea Sala',tel:'+39 347 2214498',stato:'agente',nonletti:2,ora:'09:20',msg:[
+  {chi:'cli',t:'Buongiorno, avete posto sabato mattina per taglio e barba?',ora:'09:18'},
+  {chi:'ag',t:'Buongiorno. Sabato mattina con Jeremias è pieno fino alle 11, con Luca c\'è libero alle 9:30 e alle 10:30. Taglio + shampoo + barba sono 28 € e dura mezz\'ora. Le prenoto uno dei due?',ora:'09:19'},
+  {chi:'cli',t:'Alle 9:30 con Luca va benissimo',ora:'09:20'}
+ ]},
+ {nome:'Fabio Mauri',tel:'+39 333 8890211',stato:'agente',nonletti:1,ora:'08:44',msg:[
+  {chi:'cli',t:'Quanto viene il trattamento anticaduta?',ora:'08:43'},
+  {chi:'ag',t:'Il trattamento anticaduta costa 25 € e dura mezz\'ora. Di solito si consiglia un ciclo di sei sedute. Vuole che le blocchi la prima?',ora:'08:44'}
+ ]},
+ {nome:'Davide Corti',tel:'+39 340 1123877',stato:'umano',nonletti:0,ora:'ieri',msg:[
+  {chi:'cli',t:'Devo spostare l\'appuntamento di giovedì, mi è uscita una riunione',ora:'ieri 18:02'},
+  {chi:'ag',t:'Capisco. Le sposto io o preferisce parlare con Jeremias o Luca?',ora:'ieri 18:02'},
+  {chi:'cli',t:'Meglio con Luca, devo chiedergli una cosa sul colore',ora:'ieri 18:05'},
+  {chi:'sis',t:'Conversazione presa in carico da Luca Terragni',ora:'ieri 18:10'},
+  {chi:'noi',t:'Ciao Davide, nessun problema. Ti sposto a venerdì stessa ora?',ora:'ieri 18:12'}
+ ]},
+ {nome:'Omar Nasr',tel:'+39 351 4478112',stato:'agente',nonletti:0,ora:'lunedì',msg:[
+  {chi:'cli',t:'Fate anche il taglio ai bambini piccoli? Mio figlio ha 4 anni',ora:'lunedì 16:30'},
+  {chi:'ag',t:'Sì, il taglio bambino è da 0 a 10 anni, 15 € e mezz\'ora, con la poltrona alta e i cartoni. Meglio la mattina presto quando è più tranquillo.',ora:'lunedì 16:31'}
+ ]}
+];
+let convApert=0;
+const RAPIDE=['Le confermo l\'appuntamento','Le mando il listino','Passi pure quando vuole','A presto'];
+const ini=n=>n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+const oraOra=()=>new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+
+function disegnaConv(){
+  const nl=CONV.reduce((t,c)=>t+c.nonletti,0);
+  $('#conta-conv').textContent=CONV.length+' conversazioni, '+nl+' da leggere';
+  $('#n-wa').hidden=!nl; $('#n-wa').textContent=nl;
+  $('#wa-el').innerHTML=CONV.map((c,i)=>
+    '<div class="wa-c'+(i===convApert?' on':'')+'" data-c="'+i+'"><span class="t">'+ini(c.nome)+'</span>'
+    +'<span class="tx"><b>'+esc(c.nome)+'</b><small>'+esc(c.msg[c.msg.length-1].t)+'</small></span>'
+    +(c.nonletti?'<span class="n">'+c.nonletti+'</span>':'')+'</div>').join('');
+  $$('#wa-el .wa-c').forEach(e=>e.onclick=()=>{ convApert=+e.dataset.c; CONV[convApert].nonletti=0;
+    disegnaConv(); });
+  const c=CONV[convApert]; if(!c) return;
+  $('#wa-top').innerHTML='<span class="t" style="width:34px;height:34px;border-radius:99px;background:var(--nero);color:#fff;display:grid;place-items:center;font-family:Oswald,sans-serif;font-size:.76rem">'+ini(c.nome)+'</span>'
+    +'<div><b style="font-size:.9rem">'+esc(c.nome)+'</b><br><small style="color:var(--tx3);font-size:.76rem">'+esc(c.tel)+'</small></div>'
+    +'<span class="eti '+(c.stato==='umano'?'eti-ok':'eti-neu')+'">'
+    +(c.stato==='umano'?'gestita da Luca':'risponde l\'assistente')+'</span>'
+    +'<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">'
+    +(c.stato==='agente'?'<button class="b b-p b-sm" id="b-prendi">Prendi in carico</button>'
+      :'<button class="b b-s b-sm" id="b-rendi">Torna all\'assistente</button>')
+    +'<button class="b b-s b-sm" id="b-app">Crea appuntamento</button></span>';
+  $('#wa-msg').innerHTML=c.msg.map(m=>{
+    if(m.chi==='sis') return '<div class="wa-b sis">'+esc(m.t)+'</div>';
+    return '<div class="wa-b '+(m.chi==='cli'?'cli':'noi')+'">'
+      +(m.chi==='ag'?'<span class="chi">Assistente</span>':'')
+      +(m.chi==='noi'?'<span class="chi">Luca</span>':'')+esc(m.t)+'</div>';
+  }).join('');
+  $('#wa-msg').scrollTop=1e6;
+  $('#wa-rap').innerHTML=RAPIDE.map(r=>'<button>'+esc(r)+'</button>').join('');
+  $$('#wa-rap button').forEach(b=>b.onclick=()=>mandaWa(b.textContent));
+  const bp=$('#b-prendi'); if(bp) bp.onclick=()=>{ c.stato='umano';
+    c.msg.push({chi:'sis',t:'Conversazione presa in carico da Luca Terragni',ora:oraOra()});
+    disegnaConv(); avvisa('Hai preso in carico la conversazione con '+c.nome+'. L\'assistente non risponde più.'); };
+  const br=$('#b-rendi'); if(br) br.onclick=()=>{ c.stato='agente';
+    c.msg.push({chi:'sis',t:'Conversazione restituita all\'assistente',ora:oraOra()});
+    disegnaConv(); avvisa('Torna a rispondere l\'assistente'); };
+  $('#b-app').onclick=()=>{ vaiA('agenda'); nuovoApp(iso(OGGI),'09:00','jeremias');
+    setTimeout(()=>{ const n=$('#n-nome'), t=$('#n-tel');
+      if(n){ n.value=c.nome; t.value=c.tel; } },80); };
+}
+function mandaWa(t){
+  const c=CONV[convApert]; if(!c||!t.trim()) return;
+  if(c.stato!=='umano'){ c.stato='umano';
+    c.msg.push({chi:'sis',t:'Conversazione presa in carico da Luca Terragni',ora:oraOra()}); }
+  c.msg.push({chi:'noi',t:t.trim(),ora:oraOra()});
+  c.ora=oraOra(); $('#wa-in').value=''; disegnaConv();
+}
+
+/* =========================================================
+   ASSISTENTE
+   ========================================================= */
+function consigli(){
+  const out=[], oggi=iso(OGGI);
+  const scadute=FORN.filter(f=>f.stato!=='pagata'&&f.scadenza<oggi);
+  if(scadute.length) out.push({tag:'urg',t:scadute.length+' fatture fornitore scadute',
+    p:'In tutto '+eur(scadute.reduce((t,f)=>t+f.importo,0))+'. La più vecchia è '+scadute[0].num
+      +' di '+scadute[0].forn+'.',
+    az:[['Vai alle fatture',()=>vaiA('fornitori'),true]]});
+
+  const buchi=[];
+  for(let g=0;g<7;g++){
+    const gi=iso(piu(OGGI,g)); if(chiuso(gi)) continue;
+    const d=new Date(gi+'T12:00:00'), o=ORARI[d.getDay()];
+    const slot=Math.floor((minuti(o.ch)-minuti(o.ap))/30)*BARBIERI.length;
+    const pieni=PREN.filter(p=>p.giorno===gi&&p.stato!=='annullata').length;
+    if(slot>0 && pieni/slot<.45) buchi.push({gi:gi,liberi:slot-pieni,d:d});
+  }
+  if(buchi.length) out.push({tag:'oggi',t:'Agenda scarica '+(buchi.length===1?'un giorno':buchi.length+' giorni')+' questa settimana',
+    p:'Il più vuoto è '+GIORNI[buchi[0].d.getDay()].toLowerCase()+' '+buchi[0].d.getDate()
+      +', con '+buchi[0].liberi+' caselle libere. Un messaggio ai clienti che non passano da più di un mese di solito riempie metà giornata.',
+    az:[['Apri quel giorno',()=>{ giornoVisto=buchi[0].gi; vaiA('agenda'); disegnaAgenda(); },true],
+        ['Vedi le conversazioni',()=>vaiA('whatsapp'),false]]});
+
+  const lontani=clienti().filter(c=>c.ultimo<iso(piu(OGGI,-45))&&c.visite>=3);
+  if(lontani.length) out.push({tag:'info',t:lontani.length+' clienti abituali non si vedono da oltre un mese e mezzo',
+    p:'Sono persone che venivano spesso: '+lontani.slice(0,3).map(c=>c.nome).join(', ')
+      +(lontani.length>3?' e altri':'')+'. Vale un messaggio.',
+    az:[['Apri i clienti',()=>vaiA('clienti'),false]]});
+
+  const nl=CONV.reduce((t,c)=>t+c.nonletti,0);
+  if(nl) out.push({tag:'oggi',t:nl+' messaggi WhatsApp da leggere',
+    p:'L\'assistente ha già risposto su prezzi e disponibilità, ma due richieste aspettano una conferma vostra.',
+    az:[['Apri le conversazioni',()=>vaiA('whatsapp'),true]]});
+
+  const p=previsione();
+  out.push({tag:'info',t:'Il mese prossimo dovreste chiudere intorno a '+eur(p.stima),
+    p:'Media di '+eur(p.mediaGiorno)+' al giorno per '+p.gApertiPros+' giorni di apertura, corretta con '
+      +'la tendenza degli ultimi due mesi. In agenda ci sono già '+eur(p.gia)+'.',
+    az:[['Vedi gli incassi',()=>vaiA('incassi'),false]]});
+
+  const nonPag=PREN.filter(x=>x.stato==='completata'&&!x.metodo).length;
+  if(nonPag) out.push({tag:'urg',t:nonPag+' appuntamenti chiusi senza metodo di pagamento',
+    p:'Risultano fatti ma non è segnato come hanno pagato: il conto del mese non torna finché non lo metti.',
+    az:[['Apri gli appuntamenti',()=>{ filtroPren='passati';
+      $$('.filtri [data-f]').forEach(x=>x.classList.toggle('on',x.dataset.f==='passati'));
+      disegnaPren(); vaiA('prenotazioni'); },false]]});
+  return out;
+}
+function disegnaAssistente(){
+  const c=consigli();
+  $('#conta-cons').textContent=c.length+(c.length===1?' cosa da valutare':' cose da valutare');
+  $('#consigli').innerHTML=c.map((x,i)=>
+    '<div class="cons"><div class="r1"><h4>'+esc(x.t)+'</h4>'
+    +'<span class="tag tag-'+x.tag+'">'+(x.tag==='urg'?'urgente':x.tag==='oggi'?'oggi':'nota')+'</span></div>'
+    +'<p>'+esc(x.p)+'</p><div class="az">'
+    + x.az.map((a,j)=>'<button data-c="'+i+'" data-a="'+j+'"'+(a[2]?' class="forte"':'')+'>'
+      +esc(a[0])+'</button>').join('')+'</div></div>').join('');
+  $$('#consigli [data-a]').forEach(b=>b.onclick=()=>c[+b.dataset.c].az[+b.dataset.a][1]());
+}
+
+/* =========================================================
+   NAVIGAZIONE E AVVIO
+   ========================================================= */
+const TITOLI={agenda:'Agenda',prenotazioni:'Appuntamenti',clienti:'Clienti',whatsapp:'Conversazioni WhatsApp',
+  trattamenti:'Trattamenti',orari:'Orari e chiusure',incassi:'Incassi e previsioni',
+  fornitori:'Fatture fornitori'};
+function vaiA(p){
+  $$('.pagina').forEach(s=>s.hidden=(s.id!=='p-'+p));
+  $$('#voci button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  $('#titolo').textContent=TITOLI[p];
+  $('#lato').classList.remove('on');
+  scrollTo({top:0,behavior:'smooth'});
+}
+function avvisa(t){
+  $('#toast').textContent=t; $('#toast').classList.add('on');
+  clearTimeout(avvisa.t); avvisa.t=setTimeout(()=>$('#toast').classList.remove('on'),4600);
+}
+function disegnaKpi(){
+  const oggi=iso(OGGI);
+  const app=PREN.filter(p=>p.giorno===oggi&&p.stato!=='annullata');
+  $('#k-app').textContent=app.length;
+  $('#k-app-s').textContent=app.filter(p=>p.stato==='completata').length+' già fatti';
+  $('#k-inc').textContent=eur(app.reduce((t,p)=>t+p.prezzo,0));
+  $('#k-inc-s').textContent=eur(app.filter(p=>p.stato==='completata').reduce((t,p)=>t+p.prezzo,0))+' già incassati';
+  const d=new Date(oggi+'T12:00:00'), o=ORARI[d.getDay()];
+  const slot=o.ap? Math.floor((minuti(o.ch)-minuti(o.ap))/30)*BARBIERI.length : 0;
+  const perc=slot? Math.round(app.length/slot*100):0;
+  $('#k-occ').textContent=perc+'%';
+  $('#k-occ-bar').style.width=Math.min(100,perc)+'%';
+  const set=iso(piu(OGGI,-7));
+  $('#k-web').textContent=PREN.filter(p=>p.origine==='sito'&&p.giorno>=set&&p.giorno<=oggi).length;
+}
+function tutto(){
+  disegnaKpi(); disegnaAgenda(); disegnaPren(); disegnaClienti(); disegnaTratt();
+  disegnaOrari(); disegnaIncassi(); disegnaForn(); disegnaAssistente();
+}
+(function(){
+  $('#data-oggi').textContent=OGGI.toLocaleDateString('it-IT',
+    {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  disegnaConv(); tutto();
+
+  $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
+  $('#burger').onclick=()=>$('#lato').classList.toggle('on');
+  $('#cass-x').onclick=()=>cass(false);
+  $('#velo').onclick=()=>{ cass(false); $('#lato').classList.remove('on'); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); $('#lato').classList.remove('on'); }});
+  $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
+  $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{ filtroPren=b.dataset.f;
+    $$('.filtri [data-f]').forEach(x=>x.classList.toggle('on',x===b)); disegnaPren(); });
+  $('#g-prima').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),-1)); disegnaAgenda(); };
+  $('#g-dopo').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),1)); disegnaAgenda(); };
+  $('#g-oggi').onclick=()=>{ giornoVisto=iso(OGGI); disegnaAgenda(); };
+  $('#b-nuovo').onclick=()=>nuovoApp(giornoVisto,'09:00','jeremias');
+  $('#b-nuovo-tratt').onclick=nuovoTratt;
+  $('#b-nuova-fatt').onclick=nuovaFattura;
+  $('#b-salva-orari').onclick=salvaOrari;
+  $('#b-chiusura').onclick=()=>{
+    const d=$('#ch-data').value;
+    if(!d){ avvisa('Scegli il giorno da chiudere'); return; }
+    CHIUSURE.push({data:d,motivo:$('#ch-motivo').value.trim()||'chiusura'});
+    salva('jeremias_chiusure',CHIUSURE); $('#ch-data').value=''; $('#ch-motivo').value='';
+    tutto(); avvisa('Chiusura aggiunta, il sito non accetta più prenotazioni per quel giorno');
+  };
+  $('#wa-invia').onclick=()=>mandaWa($('#wa-in').value);
+  $('#wa-in').onkeydown=e=>{ if(e.key==='Enter') mandaWa($('#wa-in').value); };
+
+  addEventListener('storage',e=>{ if(String(e.key||'').startsWith('jeremias_')){
+    leggi(); tutto(); avvisa('È arrivata una prenotazione dal sito'); }});
+})();
+</script>
+</body>
+</html>

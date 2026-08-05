@@ -1,0 +1,250 @@
+<svg style="display:none" aria-hidden="true">
+<symbol id="i-agenda" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h3M8 17.5h7"/></symbol>
+<symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6v.1M3.5 12v.1M3.5 18v.1"/></symbol>
+<symbol id="i-clienti" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="10.5" r="2.4"/><path d="M15 20a5 5 0 0 1 6.5-4.3"/></symbol>
+<symbol id="i-forbici" viewBox="0 0 24 24"><circle cx="6" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M8.1 7.9 20 20M20 4 8.1 16.1"/></symbol>
+<symbol id="i-ora" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></symbol>
+<symbol id="i-euro" viewBox="0 0 24 24"><path d="M17 5a7 7 0 1 0 0 14"/><path d="M4 10h9M4 14h9"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+<symbol id="i-wa" viewBox="0 0 24 24"><path d="M20 11.8a7.9 7.9 0 0 1-11.6 7L4 20l1.3-4.2A7.9 7.9 0 1 1 20 11.8Z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5.6 0 1-.5 1-1l-1.6-.8-1 .9a5 5 0 0 1-2-2l.9-1L11 9.5c-.5 0-1 .4-1 1"/></symbol>
+<symbol id="i-scint" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/><path d="M18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7Z"/></symbol>
+<symbol id="i-piu" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-ok" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-sx" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+<symbol id="i-dx" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-cerca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></symbol>
+</svg>
+
+<aside class="lato" id="lato">
+  <div class="cap">
+    <span class="logo"><img src="{{ASSET:logo.webp}}" alt=""></span>
+    <div><b>Jeremias</b><small>Gestionale</small></div>
+  </div>
+  <nav id="voci">
+    <button data-p="agenda" class="on"><svg><use href="#i-agenda"/></svg>Agenda</button>
+    <button data-p="prenotazioni"><svg><use href="#i-lista"/></svg>Appuntamenti<span class="n" id="n-pren" hidden></span></button>
+    <button data-p="clienti"><svg><use href="#i-clienti"/></svg>Clienti</button>
+    <button data-p="whatsapp"><svg><use href="#i-wa"/></svg>WhatsApp<span class="n" id="n-wa" hidden></span></button>
+    <div class="grp">Negozio</div>
+    <button data-p="trattamenti"><svg><use href="#i-forbici"/></svg>Trattamenti</button>
+    <button data-p="orari"><svg><use href="#i-ora"/></svg>Orari e chiusure</button>
+    <div class="grp">Amministrazione</div>
+    <button data-p="incassi"><svg><use href="#i-euro"/></svg>Incassi e previsioni</button>
+    <button data-p="fornitori"><svg><use href="#i-doc"/></svg>Fatture fornitori<span class="n" id="n-forn" hidden></span></button>
+  </nav>
+  <div class="chi">
+    <span class="t">LT</span>
+    <div><b>Luca Terragni</b><small>Referente</small></div>
+  </div>
+</aside>
+
+<div class="corpo">
+  <header class="barra">
+    <button class="burger" id="burger" aria-label="Menu"><svg><use href="#i-menu"/></svg></button>
+    <div>
+      <h1 id="titolo">Agenda</h1>
+      <div class="data" id="data-oggi"></div>
+    </div>
+    <div class="dx">
+      <label style="display:flex;align-items:center;gap:7px;padding:.34em .7em;border-radius:99px;
+        border:1.5px solid var(--bord);background:var(--card2);min-width:180px">
+        <svg style="width:15px;height:15px;color:var(--tx3)"><use href="#i-cerca"/></svg>
+        <input id="q" placeholder="Cerca cliente o telefono" style="border:none;background:none;outline:none;width:100%;font-size:.85rem">
+      </label>
+      <button class="b b-p b-sm" id="b-nuovo"><svg><use href="#i-piu"/></svg>Nuovo appuntamento</button>
+    </div>
+  </header>
+
+  <!-- ============ AGENDA ============ -->
+  <section class="pagina" id="p-agenda">
+    <div class="griglia g4" style="margin-bottom:16px">
+      <div class="kpi"><span class="et">Appuntamenti oggi</span><b id="k-app">0</b><small id="k-app-s"></small></div>
+      <div class="kpi"><span class="et">Incasso previsto oggi</span><b id="k-inc">0 €</b><small id="k-inc-s"></small></div>
+      <div class="kpi"><span class="et">Poltrone occupate</span><b id="k-occ">0%</b>
+        <div class="bar"><i id="k-occ-bar" style="width:0"></i></div></div>
+      <div class="kpi"><span class="et">Arrivati dal sito</span><b id="k-web">0</b><small>questa settimana</small></div>
+    </div>
+
+    <div class="assist" id="assistente" style="margin-bottom:16px">
+      <div class="a-top"><svg><use href="#i-scint"/></svg><h2>Assistente</h2><span id="conta-cons"></span></div>
+      <div id="consigli"></div>
+    </div>
+
+    <div class="tit">
+      <div class="sx">
+        <button class="b b-s b-sm" id="g-prima"><svg><use href="#i-sx"/></svg></button>
+        <h2 id="giorno-et"></h2>
+        <button class="b b-s b-sm" id="g-dopo"><svg><use href="#i-dx"/></svg></button>
+        <button class="b b-s b-sm" id="g-oggi">Oggi</button>
+      </div>
+      <span style="font-size:.8rem;color:var(--tx3)">Tocca una cella libera per aggiungere un appuntamento</span>
+    </div>
+    <div class="agenda" id="agenda"></div>
+  </section>
+
+  <!-- ============ APPUNTAMENTI ============ -->
+  <section class="pagina" id="p-prenotazioni" hidden>
+    <div class="card">
+      <div class="tit">
+        <div class="sx"><h2>Appuntamenti</h2><span class="eti eti-neu" id="conta-pren"></span></div>
+        <div class="filtri">
+          <button data-f="futuri" class="on">Prossimi</button>
+          <button data-f="oggi">Oggi</button>
+          <button data-f="passati">Passati</button>
+          <button data-f="jeremias">Jeremias</button>
+          <button data-f="luca">Luca</button>
+          <button data-f="sito">Dal sito</button>
+        </div>
+      </div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Quando</th><th>Cliente</th><th>Trattamento</th><th>Barbiere</th>
+          <th>Origine</th><th class="num">Importo</th><th>Stato</th></tr></thead>
+        <tbody id="tab-pren"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ============ CLIENTI ============ -->
+  <section class="pagina" id="p-clienti" hidden>
+    <div class="card">
+      <div class="tit"><div class="sx"><h2>Clienti</h2><span class="eti eti-neu" id="conta-cli"></span></div></div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Cliente</th><th>Telefono</th><th>Visite</th><th>Ultimo</th>
+          <th>Preferisce</th><th class="num">Speso</th></tr></thead>
+        <tbody id="tab-cli"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ============ WHATSAPP ============ -->
+  <section class="pagina" id="p-whatsapp" hidden>
+    <div class="tit">
+      <div class="sx"><h2>Conversazioni</h2><span class="eti eti-neu" id="conta-conv"></span></div>
+      <span style="font-size:.8rem;color:var(--tx3)">Risponde l'assistente. Quando serve, prendi in carico tu.</span>
+    </div>
+    <div class="wa">
+      <div class="wa-el" id="wa-el"></div>
+      <div class="wa-t">
+        <div class="top" id="wa-top"></div>
+        <div class="wa-msg" id="wa-msg"></div>
+        <div class="wa-rap" id="wa-rap"></div>
+        <div class="wa-p">
+          <input id="wa-in" placeholder="Scrivi come operatore" autocomplete="off">
+          <button id="wa-invia" aria-label="Invia"><svg><use href="#i-ok"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRATTAMENTI ============ -->
+  <section class="pagina" id="p-trattamenti" hidden>
+    <div class="card">
+      <div class="tit">
+        <div class="sx"><h2>Trattamenti</h2><span class="eti eti-neu" id="conta-tratt"></span></div>
+        <button class="b b-p b-sm" id="b-nuovo-tratt"><svg><use href="#i-piu"/></svg>Aggiungi trattamento</button>
+      </div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Nome</th><th>Categoria</th><th class="num">Minuti</th><th class="num">Prezzo</th>
+          <th>Sul sito</th><th></th></tr></thead>
+        <tbody id="tab-tratt"></tbody>
+      </table></div>
+      <p class="nota" style="margin-top:13px">Quello che cambi qui si vede subito sul sito pubblico:
+        prezzi, durate, descrizioni e quali trattamenti sono prenotabili.</p>
+    </div>
+  </section>
+
+  <!-- ============ ORARI ============ -->
+  <section class="pagina" id="p-orari" hidden>
+    <div class="griglia g2">
+      <div class="card">
+        <div class="tit"><h2>Orari di apertura</h2>
+          <button class="b b-p b-sm" id="b-salva-orari">Salva</button></div>
+        <div class="tab-scorri"><table>
+          <thead><tr><th>Giorno</th><th>Apre</th><th>Chiude</th><th>Chiuso</th></tr></thead>
+          <tbody id="tab-orari"></tbody>
+        </table></div>
+        <p class="nota" style="margin-top:12px">Gli orari valgono per il sito: fuori da queste fasce
+          nessuno può prenotare. Gli appuntamenti già presi restano.</p>
+      </div>
+      <div class="card">
+        <div class="tit"><h2>Chiusure straordinarie</h2></div>
+        <div id="lista-chiusure"></div>
+        <div class="griglia g2" style="margin-top:12px">
+          <div class="campo" style="margin:0"><label for="ch-data">Giorno</label><input type="date" id="ch-data"></div>
+          <div class="campo" style="margin:0"><label for="ch-motivo">Motivo</label><input id="ch-motivo" placeholder="Ferie, corso, festivo"></div>
+        </div>
+        <button class="b b-s b-sm" id="b-chiusura" style="margin-top:10px">
+          <svg><use href="#i-piu"/></svg>Aggiungi chiusura</button>
+        <p class="nota" style="margin-top:12px">Nei giorni chiusi il sito non mostra nessun orario libero.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INCASSI ============ -->
+  <section class="pagina" id="p-incassi" hidden>
+    <div class="griglia g4" style="margin-bottom:16px">
+      <div class="kpi"><span class="et">Incassato questo mese</span><b id="i-mese">0 €</b><small id="i-mese-s"></small></div>
+      <div class="kpi"><span class="et">Mese scorso</span><b id="i-prec">0 €</b><small id="i-prec-s"></small></div>
+      <div class="kpi"><span class="et">Previsione mese prossimo</span><b id="i-prev">0 €</b><small id="i-prev-s"></small></div>
+      <div class="kpi"><span class="et">Già prenotato</span><b id="i-gia">0 €</b><small>appuntamenti in agenda</small></div>
+    </div>
+
+    <div class="griglia g2">
+      <div class="card">
+        <div class="tit"><h2>Ultimi sei mesi e previsione</h2></div>
+        <div class="barre" id="barre"></div>
+        <p class="nota" style="margin-top:12px" id="spiega-prev"></p>
+      </div>
+      <div style="display:grid;gap:14px;align-content:start">
+        <div class="card">
+          <div class="tit"><h2>Diviso fra i due</h2></div>
+          <div class="quota" id="quota"></div>
+          <div style="margin-top:12px" id="dett-quota"></div>
+        </div>
+        <div class="card">
+          <div class="tit"><h2>Come hanno pagato</h2></div>
+          <div id="metodi"></div>
+          <p class="nota" style="margin-top:10px">Si paga sempre in negozio: nessun incasso online,
+            nessun collegamento con circuiti di pagamento.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORNITORI ============ -->
+  <section class="pagina" id="p-fornitori" hidden>
+    <div class="griglia g3" style="margin-bottom:16px">
+      <div class="kpi"><span class="et">Da pagare</span><b id="f-dovuto">0 €</b><small id="f-dovuto-s"></small></div>
+      <div class="kpi"><span class="et">Scadute</span><b id="f-scadute">0</b><small>oltre la data di scadenza</small></div>
+      <div class="kpi"><span class="et">Spesa prodotti, anno</span><b id="f-anno">0 €</b><small>dal 1 gennaio</small></div>
+    </div>
+    <div class="card">
+      <div class="tit">
+        <div class="sx"><h2>Fatture dei fornitori</h2><span class="eti eti-neu" id="conta-forn"></span></div>
+        <button class="b b-p b-sm" id="b-nuova-fatt"><svg><use href="#i-piu"/></svg>Registra fattura</button>
+      </div>
+      <div class="tab-scorri"><table>
+        <thead><tr><th>Numero</th><th>Fornitore</th><th>Cosa</th><th>Data</th><th>Scadenza</th>
+          <th class="num">Importo</th><th>Stato</th></tr></thead>
+        <tbody id="tab-forn"></tbody>
+      </table></div>
+      <p class="nota" style="margin-top:13px">Sezione dimostrativa: nessun collegamento con
+        l'Agenzia delle Entrate né con il commercialista. Serve a tenere in ordine le scadenze.</p>
+    </div>
+  </section>
+</div>
+
+<div class="velo" id="velo"></div>
+<aside class="cass" id="cass">
+  <div class="c-top">
+    <div><h2 id="cass-tit" style="font-size:1.1rem">Appuntamento</h2>
+      <small id="cass-sot" style="color:var(--tx3);font-size:.8rem"></small></div>
+    <button class="b b-s b-sm" id="cass-x" style="margin-left:auto"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <div class="c-corpo" id="cass-corpo"></div>
+  <div class="c-piede" id="cass-piede"></div>
+</aside>
+
+<div class="toast" id="toast"></div>

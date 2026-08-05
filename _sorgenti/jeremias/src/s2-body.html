@@ -1,0 +1,287 @@
+<svg style="display:none" aria-hidden="true">
+<symbol id="i-forbici" viewBox="0 0 24 24"><circle cx="6" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M8.1 7.9 20 20M20 4 8.1 16.1"/></symbol>
+<symbol id="i-ora" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/></symbol>
+<symbol id="i-pos" viewBox="0 0 24 24"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/></symbol>
+<symbol id="i-tel" viewBox="0 0 24 24"><path d="M6 3h3l2 5-2.5 1.5a12 12 0 0 0 6 6L16 13l5 2v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4 5.2 2 2 0 0 1 6 3Z"/></symbol>
+<symbol id="i-wa" viewBox="0 0 24 24"><path d="M20 11.8a7.9 7.9 0 0 1-11.6 7L4 20l1.3-4.2A7.9 7.9 0 1 1 20 11.8Z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5.6 0 1-.5 1-1l-1.6-.8-1 .9a5 5 0 0 1-2-2l.9-1L11 9.5c-.5 0-1 .4-1 1"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+<symbol id="i-ok" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></symbol>
+<symbol id="i-euro" viewBox="0 0 24 24"><path d="M17 5a7 7 0 1 0 0 14"/><path d="M4 10h9M4 14h9"/></symbol>
+<symbol id="i-utente" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-occhio" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+<symbol id="i-freccia" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-indietro" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+</svg>
+
+<div class="guscio">
+
+<!-- ================= COLONNA FISSA ================= -->
+<aside class="lato">
+  <span class="stemma"><img src="{{ASSET:logo.webp}}" alt="Jeremias Barbiere"></span>
+  <div>
+    <div class="nome">Jeremias<br>Barbiere</div>
+    <div class="sotto">Paderno Dugnano</div>
+  </div>
+  <span class="stato" id="stato"><i></i><span id="stato-t">...</span></span>
+  <button class="menu-b" id="menu-b" aria-label="Apri il menu"><svg><use href="#i-menu"/></svg></button>
+
+  <nav id="nav">
+    <a href="#salone" data-s="salone"><b>01</b>Il salone</a>
+    <a href="#trattamenti" data-s="trattamenti"><b>02</b>Trattamenti</a>
+    <a href="#prenota" data-s="prenota"><b>03</b>Prenota</a>
+    <a href="#barbieri" data-s="barbieri"><b>04</b>I barbieri</a>
+    <a href="#recensioni" data-s="recensioni"><b>05</b>Recensioni</a>
+    <a href="#galleria" data-s="galleria"><b>06</b>Il negozio</a>
+    <a href="#contatti" data-s="contatti"><b>07</b>Dove siamo</a>
+  </nav>
+
+  <div class="fondo">
+    <div class="riga"><b>Via Monte Sabotino 32</b>20030 Paderno Dugnano (MI)</div>
+    <div class="riga"><b>Orari</b>Martedì · venerdì 8:30 &ndash; 20:00<br>Sabato 8:30 &ndash; 19:00<br>Domenica e lunedì chiuso</div>
+    <a class="wa" id="wa-lato" href="#" target="_blank" rel="noopener">
+      <svg><use href="#i-wa"/></svg>Scrivi su WhatsApp</a>
+  </div>
+</aside>
+
+<main class="contenuto">
+
+<!-- ================= APERTURA ================= -->
+<section class="hero" id="salone">
+  <div class="foto" style="background-image:url({{ASSET:f4.jpg}})"></div>
+  <div class="wrap">
+    <h1><span>Taglio,</span><span>barba</span><span class="verde">e basta.</span></h1>
+    <p class="paga">Barbiere a Paderno Dugnano dal 2020. Due poltrone, due barbieri,
+      appuntamenti ogni mezz'ora. Si prenota online e si paga in negozio.</p>
+    <div class="azioni">
+      <a class="b b-p" href="#prenota"><svg><use href="#i-cal"/></svg>Prenota adesso</a>
+      <a class="b b-s" href="#trattamenti">Guarda i trattamenti</a>
+    </div>
+    <div class="dati">
+      <div><b>4,9</b><span>su 1530 recensioni</span></div>
+      <div><b id="n-tratt">6</b><span>Trattamenti</span></div>
+      <div><b>2</b><span>Barbieri</span></div>
+      <div><b>30'</b><span>Durata media</span></div>
+    </div>
+  </div>
+  <div class="bollo">Top<br>Rated<br>2024</div>
+</section>
+
+<!-- ================= TRATTAMENTI ================= -->
+<section class="sez" id="trattamenti">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">02 · Trattamenti</p>
+      <h2>Listino</h2>
+      <p>Prezzi e durate come li trovi in negozio. Il pagamento si fa in cassa,
+        alla fine del servizio: contanti, bancomat o carta.</p>
+    </div>
+    <div id="listino"></div>
+    <p class="avviso" style="margin-top:26px">Il listino qui sopra è lo stesso che vedono
+      Jeremias e Luca nel gestionale. Se cambiano un prezzo o aggiungono un trattamento,
+      questa pagina cambia con loro, senza passare da nessuno.</p>
+  </div>
+</section>
+
+<!-- ================= PRENOTA ================= -->
+<section class="sez sez-scuro" id="prenota">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">03 · Prenotazione</p>
+      <h2>Prendi<br>l'appuntamento</h2>
+      <p>Quattro passaggi, un minuto. Nessun anticipo da versare: si paga in negozio.</p>
+    </div>
+
+    <div class="passi" id="passi">
+      <div data-p="1"><b>Passo 1</b>Trattamento</div>
+      <div data-p="2"><b>Passo 2</b>Barbiere</div>
+      <div data-p="3"><b>Passo 3</b>Giorno e ora</div>
+      <div data-p="4"><b>Passo 4</b>I tuoi dati</div>
+    </div>
+
+    <!-- passo 1 -->
+    <div class="passo" id="passo-1">
+      <div class="scelte" id="scelta-tratt"></div>
+    </div>
+
+    <!-- passo 2 -->
+    <div class="passo" id="passo-2" hidden>
+      <div class="scelte" id="scelta-barbiere"></div>
+      <p style="margin-top:18px;font-size:.9rem;color:rgba(255,255,255,.6)">
+        Se scegli "il primo libero" ti diamo l'orario più comodo fra i due.</p>
+    </div>
+
+    <!-- passo 3 -->
+    <div class="passo" id="passo-3" hidden>
+      <div class="giorni" id="giorni"></div>
+      <div class="ore" id="ore"></div>
+      <p id="nota-ore" style="margin-top:16px;font-size:.9rem;color:rgba(255,255,255,.6)"></p>
+    </div>
+
+    <!-- passo 4 -->
+    <div class="passo" id="passo-4" hidden>
+      <div class="griglia-4" style="display:grid;grid-template-columns:1fr 340px;gap:26px;align-items:start">
+        <div>
+          <div class="campo"><label for="c-nome">Nome e cognome</label>
+            <input id="c-nome" autocomplete="name"><small class="err">Serve il nome</small></div>
+          <div class="campo"><label for="c-tel">Telefono</label>
+            <input id="c-tel" inputmode="tel" autocomplete="tel" placeholder="+39">
+            <small class="err">Serve un numero valido</small></div>
+          <div class="campo"><label for="c-mail">Email, facoltativa</label>
+            <input id="c-mail" type="email" autocomplete="email"></div>
+          <div class="campo"><label for="c-note">Note per il barbiere</label>
+            <textarea id="c-note" rows="3" placeholder="Sfumatura bassa, barba corta..."></textarea></div>
+        </div>
+        <div class="riepilogo" id="riepilogo"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:11px;margin-top:26px;flex-wrap:wrap;align-items:center">
+      <button class="b b-s" id="b-indietro" hidden><svg><use href="#i-indietro"/></svg>Indietro</button>
+      <button class="b b-p" id="b-avanti" disabled>Avanti<svg><use href="#i-freccia"/></svg></button>
+      <span id="scelto" style="font-size:.88rem;color:rgba(255,255,255,.6)"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BARBIERI ================= -->
+<section class="sez" id="barbieri">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">04 · Chi taglia</p>
+      <h2>Jeremias e Luca</h2>
+      <p>Due poltrone, due mani diverse. Puoi scegliere da chi andare, oppure lasciare
+        che ti prenda il primo libero.</p>
+    </div>
+    <div class="barbieri">
+      <div class="barbiere">
+        <div class="img" style="background-image:url({{ASSET:f9.jpg}})"></div>
+        <div class="in">
+          <p class="ruolo">Titolare</p>
+          <h3>Jeremias</h3>
+          <p>Ha aperto il negozio nel 2020. Tagli sfumati e rasatura tradizionale con
+            panno caldo e rasoio a mano libera.</p>
+          <div class="voto"><b>4,9</b><span>su oltre 900 recensioni verificate</span></div>
+        </div>
+      </div>
+      <div class="barbiere">
+        <div class="img" style="background-image:url({{ASSET:f11.jpg}})"></div>
+        <div class="in">
+          <p class="ruolo">Barbiere</p>
+          <h3>Luca Terragni</h3>
+          <p>Puntuale, veloce, preciso sulle sfumature. Segue i tagli dei più giovani
+            e i trattamenti per cute e capello.</p>
+          <div class="voto"><b>4,9</b><span>su oltre 600 recensioni verificate</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RECENSIONI ================= -->
+<section class="sez sez-scuro" id="recensioni">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">05 · Recensioni</p>
+      <h2>4,9 su 1530</h2>
+      <p>Recensioni verificate, scritte da chi è passato davvero in negozio.
+        Queste sono state raccolte dalla scheda pubblica del salone.</p>
+    </div>
+    <div class="rec">
+      <div class="recensione"><div class="stelle">★★★★★</div>
+        <p>Fantastico come sempre.</p>
+        <div class="chi"><b>Davide</b> · taglio uomo con Jeremias</div></div>
+      <div class="recensione"><div class="stelle">★★★★★</div>
+        <p>Sempre puntuale, sempre professionale, sempre sul pezzo. Grandissimo.</p>
+        <div class="chi"><b>Mauri Fabio</b> · taglio uomo con Luca</div></div>
+      <div class="recensione"><div class="stelle">★★★★★</div>
+        <p>Il migliore della zona, non cambierei per niente al mondo.</p>
+        <div class="chi"><b>Stefano</b> · taglio uomo con Luca</div></div>
+    </div>
+    <div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:32px;padding-top:26px;
+      border-top:1px solid rgba(255,255,255,.14)">
+      <div><b class="os" style="font-size:1.7rem;display:block">5,0</b>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.5)">Rasatura</span></div>
+      <div><b class="os" style="font-size:1.7rem;display:block">5,0</b>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.5)">Taglio bambino</span></div>
+      <div><b class="os" style="font-size:1.7rem;display:block">4,9</b>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.5)">Taglio barba</span></div>
+      <div><b class="os" style="font-size:1.7rem;display:block">5,0</b>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.5)">Trattamenti anticaduta</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GALLERIA ================= -->
+<section class="sez" id="galleria">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">06 · Il negozio</p>
+      <h2>Com'è dentro</h2>
+      <p>Fotografie del salone. La parete di muschio e i mobili petrolio sono quelli veri,
+        e da lì arrivano anche i colori di questa pagina.</p>
+    </div>
+    <div class="gal" id="gal"></div>
+  </div>
+</section>
+
+<!-- ================= CONTATTI ================= -->
+<section class="sez sez-verde" id="contatti">
+  <div class="wrap">
+    <div class="testa">
+      <p class="occhio">07 · Dove siamo</p>
+      <h2>Via Monte<br>Sabotino 32</h2>
+      <p>Paderno Dugnano, a nord di Milano. Parcheggio libero davanti al negozio.</p>
+    </div>
+    <div class="info">
+      <div>
+        <div class="v"><span class="ic"><svg><use href="#i-pos"/></svg></span>
+          <div><h4>Indirizzo</h4><p>Via Monte Sabotino 32<br>20030 Paderno Dugnano (MI)</p></div></div>
+        <div class="v"><span class="ic"><svg><use href="#i-wa"/></svg></span>
+          <div><h4>WhatsApp</h4><p>Il modo più veloce per prenotare o spostare un appuntamento.<br>
+            <a class="b b-n b-sm" style="margin-top:9px" id="wa-contatti" href="#" target="_blank" rel="noopener">Scrivi ora</a></p></div></div>
+        <div class="v" style="border:none"><span class="ic"><svg><use href="#i-euro"/></svg></span>
+          <div><h4>Pagamento</h4><p>In negozio a fine servizio: contanti, bancomat o carta.
+            Online non si versa nulla.</p></div></div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:12px">Orari di apertura</h4>
+        <table class="orari" id="tab-orari"></table>
+        <p style="font-size:.86rem;margin-top:14px">Ultimo appuntamento mezz'ora prima della chiusura.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="piede">
+  <div class="wrap" style="display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap">
+    <span>Jeremias Barbiere · Via Monte Sabotino 32, Paderno Dugnano (MI)</span>
+    <span>Dimostrazione realizzata per il salone. Non è il sito ufficiale.</span>
+  </div>
+</footer>
+
+</main>
+</div>
+
+<button class="chip apri-pres" id="apri-pres"><svg><use href="#i-occhio"/></svg>Presentazione</button>
+<div class="velo" id="velo"></div>
+<aside class="pres" id="pres">
+  <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
+    <div><h3 style="text-transform:none;font-family:'Inter',sans-serif">Perché serve un sito</h3>
+      <p style="font-size:.87rem;margin-top:6px">Oggi Jeremias Barbiere non ha un sito:
+        esiste solo su Treatwell. Ecco cosa comporta, verificato sulla loro scheda pubblica
+        il 5 agosto 2026.</p></div>
+    <button class="chip" id="chiudi-pres" aria-label="Chiudi"><svg><use href="#i-x"/></svg></button>
+  </div>
+  <div id="lista-bug" style="margin-top:16px"></div>
+  <h3 style="margin:24px 0 8px;text-transform:none;font-family:'Inter',sans-serif">Cosa è inventato</h3>
+  <p style="font-size:.86rem;margin-bottom:10px">Dalla scheda Treatwell arrivano indirizzo, orari,
+    trattamenti con prezzi e durate, voto e recensioni, nomi dei barbieri e le fotografie.
+    Il resto serve a far vedere come funziona:</p>
+  <p class="avviso" style="line-height:1.7">Appuntamenti già segnati in agenda e relativi clienti ·
+    incassi e previsioni · fatture dei fornitori · anno di apertura · le descrizioni dei barbieri.</p>
+</aside>
+
+<div class="lente" id="lente"><button class="x"><svg><use href="#i-x"/></svg></button><img id="lente-img" alt=""></div>
+<div class="toast" id="toast"></div>

@@ -1,0 +1,359 @@
+<script>
+"use strict";
+const $=(s,e)=>(e||document).querySelector(s);
+const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const eur=n=>Math.round(n)+' €';
+const TEL='393484455151';   /* numero dimostrativo del negozio */
+
+/* =========================================================
+   DATI CONDIVISI COL GESTIONALE
+   ========================================================= */
+const TRATT_DEF=[
+ {id:'taglio-trad',cat:'Taglio uomo',nome:'Taglio Uomo Tradizionale',
+  desc:'Sfumatura a macchinetta e forbice, lavaggio e piega finale.',min:30,prezzo:20,attivo:true},
+ {id:'taglio-barba',cat:'Taglio uomo',nome:'Taglio + Shampoo + Barba',
+  desc:'Il servizio completo: taglio, shampoo e barba rifinita.',min:30,prezzo:28,attivo:true},
+ {id:'barba',cat:'Barba',nome:'Barba',
+  desc:'Spuntata e rifinitura con forbice e rasoio, olio finale.',min:30,prezzo:15,attivo:true},
+ {id:'rasatura',cat:'Barba',nome:'Rasatura Barba Tradizionale',
+  desc:'Panno caldo, sapone da barba e rasoio a mano libera.',min:30,prezzo:20,attivo:true},
+ {id:'anticaduta',cat:'Trattamenti per cute e capello',nome:'Trattamento Anticaduta',
+  desc:'Lozione e massaggio del cuoio capelluto. Ciclo consigliato di sei sedute.',min:30,prezzo:25,attivo:true},
+ {id:'bambino',cat:'Taglio bambini e teenager',nome:'Taglio Bambino',
+  desc:'Da 0 a 10 anni, con la poltrona alta e i cartoni animati.',min:30,prezzo:15,attivo:true}
+];
+/* orari: indice 0 domenica ... 6 sabato */
+const ORARI_DEF=[
+ {ap:null,ch:null},{ap:null,ch:null},
+ {ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'20:00'},{ap:'08:30',ch:'20:00'},
+ {ap:'08:30',ch:'19:00'}
+];
+const GIORNI=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const GG=['dom','lun','mar','mer','gio','ven','sab'];
+const BARBIERI=[{id:'jeremias',nome:'Jeremias',ini:'J'},{id:'luca',nome:'Luca Terragni',ini:'LT'}];
+
+let TRATT=TRATT_DEF, ORARI=ORARI_DEF, PREN=[];
+function leggi(){
+  try{ const t=JSON.parse(localStorage.getItem('jeremias_trattamenti')||'null');
+    if(Array.isArray(t)&&t.length) TRATT=t; }catch(e){}
+  try{ const o=JSON.parse(localStorage.getItem('jeremias_orari')||'null');
+    if(Array.isArray(o)&&o.length===7) ORARI=o; }catch(e){}
+  try{ PREN=JSON.parse(localStorage.getItem('jeremias_prenotazioni')||'[]'); }catch(e){ PREN=[]; }
+}
+leggi();
+const attivi=()=>TRATT.filter(t=>t.attivo!==false);
+
+/* =========================================================
+   APERTO O CHIUSO ADESSO
+   ========================================================= */
+function minuti(hhmm){ const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
+function oggiAperto(){
+  const d=new Date(), o=ORARI[d.getDay()];
+  if(!o||!o.ap) return {aperto:false,testo:'Chiuso oggi'};
+  const ora=d.getHours()*60+d.getMinutes();
+  if(ora<minuti(o.ap)) return {aperto:false,testo:'Apre alle '+o.ap};
+  if(ora>=minuti(o.ch)) return {aperto:false,testo:'Chiuso, riapre domani'};
+  return {aperto:true,testo:'Aperto fino alle '+o.ch};
+}
+function disegnaStato(){
+  const s=oggiAperto();
+  $('#stato').className='stato'+(s.aperto?'':' chiuso');
+  $('#stato-t').textContent=s.testo;
+}
+
+/* =========================================================
+   LISTINO
+   ========================================================= */
+function disegnaListino(){
+  const cats=[...new Set(attivi().map(t=>t.cat))];
+  $('#listino').innerHTML=cats.map(c=>
+    '<div class="gruppo"><h3>'+esc(c)+'</h3>'
+    + attivi().filter(t=>t.cat===c).map(t=>
+      '<div class="tratt"><div>'
+      +'<h4>'+esc(t.nome)+'</h4>'
+      +(t.desc?'<p class="desc">'+esc(t.desc)+'</p>':'')
+      +'<div class="meta"><span><svg><use href="#i-ora"/></svg>'+t.min+' minuti</span>'
+      +'<span><svg><use href="#i-utente"/></svg>Jeremias o Luca</span></div></div>'
+      +'<div class="dx"><span class="prezzo">'+eur(t.prezzo)+'</span>'
+      +'<button class="b b-n b-sm" data-pren="'+esc(t.id)+'">Prenota</button></div></div>').join('')
+    +'</div>').join('');
+  $$('#listino [data-pren]').forEach(b=>b.onclick=()=>{
+    scegliTratt(b.dataset.pren); vaiA('#prenota');
+  });
+  $('#n-tratt').textContent=attivi().length;
+}
+
+/* =========================================================
+   PRENOTAZIONE A PASSI
+   ========================================================= */
+const S={passo:1,tratt:null,barbiere:null,giorno:null,ora:null};
+
+function disegnaPassi(){
+  $$('#passi div').forEach(d=>{
+    const n=+d.dataset.p;
+    d.classList.toggle('on',n===S.passo);
+    d.classList.toggle('fatto',n<S.passo);
+  });
+  for(let i=1;i<=4;i++) $('#passo-'+i).hidden=(i!==S.passo);
+  $('#b-indietro').hidden=S.passo===1;
+  const b=$('#b-avanti');
+  b.innerHTML= S.passo===4 ? 'Conferma l\'appuntamento<svg><use href="#i-ok"/></svg>'
+    : 'Avanti<svg><use href="#i-freccia"/></svg>';
+  b.disabled = (S.passo===1&&!S.tratt) || (S.passo===2&&!S.barbiere)
+    || (S.passo===3&&!(S.giorno&&S.ora));
+  const t=S.tratt?TRATT.find(x=>x.id===S.tratt):null;
+  $('#scelto').textContent = t ? t.nome+(S.barbiere?' · '+nomeBarbiere(S.barbiere):'')
+    +(S.ora?' · '+dataBreve(S.giorno)+' alle '+S.ora:'') : '';
+}
+function nomeBarbiere(id){
+  if(id==='qualsiasi') return 'il primo libero';
+  const b=BARBIERI.find(x=>x.id===id); return b?b.nome:'';
+}
+function scegliTratt(id){
+  S.tratt=id; S.ora=null;
+  $$('#scelta-tratt .scelta').forEach(x=>x.classList.toggle('on',x.dataset.t===id));
+  disegnaPassi();
+}
+function disegnaSceltaTratt(){
+  $('#scelta-tratt').innerHTML=attivi().map(t=>
+    '<button class="scelta" data-t="'+esc(t.id)+'"><b>'+esc(t.nome)+'</b>'
+    +'<small>'+t.min+' minuti · '+esc(t.cat)+'</small>'
+    +'<span class="p">'+eur(t.prezzo)+'</span></button>').join('');
+  $$('#scelta-tratt .scelta').forEach(b=>b.onclick=()=>scegliTratt(b.dataset.t));
+}
+function disegnaSceltaBarbiere(){
+  const v=[...BARBIERI.map(b=>({id:b.id,nome:b.nome,ini:b.ini,sotto:'Poltrona '+(b.id==='jeremias'?'1':'2')})),
+    {id:'qualsiasi',nome:'Il primo libero',ini:'?',sotto:'Ti diamo l\'orario più comodo'}];
+  $('#scelta-barbiere').innerHTML=v.map(b=>
+    '<button class="scelta" data-b="'+b.id+'"><span class="barbiere-scelta">'
+    +'<span class="tondo">'+b.ini+'</span><span><b>'+esc(b.nome)+'</b>'
+    +'<small>'+esc(b.sotto)+'</small></span></span></button>').join('');
+  $$('#scelta-barbiere .scelta').forEach(x=>x.onclick=()=>{
+    S.barbiere=x.dataset.b; S.ora=null;
+    $$('#scelta-barbiere .scelta').forEach(y=>y.classList.toggle('on',y===x));
+    disegnaPassi();
+  });
+}
+
+function iso(d){ return d.toISOString().slice(0,10); }
+function dataBreve(s){
+  const d=new Date(s+'T12:00:00');
+  return GG[d.getDay()]+' '+d.getDate();
+}
+function disegnaGiorni(){
+  const oggi=new Date(); let h='';
+  for(let i=0;i<14;i++){
+    const d=new Date(oggi); d.setDate(d.getDate()+i);
+    const o=ORARI[d.getDay()], chiuso=!o||!o.ap;
+    h+='<button class="giorno'+(chiuso?' chiuso':'')+(iso(d)===S.giorno?' on':'')+'" data-g="'+iso(d)+'">'
+      +'<span>'+GG[d.getDay()]+'</span><b>'+d.getDate()+'</b>'
+      +'<small>'+(chiuso?'chiuso':d.toLocaleDateString('it-IT',{month:'short'}))+'</small></button>';
+  }
+  $('#giorni').innerHTML=h;
+  $$('#giorni .giorno').forEach(b=>b.onclick=()=>{
+    S.giorno=b.dataset.g; S.ora=null;
+    $$('#giorni .giorno').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaOre(); disegnaPassi();
+  });
+}
+/* slot occupati: una prenotazione occupa il barbiere per la durata del trattamento */
+function occupato(barbiere,giorno,ora,durata){
+  const inizio=minuti(ora), fine=inizio+durata;
+  return PREN.some(p=>{
+    if(p.giorno!==giorno) return false;
+    if(barbiere!=='qualsiasi' && p.barbiere!==barbiere) return false;
+    const t=TRATT.find(x=>x.id===p.tratt);
+    const d=t?t.min:30, a=minuti(p.ora), b=a+d;
+    return inizio<b && a<fine;
+  });
+}
+function liberoPerQualcuno(giorno,ora,durata){
+  return BARBIERI.some(b=>!occupato(b.id,giorno,ora,durata));
+}
+function disegnaOre(){
+  const cont=$('#ore');
+  if(!S.giorno){ cont.innerHTML=''; $('#nota-ore').textContent=''; return; }
+  const d=new Date(S.giorno+'T12:00:00'), o=ORARI[d.getDay()];
+  if(!o||!o.ap){ cont.innerHTML=''; $('#nota-ore').textContent='Quel giorno il negozio è chiuso.'; return; }
+  const t=TRATT.find(x=>x.id===S.tratt), durata=t?t.min:30;
+  const adesso=new Date();
+  let h='', liberi=0;
+  for(let m=minuti(o.ap); m+durata<=minuti(o.ch); m+=30){
+    const hh=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+    let pieno = S.barbiere==='qualsiasi' ? !liberoPerQualcuno(S.giorno,hh,durata)
+              : occupato(S.barbiere,S.giorno,hh,durata);
+    /* niente orari già passati per oggi */
+    if(iso(adesso)===S.giorno && m<=adesso.getHours()*60+adesso.getMinutes()) pieno=true;
+    if(!pieno) liberi++;
+    h+='<button class="ora'+(pieno?' pieno':'')+(S.ora===hh?' on':'')+'" data-o="'+hh+'">'+hh+'</button>';
+  }
+  cont.innerHTML=h;
+  $$('#ore .ora').forEach(b=>b.onclick=()=>{
+    S.ora=b.dataset.o;
+    $$('#ore .ora').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaPassi();
+  });
+  $('#nota-ore').textContent= liberi ? liberi+' orari liberi in questa giornata.'
+    : 'Nessun orario libero, prova un altro giorno.';
+}
+function disegnaRiepilogo(){
+  const t=TRATT.find(x=>x.id===S.tratt);
+  const d=new Date(S.giorno+'T12:00:00');
+  $('#riepilogo').innerHTML=
+   '<h3 style="margin-bottom:12px">Riepilogo</h3>'
+   +riga('Trattamento',t.nome)
+   +riga('Barbiere',nomeBarbiere(S.barbiere))
+   +riga('Quando',GIORNI[d.getDay()]+' '+d.getDate()+' '+d.toLocaleDateString('it-IT',{month:'long'})
+     +', alle '+S.ora)
+   +riga('Durata',t.min+' minuti')
+   +'<div class="tot"><span>Da pagare in negozio</span><b>'+eur(t.prezzo)+'</b></div>'
+   +'<p class="avviso" style="margin-top:16px">Non si versa nulla adesso. '
+   +'Si paga alla poltrona a fine servizio, in contanti, con bancomat o carta.</p>';
+}
+function riga(a,b){ return '<div class="r"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>'; }
+
+function avanti(){
+  if(S.passo===3 && !(S.giorno&&S.ora)) return;
+  if(S.passo===4){ conferma(); return; }
+  S.passo++;
+  if(S.passo===3){ disegnaGiorni(); disegnaOre(); }
+  if(S.passo===4) disegnaRiepilogo();
+  disegnaPassi();
+  $('#prenota').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function indietro(){ if(S.passo>1){ S.passo--; disegnaPassi();
+  $('#prenota').scrollIntoView({behavior:'smooth',block:'start'}); } }
+
+function conferma(){
+  let ok=true;
+  [['#c-nome',v=>v.trim().length>2],['#c-tel',v=>v.replace(/\D/g,'').length>=8]]
+   .forEach(([sel,f])=>{ const el=$(sel), c=el.closest('.campo');
+     const buono=f(el.value); c.classList.toggle('ko',!buono); if(!buono) ok=false; });
+  if(!ok) return;
+  const t=TRATT.find(x=>x.id===S.tratt);
+  /* se ha scelto "il primo libero" assegno il barbiere davvero libero */
+  let barb=S.barbiere;
+  if(barb==='qualsiasi'){
+    const b=BARBIERI.find(x=>!occupato(x.id,S.giorno,S.ora,t.min));
+    barb=b?b.id:BARBIERI[0].id;
+  }
+  const p={id:'w'+Date.now(),tratt:S.tratt,barbiere:barb,giorno:S.giorno,ora:S.ora,
+    nome:$('#c-nome').value.trim(),tel:$('#c-tel').value.trim(),mail:$('#c-mail').value.trim(),
+    note:$('#c-note').value.trim(),prezzo:t.prezzo,origine:'sito',stato:'confermata',nuova:true};
+  PREN.push(p);
+  try{ localStorage.setItem('jeremias_prenotazioni',JSON.stringify(PREN)); }catch(e){}
+  const d=new Date(S.giorno+'T12:00:00');
+  const quando=GIORNI[d.getDay()]+' '+d.getDate()+' '+d.toLocaleDateString('it-IT',{month:'long'})+' alle '+S.ora;
+  messaggio('Appuntamento confermato: '+t.nome+' con '+nomeBarbiere(barb)+', '+quando
+    +'. Lo trovi già nell\'agenda del negozio.');
+  /* torno al primo passo pronto per un\'altra prova */
+  S.passo=1; S.ora=null; S.giorno=null;
+  ['#c-nome','#c-tel','#c-mail','#c-note'].forEach(s=>$(s).value='');
+  disegnaPassi(); disegnaOre();
+}
+
+/* =========================================================
+   ALTRO
+   ========================================================= */
+function disegnaOrari(){
+  const oggi=new Date().getDay();
+  let h='';
+  for(let i=1;i<=7;i++){
+    const g=i%7, o=ORARI[g];
+    h+='<tr class="'+(g===oggi?'oggi':'')+(o.ap?'':' chiuso')+'">'
+      +'<td>'+GIORNI[g]+'</td><td>'+(o.ap? o.ap+' &ndash; '+o.ch : 'chiuso')+'</td></tr>';
+  }
+  $('#tab-orari').innerHTML=h;
+}
+const FOTO=[
+ ['{{ASSET:f1.jpg}}','La sala con le due poltrone e la parete di muschio'],
+ ['{{ASSET:f4.jpg}}','La poltrona da barbiere e il lavatesta'],
+ ['{{ASSET:f2.jpg}}','Il bancone all\'ingresso'],
+ ['{{ASSET:f5.jpg}}','Gli specchi e il piano in legno'],
+ ['{{ASSET:f7.jpg}}','I prodotti sulla mensola'],
+ ['{{ASSET:f8.jpg}}','La postazione di lavoro'],
+ ['{{ASSET:f11.jpg}}','L\'angolo di attesa'],
+ ['{{ASSET:f13.jpg}}','Il negozio visto dall\'ingresso']
+];
+function disegnaGalleria(){
+  $('#gal').innerHTML=FOTO.map((f,i)=>
+    '<figure data-i="'+i+'"><div style="background-image:url('+f[0]+')"></div></figure>').join('');
+  $$('#gal figure').forEach(f=>f.onclick=()=>{
+    $('#lente-img').src=FOTO[+f.dataset.i][0];
+    $('#lente-img').alt=FOTO[+f.dataset.i][1];
+    $('#lente').classList.add('on');
+  });
+}
+const BUG=[
+ ['Le prenotazioni passano tutte da Treatwell',
+  'Ogni appuntamento preso online arriva da una piattaforma di terzi, che trattiene una commissione '
+  +'e resta proprietaria del rapporto con il cliente.',
+  'Qui il cliente prenota sul sito del negozio. Nessuna commissione, e il contatto resta vostro.'],
+ ['Il salone non ha un indirizzo suo in rete',
+  'Cercando "Jeremias Barbiere" si arriva alla scheda Treatwell, in mezzo a decine di altri saloni '
+  +'consigliati subito sotto, concorrenti compresi.',
+  'Un sito vostro, che parla solo di voi e non propone nessun altro.'],
+ ['I dati dei clienti stanno da un\'altra parte',
+  'Nomi, telefoni e storico degli appuntamenti sono dentro la piattaforma. Se un domani cambiate '
+  +'servizio, quella rubrica non ve la portate dietro.',
+  'Anagrafica e storico restano nel vostro gestionale.'],
+ ['Le 1530 recensioni non lavorano per voi',
+  'Il 4,9 è un ottimo risultato, ma sta su una pagina che spinge anche gli altri saloni della zona.',
+  'Le stesse recensioni, sulla vostra pagina, senza concorrenti accanto.'],
+ ['Niente da fare fuori dagli orari di Treatwell',
+  'Chi vuole spostare un appuntamento deve rientrare nella piattaforma o telefonare.',
+  'WhatsApp diretto al negozio, con l\'assistente che risponde e passa la parola a voi quando serve.']
+];
+function disegnaBug(){
+  $('#lista-bug').innerHTML=BUG.map((b,i)=>
+    '<div class="bug"><h4><i>'+(i+1)+'</i><span>'+esc(b[0])+'</span></h4>'
+    +'<p>'+esc(b[1])+'</p><div class="fix">'+esc(b[2])+'</div></div>').join('');
+}
+function messaggio(t){
+  $('#toast').textContent=t;
+  $('#toast').classList.add('on');
+  clearTimeout(messaggio.t); messaggio.t=setTimeout(()=>$('#toast').classList.remove('on'),6000);
+}
+function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); }
+
+/* =========================================================
+   AVVIO
+   ========================================================= */
+(function(){
+  disegnaStato(); disegnaListino(); disegnaSceltaTratt(); disegnaSceltaBarbiere();
+  disegnaGiorni(); disegnaOrari(); disegnaGalleria(); disegnaBug(); disegnaPassi();
+  setInterval(disegnaStato,60000);
+
+  const testo=encodeURIComponent('Buongiorno, scrivo dal sito. Vorrei prenotare');
+  ['#wa-lato','#wa-contatti'].forEach(s=>{ const a=$(s); if(a) a.href='https://wa.me/'+TEL+'?text='+testo; });
+
+  $('#b-avanti').onclick=avanti;
+  $('#b-indietro').onclick=indietro;
+  $('#menu-b').onclick=()=>$('#nav').classList.toggle('aperto');
+  $$('#nav a').forEach(a=>a.onclick=()=>$('#nav').classList.remove('aperto'));
+  $('#apri-pres').onclick=()=>{ $('#pres').classList.add('on'); $('#velo').classList.add('on'); };
+  $('#chiudi-pres').onclick=()=>{ $('#pres').classList.remove('on'); $('#velo').classList.remove('on'); };
+  $('#velo').onclick=()=>{ $('#pres').classList.remove('on'); $('#velo').classList.remove('on'); };
+  $('#lente').onclick=()=>$('#lente').classList.remove('on');
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){
+    $('#pres').classList.remove('on'); $('#velo').classList.remove('on');
+    $('#lente').classList.remove('on'); $('#nav').classList.remove('aperto'); }});
+
+  /* la voce attiva segue lo scorrimento */
+  const oss=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting)
+    $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.id)); }),
+    {rootMargin:'-40% 0px -55% 0px'});
+  $$('section[id]').forEach(s=>oss.observe(s));
+
+  /* se il gestionale cambia qualcosa mentre il sito è aperto */
+  addEventListener('storage',e=>{
+    if(['jeremias_trattamenti','jeremias_orari','jeremias_prenotazioni'].includes(e.key)){
+      leggi(); disegnaListino(); disegnaSceltaTratt(); disegnaOrari(); disegnaStato(); disegnaOre();
+      messaggio('Il negozio ha aggiornato il listino o gli orari.');
+    }
+  });
+})();
+</script>
+</body>
+</html>
