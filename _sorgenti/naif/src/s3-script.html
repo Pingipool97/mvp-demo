@@ -3,7 +3,8 @@
 const $=(s,e)=>(e||document).querySelector(s);
 const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const eur=n=>(Math.round(n*100)/100).toLocaleString('it-IT',{minimumFractionDigits:0})+' €';
+const eur=n=>Math.round(n).toLocaleString('it-IT')+' €';
+const voto1=v=>Number(v).toFixed(1).replace('.',',');
 
 /* =========================================================
    MEMORIA CONDIVISA COL GESTIONALE
@@ -15,90 +16,22 @@ function leggi(){
   const t=p('trattamenti',null); if(Array.isArray(t)&&t.length) TRATT=t;
   const s=p('squadra',null);     if(Array.isArray(s)&&s.length) SQUADRA=s;
   const o=p('orari',null);       if(Array.isArray(o)&&o.length===7) ORARI=o;
-  PREN=p('prenotazioni',[]) || [];
-  CHIUSURE=p('chiusure',[]) || [];
+  PREN=p('prenotazioni',[])||[];
+  CHIUSURE=p('chiusure',[])||[];
 }
 leggi();
 const attivi=()=>TRATT.filter(t=>t.attivo!==false);
 const inSquadra=id=>SQUADRA.find(p=>p.id===id);
-const voto1=v=>Number(v).toFixed(1).replace('.',',');
-/* chi può fare cosa: i reparti del salone */
 const REPARTO_DI_AREA={capelli:'capelli',barbershop:'barbershop',
   viso:'estetica',corpo:'estetica',epilazione:'estetica',unghie:'estetica'};
 const personeDi=area=>SQUADRA.filter(p=>p.attivo!==false&&p.reparto===REPARTO_DI_AREA[area]);
+const REPARTI=[['capelli','Sala capelli'],['barbershop','Barbershop'],['estetica','Estetica']];
 
-function minuti(hhmm){ const [h,m]=String(hhmm).split(':').map(Number); return h*60+m; }
+function minuti(h){ const p=String(h).split(':').map(Number); return p[0]*60+p[1]; }
 function hhmm(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
 function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
   +'-'+String(d.getDate()).padStart(2,'0'); }
 const chiusoIl=gi=>CHIUSURE.some(c=>c.data===gi)||!ORARI[new Date(gi+'T12:00:00').getDay()].ap;
-
-/* =========================================================
-   APERTO ADESSO
-   ========================================================= */
-function statoOra(){
-  const d=new Date(), gi=iso(d), o=ORARI[d.getDay()];
-  if(chiusoIl(gi)) return {aperto:false,testo:'Chiuso oggi'};
-  const ora=d.getHours()*60+d.getMinutes();
-  if(ora<minuti(o.ap)) return {aperto:false,testo:'Apre alle '+o.ap};
-  if(ora>=minuti(o.ch)) return {aperto:false,testo:'Chiuso, riapre domani'};
-  return {aperto:true,testo:'Aperto fino alle '+o.ch};
-}
-function disegnaStato(){
-  const s=statoOra();
-  $('#stato').className='stato'+(s.aperto?'':' chiuso');
-  $('#stato-t').textContent=s.testo;
-}
-
-/* =========================================================
-   LISTINO
-   ========================================================= */
-let areaVista='tutte', cerca='';
-function disegnaFiltri(){
-  const conta=a=>attivi().filter(t=>t.area===a).length;
-  $('#filtri-area').innerHTML=
-    '<button data-a="tutte" class="on">Tutti ('+attivi().length+')</button>'
-    + AREE.filter(a=>conta(a.id)).map(a=>
-      '<button data-a="'+a.id+'">'+esc(a.nome)+' ('+conta(a.id)+')</button>').join('');
-  $$('#filtri-area button').forEach(b=>b.onclick=()=>{
-    areaVista=b.dataset.a;
-    $$('#filtri-area button').forEach(x=>x.classList.toggle('on',x===b));
-    disegnaListino();
-  });
-  AREE.forEach(a=>{ const e=$('#n-'+a.id); if(e) e.textContent=conta(a.id)+' trattamenti'; });
-  const est=['viso','corpo','epilazione','unghie'].reduce((t,a)=>t+conta(a),0);
-  if($('#n-estetica')) $('#n-estetica').textContent=est+' trattamenti';
-  $('#a-serv').textContent=attivi().length;
-  $('#a-team').textContent=SQUADRA.filter(p=>p.attivo!==false).length;
-  $('#a-anni').textContent=new Date().getFullYear()-SALONE.dal;
-}
-function disegnaListino(){
-  const q=cerca.trim().toLowerCase();
-  const v=attivi().filter(t=>
-    (areaVista==='tutte'||t.area===areaVista)
-    && (!q || (t.nome+' '+t.cat+' '+(t.desc||'')).toLowerCase().includes(q)));
-  if(!v.length){
-    $('#listino-elenco').innerHTML='<p class="vuoto-l">Nessun trattamento trovato.'
-      +(q?' Prova con un altro termine.':'')+'</p>';
-    return;
-  }
-  const cats=[...new Set(v.map(t=>t.cat))];
-  $('#listino-elenco').innerHTML=cats.map(c=>
-    '<div class="gruppo"><h3>'+esc(c)+'</h3>'
-    + v.filter(t=>t.cat===c).map(t=>
-      '<div class="voce"><div><div class="n">'+esc(t.nome)+'</div>'
-      +(t.desc?'<div class="d">'+esc(t.desc)+'</div>':'')+'</div>'
-      +'<div class="m">'+durata(t.min)+'</div>'
-      +'<div class="p">'+eur(t.prezzo)+'</div>'
-      +'<button class="b b-c b-sm" data-pren="'+esc(t.id)+'">Prenota</button></div>').join('')
-    +'</div>').join('');
-  $$('#listino-elenco [data-pren]').forEach(b=>b.onclick=()=>{
-    const t=TRATT.find(x=>x.id===b.dataset.pren);
-    areaPren=t.area; S.passo=1; S.persona=null; S.giorno=null; S.ora=null;
-    disegnaAreePren(); scegliTratt(t.id); disegnaPassi();
-    $('#prenota').scrollIntoView({behavior:'smooth',block:'start'});
-  });
-}
 function durata(m){
   if(m>=60){ const h=Math.floor(m/60), r=m%60;
     return h+(h>1?' ore':' ora')+(r?' '+r+'′':''); }
@@ -106,88 +39,283 @@ function durata(m){
 }
 
 /* =========================================================
-   PRENOTAZIONE
+   GUIDA A DESTRA
+   ========================================================= */
+const SEZIONI=[['copertina','Copertina'],['manifesto','Dal 1979'],['reparti','I reparti'],
+ ['listino','Listino'],['squadra','Squadra'],['recensioni','Recensioni'],
+ ['salone-foto','Il salone'],['contatti','Dove siamo']];
+function disegnaGuida(){
+  $('#punti').innerHTML=SEZIONI.map(s=>
+    '<a href="#'+s[0]+'" data-s="'+s[0]+'" aria-label="'+esc(s[1])+'"><i></i>'
+    +'<span>'+esc(s[1])+'</span></a>').join('');
+}
+
+/* =========================================================
+   REPARTI A FASCE
+   ========================================================= */
+const FASCE=[
+ {rep:'capelli',aree:['capelli'],im:'{{ASSET:t4.webp}}',n:'01',tit:'Sala capelli',
+  txt:'Taglio, piega, colore e colpi di sole. Trattamenti Jurvedha e Joico per cute e capello, '
+    +'con il check up al microscopio prima di partire.'},
+ {rep:'barbershop',aree:['barbershop'],im:'{{ASSET:t1.webp}}',n:'02',tit:'Barbershop',
+  txt:'La sala di Marco: mattoni a vista, poltrone d\'epoca e il jukebox. Taglio uomo, barba e '
+    +'rasatura con panno caldo e rasoio a mano libera.'},
+ {rep:'estetica',aree:['viso','corpo','epilazione','unghie'],im:'{{ASSET:t11.webp}}',n:'03',
+  tit:'Estetica',
+  txt:'Tre cabine per viso, corpo, massaggi, unghie ed epilazione, comprese le sedute con luce '
+    +'laser. La cabina grande ha la cromoterapia.'}
+];
+function disegnaFasce(){
+  $('#fasce').innerHTML=FASCE.map((f,i)=>{
+    const voci=attivi().filter(t=>f.aree.includes(t.area));
+    const campioni=voci.slice().sort((a,b)=>b.prezzo-a.prezzo).slice(0,4);
+    return '<article class="fascia'+(i%2?' gira':'')+'">'
+      +'<div class="im" style="background-image:url('+f.im+')"></div>'
+      +'<div class="tx"><span class="n">'+f.n+'</span><h3>'+esc(f.tit)+'</h3>'
+      +'<p>'+esc(f.txt)+'</p>'
+      +'<div class="assaggio">'+campioni.map(t=>
+        '<div><span>'+esc(t.nome)+'</span><b>'+eur(t.prezzo)+'</b></div>').join('')+'</div>'
+      +'<p style="font-size:.86rem;color:var(--tx3);margin-bottom:16px">'+voci.length
+      +' trattamenti in questo reparto, '+personeDi(f.aree[0]).length+' persone.</p>'
+      +'<button class="b b-c b-sm" data-area="'+f.aree[0]+'">Vedi tutto il reparto</button>'
+      +'</div></article>';
+  }).join('');
+  $$('#fasce [data-area]').forEach(b=>b.onclick=()=>{
+    filtroCat=b.dataset.area;
+    disegnaIndice(); disegnaListino();
+    $('#listino').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+/* =========================================================
+   LISTINO A MENU
+   ========================================================= */
+let filtroCat='tutte', cerca='';
+function catDiArea(a){ return [...new Set(attivi().filter(t=>t.area===a).map(t=>t.cat))]; }
+function disegnaIndice(){
+  const conta=a=>attivi().filter(t=>t.area===a).length;
+  $('#indice-voci').innerHTML=
+    '<a data-c="tutte"'+(filtroCat==='tutte'?' class="on"':'')+'>Tutto il listino'
+    +'<span>'+attivi().length+'</span></a>'
+    + AREE.filter(a=>conta(a.id)).map(a=>
+      '<a data-c="'+a.id+'"'+(filtroCat===a.id?' class="on"':'')+'>'+esc(a.nome)
+      +'<span>'+conta(a.id)+'</span></a>').join('');
+  $$('#indice-voci a').forEach(a=>a.onclick=()=>{
+    filtroCat=a.dataset.c; disegnaIndice(); disegnaListino();
+  });
+}
+function disegnaListino(){
+  const q=cerca.trim().toLowerCase();
+  const v=attivi().filter(t=>
+    (filtroCat==='tutte'||t.area===filtroCat)
+    && (!q||(t.nome+' '+t.cat+' '+(t.desc||'')).toLowerCase().includes(q)));
+  if(!v.length){
+    $('#listino-elenco').innerHTML='<p class="vuoto-l">Nessun trattamento trovato'
+      +(q?' per "'+esc(cerca)+'".':'.')+'</p>';
+    return;
+  }
+  const cats=[...new Set(v.map(t=>t.cat))];
+  $('#listino-elenco').innerHTML=cats.map(c=>{
+    const voci=v.filter(t=>t.cat===c);
+    const area=AREE.find(a=>a.id===voci[0].area);
+    return '<div class="menu-gr"><h3>'+esc(c)+'</h3>'
+      +'<div class="sotto-t">'+esc(area?area.nome:'')+' · '+voci.length+' voci</div>'
+      + voci.map(t=>'<div class="piatto" data-t="'+esc(t.id)+'" role="button" tabindex="0">'
+        +'<div class="n">'+esc(t.nome)+'</div><div class="p">'+eur(t.prezzo)+'</div>'
+        +(t.desc?'<div class="d">'+esc(t.desc)+'</div>':'<div class="d"></div>')
+        +'<div class="m">'+durata(t.min)+'</div></div>').join('')
+      +'</div>';
+  }).join('');
+  const apri=el=>{ apriScheda(); scegliTratt(el.dataset.t); };
+  $$('#listino-elenco .piatto').forEach(p=>{
+    p.onclick=()=>apri(p);
+    p.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); apri(p); } };
+  });
+}
+
+/* =========================================================
+   SQUADRA A NASTRO
+   ========================================================= */
+function disegnaSquadra(){
+  $('#squadra-elenco').innerHTML=REPARTI.map(r=>{
+    const v=SQUADRA.filter(p=>p.attivo!==false&&p.reparto===r[0]);
+    if(!v.length) return '';
+    return '<div class="riga"><div class="rep-ban"><h4>'+esc(r[1])+'</h4><i></i>'
+      +'<span>'+v.length+' persone</span></div></div>'
+      +'<div class="riga" style="padding-right:0"><div class="nastro">'
+      + v.map(p=>'<div class="p"><div class="r">'+esc(r[1])+'</div><b>'+esc(p.nome)+'</b>'
+        +'<small>'+esc(p.ruolo)+'</small>'
+        +(p.voto?'<div class="v"><b>'+voto1(p.voto)+'</b> su '+p.rec+' recensioni</div>'
+          :'<div class="v" style="color:var(--tx3)">nessuna recensione pubblica</div>')
+        +'</div>').join('')+'</div></div>';
+  }).join('');
+}
+
+/* =========================================================
+   RECENSIONI, UNA ALLA VOLTA
+   ========================================================= */
+let recVista=0;
+function disegnaRecensione(){
+  const r=RECENSIONI[recVista];
+  $('#rec-testo').textContent='"'+r.testo+'"';
+  $('#rec-chi').innerHTML='<b>'+esc(r.chi)+'</b>'
+    +(r.da?' · '+esc(r.tratt)+' con '+esc(r.da):'')
+    +' · '+(recVista+1)+' di '+RECENSIONI.length;
+}
+
+/* =========================================================
+   FOTO
+   ========================================================= */
+const FOTO=[
+ ['{{ASSET:t1.webp}}','La sala del barbershop'],
+ ['{{ASSET:t6.webp}}','La sala capelli e l\'attesa'],
+ ['{{ASSET:t9.webp}}','La poltrona da barbiere e il jukebox'],
+ ['{{ASSET:t4.webp}}','Le postazioni della sala capelli'],
+ ['{{ASSET:t17.webp}}','Il lavatesta'],
+ ['{{ASSET:t11.webp}}','La cabina dell\'estetica'],
+ ['{{ASSET:t14.webp}}','La postazione del barbershop'],
+ ['{{ASSET:t13.webp}}','I prodotti Jurvedha'],
+ ['{{ASSET:t7.webp}}','I prodotti Joico'],
+ ['{{ASSET:t3.webp}}','Rasatura con panno caldo'],
+ ['{{ASSET:t12.webp}}','Colore e piega in sala'],
+ ['{{ASSET:t2.webp}}','Dentro il barbershop']
+];
+function disegnaFoto(){
+  $('#strip').innerHTML=FOTO.map((f,i)=>
+    '<figure data-i="'+i+'"><div style="background-image:url('+f[0]+')"></div>'
+    +'<figcaption>'+esc(f[1])+'</figcaption></figure>').join('');
+  $$('#strip figure').forEach(f=>f.onclick=()=>{
+    $('#lente-img').src=FOTO[+f.dataset.i][0];
+    $('#lente-img').alt=FOTO[+f.dataset.i][1];
+    $('#lente').classList.add('on');
+  });
+}
+
+/* =========================================================
+   ORARI E MAPPA
+   ========================================================= */
+function disegnaOrari(){
+  const oggi=new Date().getDay();
+  let h='';
+  for(let i=1;i<=7;i++){
+    const g=i%7, o=ORARI[g];
+    h+='<tr class="'+(g===oggi?'oggi':'')+(o.ap?'':' chiuso')+'">'
+      +'<td>'+GIORNI[g]+'</td><td>'+(o.ap? o.ap+' / '+o.ch : 'chiuso')+'</td></tr>';
+  }
+  $('#tab-orari').innerHTML=h;
+}
+/* mappina disegnata a mano: niente chiamate a servizi esterni */
+function disegnaMappa(){
+  $('#mappa').innerHTML=
+   '<svg viewBox="0 0 320 220" role="img" aria-label="Il salone in via Umberto I a Varedo">'
+   +'<rect width="320" height="220" fill="#241D18"/>'
+   +'<path d="M0 140 H320" stroke="#3A3029" stroke-width="17"/>'
+   +'<path d="M0 140 H320" stroke="#4A3D33" stroke-width="1.5" stroke-dasharray="10 10"/>'
+   +'<path d="M92 0 V220M236 0 V220M0 58 H320" stroke="#2F2721" stroke-width="9"/>'
+   +'<rect x="26" y="152" width="52" height="36" fill="#2C2520"/>'
+   +'<rect x="112" y="152" width="46" height="30" fill="#2C2520"/>'
+   +'<rect x="170" y="158" width="36" height="24" fill="#2C2520"/>'
+   +'<rect x="250" y="76" width="54" height="40" fill="#2C2520"/>'
+   +'<rect x="112" y="76" width="62" height="42" fill="#2C2520"/>'
+   +'<text x="8" y="133" font-size="9" fill="#948A7F" font-family="Jost,sans-serif" '
+   +'letter-spacing="1.6">VIA UMBERTO I</text>'
+   +'<circle cx="190" cy="130" r="19" fill="#A97C4A" opacity=".22"/>'
+   +'<path d="M190 115c-6.4 0-11.5 5.2-11.5 11.5 0 8.4 11.5 20 11.5 20s11.5-11.6 11.5-20'
+   +'c0-6.3-5.1-11.5-11.5-11.5Z" fill="#E9D9C3"/><circle cx="190" cy="126" r="4" fill="#241D18"/>'
+   +'<text x="209" y="131" font-size="11" fill="#E9D9C3" font-family="Playfair,serif">Naïf</text>'
+   +'</svg>';
+}
+
+/* =========================================================
+   SCHEDA DI PRENOTAZIONE
    ========================================================= */
 const S={passo:1,tratt:null,persona:null,giorno:null,ora:null};
 let areaPren='capelli';
-
+const TESTATE={
+ 1:['Che trattamento vuoi','Scegli l\'area e poi il trattamento. I prezzi sono quelli del salone.'],
+ 2:['Con chi vuoi farlo','Puoi scegliere la persona oppure lasciare che ti prenda la prima libera.'],
+ 3:['Quando ti va bene','I giorni con il pallino hanno posto. Scegli il giorno e poi l\'orario.'],
+ 4:['Lasciaci due righe','Nome e telefono bastano. Non si versa nulla adesso.']
+};
+function apriScheda(){
+  $('#scheda').classList.add('on');
+  document.body.style.overflow='hidden';
+  disegnaAreePren(); disegnaSceltaTratt(); disegnaPassi();
+}
+function chiudiScheda(){
+  $('#scheda').classList.remove('on');
+  document.body.style.overflow='';
+}
 function disegnaAreePren(){
   $('#pren-aree').innerHTML=AREE.filter(a=>attivi().some(t=>t.area===a.id)).map(a=>
     '<button data-a="'+a.id+'"'+(a.id===areaPren?' class="on"':'')+'>'+esc(a.nome)+'</button>').join('');
   $$('#pren-aree button').forEach(b=>b.onclick=()=>{
     areaPren=b.dataset.a; S.tratt=null; S.persona=null; S.ora=null;
-    $$('#pren-aree button').forEach(x=>x.classList.toggle('on',x===b));
-    disegnaSceltaTratt(); disegnaPassi();
+    disegnaAreePren(); disegnaSceltaTratt(); disegnaPassi();
   });
 }
 function disegnaSceltaTratt(){
   const v=attivi().filter(t=>t.area===areaPren);
-  $('#niente-tratt').hidden=!!v.length;
   $('#scelta-tratt').innerHTML=v.map(t=>
-    '<button class="scelta'+(t.id===S.tratt?' on':'')+'" data-t="'+esc(t.id)+'">'
+    '<button class="opz'+(t.id===S.tratt?' on':'')+'" data-t="'+esc(t.id)+'">'
     +'<span class="t"><b>'+esc(t.nome)+'</b><small>'+durata(t.min)+' · '+esc(t.cat)+'</small></span>'
     +'<span class="p">'+eur(t.prezzo)+'</span></button>').join('');
-  $$('#scelta-tratt .scelta').forEach(b=>b.onclick=()=>scegliTratt(b.dataset.t));
+  $$('#scelta-tratt .opz').forEach(b=>b.onclick=()=>scegliTratt(b.dataset.t));
 }
 function scegliTratt(id){
-  S.tratt=id; S.persona=null; S.ora=null;
-  const t=TRATT.find(x=>x.id===id);
-  if(t) areaPren=t.area;
-  disegnaSceltaTratt();
-  $$('#scelta-tratt .scelta').forEach(x=>x.classList.toggle('on',x.dataset.t===id));
-  disegnaPassi();
+  const t=TRATT.find(x=>x.id===id); if(!t) return;
+  S.tratt=id; S.persona=null; S.ora=null; areaPren=t.area;
+  disegnaAreePren(); disegnaSceltaTratt(); disegnaPassi();
 }
 function disegnaSceltaPersona(){
   const t=TRATT.find(x=>x.id===S.tratt);
   const gente=personeDi(t?t.area:'capelli');
-  const righe=gente.map(p=>
-    '<button class="scelta'+(p.id===S.persona?' on':'')+'" data-b="'+esc(p.id)+'">'
-    +'<span class="fianco"><span class="tondo">'+esc(p.nome[0])+'</span>'
-    +'<span class="t"><b>'+esc(p.nome)+'</b><small>'+esc(p.ruolo)+'</small></span></span>'
-    +(p.voto?'<span class="voto">'+voto1(p.voto)+' · '+p.rec+'</span>':'')
-    +'</button>').join('');
   $('#scelta-persona').innerHTML=
-    '<button class="scelta'+(S.persona==='chiunque'?' on':'')+'" data-b="chiunque">'
-    +'<span class="fianco"><span class="tondo">?</span>'
-    +'<span class="t"><b>La prima persona libera</b><small>Ti diamo l\'orario più comodo</small></span></span>'
-    +'</button>'+righe;
-  $$('#scelta-persona .scelta').forEach(x=>x.onclick=()=>{
+    '<button class="opz'+(S.persona==='chiunque'?' on':'')+'" data-b="chiunque">'
+    +'<span class="fianco"><span class="cerchio">?</span><span class="t">'
+    +'<b>La prima persona libera</b><small>Ti diamo l\'orario più comodo</small></span></span>'
+    +'</button>'
+    + gente.map(p=>'<button class="opz'+(p.id===S.persona?' on':'')+'" data-b="'+esc(p.id)+'">'
+      +'<span class="fianco"><span class="cerchio">'+esc(p.nome[0])+'</span>'
+      +'<span class="t"><b>'+esc(p.nome)+'</b><small>'+esc(p.ruolo)+'</small></span></span>'
+      +(p.voto?'<span class="voto">'+voto1(p.voto)+' · '+p.rec+'</span>':'')
+      +'</button>').join('');
+  $$('#scelta-persona .opz').forEach(x=>x.onclick=()=>{
     S.persona=x.dataset.b; S.ora=null;
-    $$('#scelta-persona .scelta').forEach(y=>y.classList.toggle('on',y===x));
+    $$('#scelta-persona .opz').forEach(y=>y.classList.toggle('on',y===x));
     disegnaPassi();
   });
 }
 function nomePersona(id){
-  if(id==='chiunque') return 'la prima persona libera';
+  if(id==='chiunque') return 'la prima libera';
   const p=inSquadra(id); return p?p.nome:'';
 }
 
 /* ---------- disponibilità ---------- */
 function prenDelGiorno(gi){ return PREN.filter(p=>p.giorno===gi&&p.stato!=='annullata'); }
-function occupataIn(lista,persona,ora,durata){
-  const inizio=minuti(ora), fine=inizio+durata;
+function occupataIn(lista,chi,ora,dur){
+  const a=minuti(ora), b=a+dur;
   return lista.some(p=>{
-    if(p.persona!==persona) return false;
+    if(p.persona!==chi) return false;
     const t=TRATT.find(x=>x.id===p.tratt), d=t?t.min:30;
-    const a=minuti(p.ora), b=a+d;
-    return inizio<b && a<fine;
+    const x=minuti(p.ora), y=x+d;
+    return a<y && x<b;
   });
 }
-/* elenco orari di una giornata, null se il salone è chiuso */
 function orariDelGiorno(gi){
   if(chiusoIl(gi)) return null;
   const o=ORARI[new Date(gi+'T12:00:00').getDay()];
-  const t=TRATT.find(x=>x.id===S.tratt), durata=t?t.min:30;
-  const lista=prenDelGiorno(gi), adesso=new Date(), oggi=iso(adesso);
-  const ora=adesso.getHours()*60+adesso.getMinutes();
-  const gente=S.persona==='chiunque'||!S.persona
-    ? personeDi(t?t.area:'capelli').map(p=>p.id) : [S.persona];
+  const t=TRATT.find(x=>x.id===S.tratt), dur=t?t.min:30;
+  const lista=prenDelGiorno(gi), ora=new Date(), oggi=iso(ora);
+  const adesso=ora.getHours()*60+ora.getMinutes();
+  const gente=(S.persona&&S.persona!=='chiunque') ? [S.persona]
+    : personeDi(t?t.area:'capelli').map(p=>p.id);
   const out=[];
-  for(let m=minuti(o.ap); m+durata<=minuti(o.ch); m+=30){
+  for(let m=minuti(o.ap); m+dur<=minuti(o.ch); m+=30){
     const h=hhmm(m);
-    let pieno=gente.every(id=>occupataIn(lista,id,h,durata));
+    let pieno=gente.every(id=>occupataIn(lista,id,h,dur));
     if(gi<oggi) pieno=true;
-    if(gi===oggi && m<=ora) pieno=true;
+    if(gi===oggi&&m<=adesso) pieno=true;
     out.push({ora:h,pieno:pieno});
   }
   return out;
@@ -202,7 +330,8 @@ function ultimoPrenotabile(){ const d=new Date();
 function disegnaCal(){
   const oggi=iso(new Date()), fine=ultimoPrenotabile();
   const anno=calMese.getFullYear(), mese=calMese.getMonth();
-  $('#cal-mese').textContent=calMese.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+  const et=calMese.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+  $('#cal-mese').textContent=et[0].toUpperCase()+et.slice(1);
   const salta=(new Date(anno,mese,1,12).getDay()+6)%7;
   const quanti=new Date(anno,mese+1,0).getDate();
   let h=DOW.map(g=>'<div class="dow">'+g+'</div>').join('');
@@ -233,11 +362,8 @@ function disegnaCal(){
   });
   const mOggi=new Date().getFullYear()*12+new Date().getMonth();
   const mFine=new Date(fine+'T12:00:00');
-  $('#cal-prima').disabled = anno*12+mese<=mOggi;
-  $('#cal-dopo').disabled  = anno*12+mese>=mFine.getFullYear()*12+mFine.getMonth();
-}
-function spostaMese(n){
-  calMese=new Date(calMese.getFullYear(),calMese.getMonth()+n,1,12); disegnaCal();
+  $('#cal-prima').disabled=anno*12+mese<=mOggi;
+  $('#cal-dopo').disabled =anno*12+mese>=mFine.getFullYear()*12+mFine.getMonth();
 }
 function disegnaOre(){
   const cont=$('#ore'), et=$('#cal-giorno'), nota=$('#nota-ore');
@@ -246,15 +372,16 @@ function disegnaOre(){
   const d=new Date(S.giorno+'T12:00:00');
   et.textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '
     +d.toLocaleDateString('it-IT',{month:'long'});
+  
   const sl=orariDelGiorno(S.giorno);
   if(!sl){ cont.innerHTML=''; nota.textContent='Quel giorno il salone è chiuso.'; return; }
   const fasce=[['Mattina',s=>minuti(s.ora)<13*60],['Pomeriggio',s=>minuti(s.ora)>=13*60]];
   cont.innerHTML=fasce.map(f=>{
     const v=sl.filter(f[1]);
     if(!v.length) return '';
-    return '<div class="fascia"><h5>'+f[0]+'</h5><div class="ore">'+v.map(s=>
-      '<button class="ora'+(s.pieno?' pieno':'')+(S.ora===s.ora?' on':'')
-      +'" data-o="'+s.ora+'">'+s.ora+'</button>').join('')+'</div></div>';
+    return '<div class="fascia-ore"><h5>'+f[0]+'</h5><div class="ore">'+v.map(s=>
+      '<button class="ora'+(s.pieno?' pieno':'')+(S.ora===s.ora?' on':'')+'" data-o="'+s.ora
+      +'">'+s.ora+'</button>').join('')+'</div></div>';
   }).join('');
   $$('#ore .ora').forEach(b=>b.onclick=()=>{
     S.ora=b.dataset.o;
@@ -266,50 +393,45 @@ function disegnaOre(){
     : 'Nessun orario libero, prova un altro giorno.';
 }
 
+/* ---------- passi ---------- */
 function disegnaPassi(){
-  $$('#passi .passo-et').forEach(d=>{
-    const n=+d.dataset.p;
-    d.classList.toggle('on',n===S.passo);
-    d.classList.toggle('fatto',n<S.passo);
+  $$('#tappe .tappa').forEach(t=>{
+    const n=+t.dataset.p;
+    t.classList.toggle('on',n===S.passo);
+    t.classList.toggle('fatta',n<S.passo);
+    t.onclick=n<S.passo?()=>{ S.passo=n; disegnaPassi(); }:null;
   });
   for(let i=1;i<=4;i++) $('#passo-'+i).hidden=(i!==S.passo);
+  $('#palco-tit').textContent=TESTATE[S.passo][0];
+  $('#palco-sotto').textContent=TESTATE[S.passo][1];
+  const t=S.tratt?TRATT.find(x=>x.id===S.tratt):null;
+  $('#v-tratt').textContent=t?t.nome:'da scegliere';
+  $('#v-persona').textContent=S.persona?nomePersona(S.persona):'da scegliere';
+  $('#v-quando').textContent=S.giorno&&S.ora
+    ? dataBreve(S.giorno)+' alle '+S.ora : 'da scegliere';
+  const nome=$('#c-nome').value.trim();
+  $('#v-dati').textContent=nome||'da compilare';
+  $('#v-prezzo').textContent=t?eur(t.prezzo):'0 €';
   $('#b-indietro').hidden=S.passo===1;
   const b=$('#b-avanti');
   b.innerHTML= S.passo===4 ? 'Conferma l\'appuntamento<svg><use href="#i-ok"/></svg>'
     : 'Avanti<svg><use href="#i-dx"/></svg>';
-  b.disabled = (S.passo===1&&!S.tratt) || (S.passo===2&&!S.persona)
-    || (S.passo===3&&!(S.giorno&&S.ora));
-  const t=S.tratt?TRATT.find(x=>x.id===S.tratt):null;
-  $('#scelto').textContent = t ? t.nome
-    +(S.persona?' · '+nomePersona(S.persona):'')
-    +(S.ora?' · '+dataBreve(S.giorno)+' alle '+S.ora:'') : '';
+  b.disabled=(S.passo===1&&!S.tratt)||(S.passo===2&&!S.persona)
+    ||(S.passo===3&&!(S.giorno&&S.ora));
+  $('#scelto').textContent = S.passo===4&&t
+    ? durata(t.min)+' con '+nomePersona(S.persona) : '';
 }
-function dataBreve(s){ const d=new Date(s+'T12:00:00'); return GG[d.getDay()]+' '+d.getDate(); }
-function disegnaRiepilogo(){
-  const t=TRATT.find(x=>x.id===S.tratt), d=new Date(S.giorno+'T12:00:00');
-  const riga=(a,b)=>'<div class="r"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>';
-  $('#riepilogo').innerHTML='<h3>Riepilogo</h3>'
-    +riga('Trattamento',t.nome)
-    +riga('Con',nomePersona(S.persona))
-    +riga('Quando',GIORNI[d.getDay()]+' '+d.getDate()+' '
-      +d.toLocaleDateString('it-IT',{month:'long'})+', alle '+S.ora)
-    +riga('Durata',durata(t.min))
-    +'<div class="tot"><span>Da pagare in salone</span><b>'+eur(t.prezzo)+'</b></div>'
-    +'<p class="nota">Non si versa nulla adesso. Si paga alla fine del servizio, in contanti, '
-    +'con bancomat o carta.</p>';
-}
+function dataBreve(s){ const d=new Date(s+'T12:00:00');
+  return GG[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1); }
 function avanti(){
   if(S.passo===4){ conferma(); return; }
   S.passo++;
   if(S.passo===2) disegnaSceltaPersona();
   if(S.passo===3){ disegnaCal(); disegnaOre(); }
-  if(S.passo===4) disegnaRiepilogo();
   disegnaPassi();
-  $('#prenota').scrollIntoView({behavior:'smooth',block:'start'});
+  $('.palco').scrollTop=0;
 }
-function indietro(){ if(S.passo>1){ S.passo--; disegnaPassi();
-  $('#prenota').scrollIntoView({behavior:'smooth',block:'start'}); } }
-
+function indietro(){ if(S.passo>1){ S.passo--; disegnaPassi(); $('.palco').scrollTop=0; } }
 function conferma(){
   let ok=true;
   [['#c-nome',v=>v.trim().length>2],['#c-tel',v=>v.replace(/\D/g,'').length>=8]]
@@ -331,94 +453,14 @@ function conferma(){
   messaggio('Appuntamento confermato: '+t.nome+' con '+nomePersona(chi)+', '
     +GIORNI[d.getDay()]+' '+d.getDate()+' '+d.toLocaleDateString('it-IT',{month:'long'})
     +' alle '+S.ora+'. Lo trovi già nell\'agenda del salone.');
-  S.passo=1; S.ora=null; S.giorno=null; S.persona=null;
+  S.passo=1; S.tratt=null; S.persona=null; S.giorno=null; S.ora=null;
   ['#c-nome','#c-tel','#c-mail','#c-note'].forEach(s=>$(s).value='');
-  disegnaPassi(); disegnaCal(); disegnaOre();
+  chiudiScheda();
+  disegnaSceltaTratt(); disegnaPassi(); disegnaCal(); disegnaOre();
 }
 
 /* =========================================================
-   SQUADRA, RECENSIONI, GALLERIA, ORARI, MAPPA
-   ========================================================= */
-const REPARTI=[['capelli','Sala capelli'],['barbershop','Barbershop'],['estetica','Estetica']];
-function disegnaSquadra(){
-  $('#squadra-elenco').innerHTML=REPARTI.map(r=>{
-    const v=SQUADRA.filter(p=>p.attivo!==false&&p.reparto===r[0]);
-    if(!v.length) return '';
-    return '<p class="rep-titolo">'+esc(r[1])+' · '+v.length+' persone</p><div class="squadra">'
-      + v.map(p=>'<div class="persona"><div class="in">'+esc(p.nome[0])+'</div>'
-        +'<b>'+esc(p.nome)+'</b><small>'+esc(p.ruolo)+'</small>'
-        +(p.voto?'<div class="v"><b>'+voto1(p.voto)+'</b>'
-          +'<span>su '+p.rec+' recensioni</span></div>':'')
-        +'</div>').join('')+'</div>';
-  }).join('');
-}
-function disegnaRecensioni(){
-  $('#recensioni-elenco').innerHTML=RECENSIONI.map(r=>
-    '<div class="rec"><div class="stelle">'+'★'.repeat(r.voto)+'</div>'
-    +'<p>'+esc(r.testo)+'</p>'
-    +'<div class="chi"><b>'+esc(r.chi)+'</b>'
-    +(r.da?' · '+esc(r.tratt)+' con '+esc(r.da):'')+'</div></div>').join('');
-}
-const FOTO=[
- ['{{ASSET:t1.webp}}','La sala del barbershop',1],
- ['{{ASSET:t6.webp}}','La sala capelli e l\'attesa',0],
- ['{{ASSET:t9.webp}}','La poltrona da barbiere e il jukebox',0],
- ['{{ASSET:t4.webp}}','Le postazioni della sala capelli',0],
- ['{{ASSET:t17.webp}}','Il lavatesta',0],
- ['{{ASSET:t11.webp}}','La cabina dell\'estetica',0],
- ['{{ASSET:t14.webp}}','La postazione del barbershop',0],
- ['{{ASSET:t13.webp}}','I prodotti Jurvedha',0],
- ['{{ASSET:t7.webp}}','I prodotti Joico',0],
- ['{{ASSET:t3.webp}}','Rasatura con panno caldo',0],
- ['{{ASSET:t12.webp}}','Colore e piega in sala',0],
- ['{{ASSET:t2.webp}}','Dentro il barbershop',0]
-];
-function disegnaGalleria(){
-  $('#gal').innerHTML=FOTO.map((f,i)=>
-    '<figure'+(f[2]?' class="alta"':'')+' data-i="'+i+'" title="'+esc(f[1])+'">'
-    +'<div style="background-image:url('+f[0]+')"></div></figure>').join('');
-  $$('#gal figure').forEach(f=>f.onclick=()=>{
-    $('#lente-img').src=FOTO[+f.dataset.i][0];
-    $('#lente-img').alt=FOTO[+f.dataset.i][1];
-    $('#lente').classList.add('on');
-  });
-}
-function disegnaOrari(){
-  const oggi=new Date().getDay();
-  let h='';
-  for(let i=1;i<=7;i++){
-    const g=i%7, o=ORARI[g];
-    h+='<tr class="'+(g===oggi?'oggi':'')+(o.ap?'':' chiuso')+'">'
-      +'<td>'+GIORNI[g]+'</td><td>'+(o.ap? o.ap+' / '+o.ch : 'chiuso')+'</td></tr>';
-  }
-  $('#tab-orari').innerHTML=h;
-}
-/* mappina disegnata a mano: niente chiamate a servizi esterni */
-function disegnaMappa(){
-  $('#mappa').innerHTML=
-   '<svg viewBox="0 0 320 200" role="img" aria-label="Il salone in via Umberto I a Varedo">'
-   +'<rect width="320" height="200" fill="#EFE7DC"/>'
-   +'<path d="M0 128 H320" stroke="#D9CCBB" stroke-width="16"/>'
-   +'<path d="M0 128 H320" stroke="#F7F3EE" stroke-width="2" stroke-dasharray="9 9"/>'
-   +'<path d="M96 0 V200" stroke="#E3D7C7" stroke-width="10"/>'
-   +'<path d="M232 0 V200" stroke="#E3D7C7" stroke-width="10"/>'
-   +'<path d="M0 54 H320" stroke="#E3D7C7" stroke-width="7"/>'
-   +'<rect x="112" y="140" width="46" height="30" fill="#E0D3C1"/>'
-   +'<rect x="170" y="146" width="34" height="24" fill="#E0D3C1"/>'
-   +'<rect x="30" y="140" width="52" height="34" fill="#E0D3C1"/>'
-   +'<rect x="246" y="70" width="54" height="38" fill="#E0D3C1"/>'
-   +'<rect x="112" y="70" width="60" height="40" fill="#E0D3C1"/>'
-   +'<text x="8" y="122" font-size="9" fill="#93887E" font-family="Jost,sans-serif" '
-   +'letter-spacing="1.5">VIA UMBERTO I</text>'
-   +'<circle cx="186" cy="118" r="17" fill="#A97C4A" opacity=".18"/>'
-   +'<path d="M186 104c-6 0-11 5-11 11 0 8 11 19 11 19s11-11 11-19c0-6-5-11-11-11Z" '
-   +'fill="#1A1614"/><circle cx="186" cy="115" r="4" fill="#F7F3EE"/>'
-   +'<text x="204" y="118" font-size="10" fill="#1A1614" font-family="Playfair,serif">Naïf</text>'
-   +'</svg>';
-}
-
-/* =========================================================
-   PANNELLO DI PRESENTAZIONE
+   PANNELLO ANALISI
    ========================================================= */
 const DIFETTI=[
  ['Per prenotare il cliente esce dal vostro sito',
@@ -427,7 +469,7 @@ const DIFETTI=[
   'Qui prenota sulla vostra pagina, senza uscire e senza vedere nessun concorrente.'],
  ['Il cliente nuovo dal marketplace costa il 20%',
   'Il listino di Fresha, letto oggi: 20% di commissione una tantum sul cliente nuovo che vi trova '
-  +'dal loro marketplace, con un minimo di 6 USD. I clienti che tornano non pagano commissione.',
+  +'dal loro marketplace, con un minimo di 6 USD. Chi torna non paga commissione.',
   'Sul vostro sito il cliente nuovo non ha commissione, né la prima volta né dopo.'],
  ['Il canone si paga a testa',
   'Fresha chiede 14,95 USD al mese per ogni membro del team prenotabile. In squadra siete in 16.',
@@ -453,12 +495,12 @@ function disegnaDifetti(){
 }
 function disegnaConto(){
   const persone=SQUADRA.filter(p=>p.attivo!==false).length;
-  const canoneMese=14.95*persone, canoneAnno=canoneMese*12;
+  const canone=14.95*persone;
   const usd=n=>n.toLocaleString('it-IT',{maximumFractionDigits:0})+' USD';
   $('#conto').innerHTML=
    '<div class="r"><span>Canone Fresha, '+persone+' persone prenotabili</span>'
-   +'<b>'+usd(canoneMese)+' al mese</b></div>'
-   +'<div class="r"><span>Stesso canone su un anno</span><b>'+usd(canoneAnno)+'</b></div>'
+   +'<b>'+usd(canone)+' al mese</b></div>'
+   +'<div class="r"><span>Stesso canone su un anno</span><b>'+usd(canone*12)+'</b></div>'
    +'<div class="r"><span>Cliente nuovo dal marketplace</span><b>20% una tantum</b></div>'
    +'<div class="r"><span>Minimo per cliente nuovo</span><b>6 USD</b></div>'
    +'<div class="r"><span>Pagamenti online incassati da loro</span><b>2,79% + 0,20 USD</b></div>'
@@ -478,62 +520,53 @@ function messaggio(t){
   clearTimeout(messaggio.t);
   messaggio.t=setTimeout(()=>$('#toast').classList.remove('on'),7000);
 }
-function costruisciTendina(){
-  $('#tendina').innerHTML=$$('#nav a').map(a=>
-    '<a href="'+a.getAttribute('href')+'">'+a.textContent+'</a>').join('')
-    +'<a href="#prenota"><span>Prenota adesso</span></a>';
-  $$('#tendina a').forEach(a=>a.onclick=()=>$('#tendina').classList.remove('on'));
-}
 
 /* =========================================================
    AVVIO
    ========================================================= */
 (function(){
-  disegnaStato(); disegnaFiltri(); disegnaListino();
-  disegnaAreePren(); disegnaSceltaTratt(); disegnaCal(); disegnaOre(); disegnaPassi();
-  disegnaSquadra(); disegnaRecensioni(); disegnaGalleria(); disegnaOrari(); disegnaMappa();
-  disegnaDifetti(); disegnaConto(); costruisciTendina();
-  setInterval(disegnaStato,60000);
+  $('#c-anni').textContent=new Date().getFullYear()-SALONE.dal;
+  disegnaGuida(); disegnaFasce(); disegnaIndice(); disegnaListino(); disegnaSquadra();
+  disegnaRecensione(); disegnaFoto(); disegnaOrari(); disegnaMappa();
+  disegnaDifetti(); disegnaConto(); disegnaPassi();
 
   const testo=encodeURIComponent('Buongiorno, scrivo dal sito. Vorrei prenotare');
-  ['#wa-tondo','#wa-contatti'].forEach(s=>{ const a=$(s);
+  ['#wa-guida','#wa-contatti'].forEach(s=>{ const a=$(s);
     if(a) a.href='https://wa.me/'+SALONE.wa+'?text='+testo; });
 
   $('#q').addEventListener('input',e=>{ cerca=e.target.value; disegnaListino(); });
+  $('#apri-scheda').onclick=apriScheda;
+  $('#apri-scheda-2').onclick=apriScheda;
+  $('#chiudi-scheda').onclick=chiudiScheda;
   $('#b-avanti').onclick=avanti;
   $('#b-indietro').onclick=indietro;
-  $('#cal-prima').onclick=()=>spostaMese(-1);
-  $('#cal-dopo').onclick=()=>spostaMese(1);
-  $('#b-menu').onclick=()=>$('#tendina').classList.toggle('on');
+  $('#c-nome').addEventListener('input',disegnaPassi);
+  $('#cal-prima').onclick=()=>{
+    calMese=new Date(calMese.getFullYear(),calMese.getMonth()-1,1,12); disegnaCal(); };
+  $('#cal-dopo').onclick=()=>{
+    calMese=new Date(calMese.getFullYear(),calMese.getMonth()+1,1,12); disegnaCal(); };
+  $('#rec-prima').onclick=()=>{
+    recVista=(recVista-1+RECENSIONI.length)%RECENSIONI.length; disegnaRecensione(); };
+  $('#rec-dopo').onclick=()=>{
+    recVista=(recVista+1)%RECENSIONI.length; disegnaRecensione(); };
   $('#apri-pres').onclick=()=>{ $('#pres').classList.add('on'); $('#velo').classList.add('on'); };
   const chiudiPres=()=>{ $('#pres').classList.remove('on'); $('#velo').classList.remove('on'); };
   $('#chiudi-pres').onclick=chiudiPres;
   $('#velo').onclick=chiudiPres;
   $('#lente').onclick=()=>$('#lente').classList.remove('on');
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){
-    chiudiPres(); $('#lente').classList.remove('on'); $('#tendina').classList.remove('on'); }});
-
-  /* i tre riquadri dei reparti aprono il listino già filtrato */
-  $$('.reparto[data-area]').forEach(r=>r.onclick=()=>{
-    const a=r.dataset.area;
-    const b=$('#filtri-area [data-a="'+a+'"]');
-    if(b) b.click();
-  });
-
-  addEventListener('scroll',()=>{
-    $('#barra').classList.toggle('giu',scrollY>40);
-  },{passive:true});
+    chiudiPres(); $('#lente').classList.remove('on');
+    if($('#scheda').classList.contains('on')) chiudiScheda(); }});
 
   const oss=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting)
-    $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.id)); }),
+    $$('#punti a').forEach(a=>a.classList.toggle('on',a.dataset.s===e.target.id)); }),
     {rootMargin:'-45% 0px -50% 0px'});
   $$('section[id]').forEach(s=>oss.observe(s));
 
-  /* se il gestionale cambia qualcosa mentre il sito è aperto */
   addEventListener('storage',e=>{
     if(String(e.key||'').startsWith('naif_')){
-      leggi(); disegnaFiltri(); disegnaListino(); disegnaSceltaTratt(); disegnaSquadra();
-      disegnaOrari(); disegnaStato(); disegnaCal(); disegnaOre(); disegnaConto();
+      leggi(); disegnaFasce(); disegnaIndice(); disegnaListino(); disegnaSquadra();
+      disegnaOrari(); disegnaConto(); disegnaSceltaTratt(); disegnaCal(); disegnaOre();
       messaggio('Il salone ha aggiornato il listino, gli orari o l\'agenda.');
     }
   });
