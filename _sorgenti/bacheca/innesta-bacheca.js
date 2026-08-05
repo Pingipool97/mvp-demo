@@ -38,7 +38,7 @@ const STILE=`
 <style>
 .bch{--bch-acc:var(--oro,#EFB402);--bch-deep:var(--notte,#014364);
   --bch-bord:rgba(128,128,128,.24);--bch-card:rgba(255,255,255,.05)}
-.bch-griglia{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
+.bch-griglia{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:stretch}
 .bch-box{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-card)}
 .bch-box h3{margin:0 0 4px;font-size:1.05rem}
 .bch-data{font-size:.8rem;opacity:.6}
@@ -61,12 +61,12 @@ const STILE=`
 .bch-av h4{margin:0 0 2px;font-size:.94rem}
 .bch-av p{margin:0;font-size:.86rem;opacity:.78;line-height:1.45}
 .bch-meteo{border:1px solid var(--bch-bord);border-radius:16px;padding:20px;background:var(--bch-deep);
-  color:#fff;position:relative}
+  color:#fff;position:relative;display:flex;flex-direction:column}
 .bch-meteo .agg{position:absolute;top:16px;right:18px;font-size:.72rem;opacity:.55}
 .bch-meteo .big{display:flex;align-items:center;gap:16px;margin-bottom:14px}
 .bch-meteo .big b{font-size:3rem;line-height:1}
 .bch-meteo .big span{display:block;font-size:.92rem;opacity:.8}
-.bch-meteo .tre{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:14px;
+.bch-meteo .tre{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:14px;
   border-top:1px solid rgba(255,255,255,.18)}
 .bch-meteo .tre small{display:block;font-size:.71rem;opacity:.6}
 .bch-meteo .tre b{font-size:1.1rem}
@@ -326,16 +326,17 @@ return `
 /* ---------------- innesto ---------------- */
 function innestaSito(file,pref,lat,lon){
   let t=pulisci(fs.readFileSync(file,'utf8'));
-  /* la bacheca va in fondo alla pagina del bar, dove il menù ha senso */
-  const anc=t.indexOf('id="p-ristorante"');
-  if(anc<0) throw new Error('non trovo la pagina del ristorante in '+file);
-  const fine=t.indexOf('</section>',t.lastIndexOf('<section',t.indexOf('id="p-home"')));
-  /* inserisco prima della chiusura della pagina ristorante */
-  const chiusura=trovaChiusuraPagina(t,anc);
-  t=t.slice(0,chiusura)+APRI+STILE+SITO+script(pref,'sito',lat,lon)+CHIUDI+t.slice(chiusura);
+  /* la bacheca va in home, subito sotto l'apertura: è la prima cosa che
+     interessa a chi arriva sul sito, non una pagina interna */
+  const home=t.indexOf('id="p-home"');
+  if(home<0) throw new Error('non trovo la home in '+file);
+  const punto=t.indexOf('<section class="sec', home);
+  if(punto<0) throw new Error('non trovo dove innestare nella home di '+file);
+  t=t.slice(0,punto)+APRI+STILE+SITO+script(pref,'sito',lat,lon)+CHIUDI+t.slice(punto);
   fs.writeFileSync(file,t);
   return t.length;
 }
+
 /* trova la fine della <section class="page"> che contiene la posizione data */
 function trovaChiusuraPagina(t,da){
   let i=t.lastIndexOf('<section',da), prof=0, p=i;
