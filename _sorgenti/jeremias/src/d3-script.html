@@ -93,6 +93,19 @@ const METODI=['contanti','bancomat','carta'];
 })();
 
 /* =========================================================
+   MENU LATERALE
+   il pannello resta aperto finche' non lo chiude l'utente.
+   Sotto i 900px copre la pagina, quindi li' serve il velo e si chiude
+   quando si sceglie una voce.
+   ========================================================= */
+const stretto=()=>matchMedia('(max-width:900px)').matches;
+function apriLato(v){
+  document.body.classList.toggle('menu-aperto',v);
+  $('#lato').classList.toggle('on',v);
+  $('#velo').classList.toggle('on', v && stretto());
+}
+
+/* =========================================================
    AGENDA
    ========================================================= */
 let giornoVisto=iso(OGGI);
@@ -770,8 +783,7 @@ function vaiA(p){
   $$('.pagina').forEach(s=>s.hidden=(s.id!=='p-'+p));
   $$('#voci button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
   $('#titolo').textContent=TITOLI[p];
-  $('#lato').classList.remove('on');
-  $('#velo').classList.remove('on');
+  if(stretto()) apriLato(false);   /* su schermo stretto il pannello copre la pagina */
   scrollTo({top:0,behavior:'smooth'});
 }
 function avvisa(t){
@@ -803,11 +815,11 @@ function tutto(){
   disegnaConv(); tutto();
 
   $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
-  const apriLato=v=>{ $('#lato').classList.toggle('on',v); $('#velo').classList.toggle('on',v); };
   $('#burger').onclick=()=>apriLato(!$('#lato').classList.contains('on'));
   $('#lato-x').onclick=()=>apriLato(false);
   $('#cass-x').onclick=()=>cass(false);
   $('#velo').onclick=()=>{ cass(false); apriLato(false); };
+  addEventListener('resize',()=>apriLato($('#lato').classList.contains('on')));
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); apriLato(false); }});
   $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
   $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{ filtroPren=b.dataset.f;

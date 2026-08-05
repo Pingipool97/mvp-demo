@@ -65,7 +65,10 @@ img{max-width:100%;display:block}
 .lato .chi b{font-size:.84rem;display:block;line-height:1.2}
 .lato .chi small{font-size:.71rem;color:rgba(255,255,255,.45)}
 
-.corpo{min-height:100vh;display:flex;flex-direction:column}
+.corpo{min-height:100vh;display:flex;flex-direction:column;
+  transition:margin-left .3s cubic-bezier(.4,0,.2,1)}
+/* da 901px in su il pannello aperto sposta il contenuto invece di coprirlo */
+@media(min-width:901px){ body.menu-aperto .corpo{margin-left:272px} }
 .barra{display:flex;align-items:center;gap:13px;padding:13px 22px;background:var(--card);
   border-bottom:1px solid var(--bord);position:sticky;top:0;z-index:50;flex-wrap:wrap}
 .barra h1{font-size:1.3rem}
