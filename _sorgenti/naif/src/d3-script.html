@@ -1,0 +1,1139 @@
+<script>
+"use strict";
+const $=(s,e)=>(e||document).querySelector(s);
+const $$=(s,e)=>[...(e||document).querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const eur=n=>Math.round(n).toLocaleString('it-IT')+' €';
+const eur2=n=>n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+
+/* =========================================================
+   MEMORIA
+   ========================================================= */
+let TRATT=JSON.parse(JSON.stringify(TRATT_DEF));
+let SQUADRA=JSON.parse(JSON.stringify(SQUADRA_DEF));
+let ORARI=JSON.parse(JSON.stringify(ORARI_DEF));
+let CHIUSURE=[], PREN=[], PRODOTTI=[], FATTURE=[], CONV=[];
+function leggi(){
+  const p=(k,d)=>{ try{ const v=JSON.parse(localStorage.getItem('naif_'+k)||'null');
+    return v==null?d:v; }catch(e){ return d; } };
+  const t=p('trattamenti',null); if(Array.isArray(t)&&t.length) TRATT=t;
+  const s=p('squadra',null);     if(Array.isArray(s)&&s.length) SQUADRA=s;
+  const o=p('orari',null);       if(Array.isArray(o)&&o.length===7) ORARI=o;
+  CHIUSURE=p('chiusure',[])||[];
+  PREN=p('prenotazioni',[])||[];
+  PRODOTTI=p('prodotti',[])||[];
+  FATTURE=p('fatture',[])||[];
+}
+function salva(k,v){ try{ localStorage.setItem('naif_'+k,JSON.stringify(v)); }catch(e){} }
+leggi();
+
+const OGGI=new Date();
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+  +'-'+String(d.getDate()).padStart(2,'0');
+const piu=(d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const minuti=s=>{ const p=String(s).split(':').map(Number); return p[0]*60+p[1]; };
+const hhmm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const tratt=id=>TRATT.find(t=>t.id===id)||{nome:'trattamento tolto',min:30,prezzo:0,cat:'',area:'capelli'};
+const persona=id=>SQUADRA.find(p=>p.id===id)||{nome:'non assegnato',reparto:'capelli',ruolo:''};
+const chiuso=g=>CHIUSURE.some(c=>c.data===g)||!ORARI[new Date(g+'T12:00:00').getDay()].ap;
+const REPARTO_DI_AREA={capelli:'capelli',barbershop:'barbershop',
+  viso:'estetica',corpo:'estetica',epilazione:'estetica',unghie:'estetica'};
+const REPARTI=[['capelli','Sala capelli'],['barbershop','Barbershop'],['estetica','Estetica']];
+const COL_REP={capelli:'#A97C4A',barbershop:'#4A6C86',estetica:'#8A5A78'};
+const attive=()=>SQUADRA.filter(p=>p.attivo!==false);
+const dellReparto=r=>attive().filter(p=>p.reparto===r);
+const mese=gi=>gi.slice(0,7);
+
+/* =========================================================
+   SEMINA DIMOSTRATIVA
+   sei mesi di storico e sei settimane avanti, sempre uguali
+   ========================================================= */
+let seme=20260805;
+const rnd=()=>{ seme=(seme*1103515245+12345)&0x7fffffff; return seme/0x7fffffff; };
+const pesca=a=>a[Math.floor(rnd()*a.length)];
+const NOMI=['Giulia Colombo','Marta Riva','Elisa Sala','Chiara Fumagalli','Sara Brambilla',
+ 'Federica Meroni','Alessia Rota','Valentina Corti','Silvia Motta','Laura Beretta','Anna Sironi',
+ 'Cristina Pozzi','Ilaria Crippa','Roberta Galli','Paola Arosio','Michela Testa','Nadia Vago',
+ 'Simona Monti','Erika Pini','Debora Longhi','Marco Riva','Andrea Sala','Fabio Mauri',
+ 'Davide Corti','Luca Bianchi','Stefano Longhi','Matteo Villa','Paolo Brambilla','Omar Nasr',
+ 'Youssef El Amrani','Riccardo Meroni','Tommaso Galli','Emanuele Crippa','Filippo Rota',
+ 'Gabriele Sada','Alberto Monti','Cristian Vago','Dario Testa','Lorenzo Arosio','Ivan Barbieri'];
+const METODI=['contanti','bancomat','carta'];
+
+(function semina(){
+  if(PREN.some(p=>p.semina)) return;
+  const nuovi=[];
+  /* quanto lavora ogni reparto: l'estetica riempie meno slot, il sabato e' pieno per tutti */
+  const carico={capelli:[0,0,.2,.23,.28,.4,.54],barbershop:[0,0,.18,.2,.25,.38,.52],
+    estetica:[0,0,.15,.17,.21,.29,.4]};
+  for(let g=-182; g<=42; g++){
+    const d=piu(OGGI,g), gi=iso(d), gs=d.getDay();
+    if(!ORARI[gs].ap) continue;
+    const o=ORARI[gs];
+    attive().forEach(pe=>{
+      const c=carico[pe.reparto][gs];
+      for(let m=minuti(o.ap); m+30<=minuti(o.ch); m+=30){
+        if(rnd()>c) continue;
+        const cand=TRATT_DEF.filter(t=>REPARTO_DI_AREA[t.area]===pe.reparto);
+        if(!cand.length) continue;
+        const t=pesca(cand);
+        if(m+t.min>minuti(o.ch)) continue;
+        /* la persona e' gia' impegnata in questo intervallo? */
+        const scontro=nuovi.some(p=>p.giorno===gi&&p.persona===pe.id
+          && minuti(p.ora)<m+t.min && m<minuti(p.ora)+tratt(p.tratt).min);
+        if(scontro) continue;
+        const passato=g<0||(g===0&&m<OGGI.getHours()*60+OGGI.getMinutes());
+        nuovi.push({id:'s'+g+'-'+pe.id+'-'+m, semina:true, giorno:gi, ora:hhmm(m),
+          persona:pe.id, tratt:t.id, prezzo:t.prezzo, nome:pesca(NOMI),
+          tel:'+39 3'+(Math.floor(rnd()*9)+1)+String(Math.floor(rnd()*9e7+1e7)),
+          origine: rnd()<.5?'sito':(rnd()<.5?'telefono':'salone'),
+          stato: passato ? (rnd()<.035?'non presentato':'completata') : 'confermata',
+          metodo: passato ? pesca(METODI) : null, note:''});
+      }
+    });
+  }
+  PREN=PREN.concat(nuovi);
+  salva('prenotazioni',PREN);
+})();
+
+(function seminaProdotti(){
+  if(PRODOTTI.length) return;
+  PRODOTTI=[
+   {id:'p1',nome:'Raman fase lavante 1000 ml',marca:'Jurvedha',rep:'capelli',q:6,min:4,costo:24},
+   {id:'p2',nome:'Doshan fase distensiva 250 ml',marca:'Jurvedha',rep:'capelli',q:3,min:4,costo:19},
+   {id:'p3',nome:'Lotus Clean 150 ml',marca:'Jurvedha',rep:'capelli',q:8,min:3,costo:15},
+   {id:'p4',nome:'5 Elementi maschera 250 ml',marca:'Jurvedha',rep:'capelli',q:2,min:3,costo:21},
+   {id:'p5',nome:'K-Pak shampoo 1000 ml',marca:'Joico',rep:'capelli',q:5,min:3,costo:18},
+   {id:'p6',nome:'Colore in tubo, assortito',marca:'Fudge',rep:'capelli',q:34,min:20,costo:7.5},
+   {id:'p7',nome:'Ossigeno 20 volumi 1000 ml',marca:'Fudge',rep:'capelli',q:9,min:6,costo:5},
+   {id:'p8',nome:'Nashi Argan olio 100 ml',marca:'Nashi',rep:'capelli',q:4,min:5,costo:22},
+   {id:'p9',nome:'Cera depilatoria, sacco 1 kg',marca:'Fornitore estetica',rep:'estetica',q:7,min:5,costo:9},
+   {id:'p10',nome:'Strisce depilatorie, 100 pezzi',marca:'Fornitore estetica',rep:'estetica',q:2,min:4,costo:12},
+   {id:'p11',nome:'Gel costruttore 50 ml',marca:'Fornitore unghie',rep:'estetica',q:6,min:4,costo:17},
+   {id:'p12',nome:'Semipermanente, assortito',marca:'Fornitore unghie',rep:'estetica',q:41,min:25,costo:8},
+   {id:'p13',nome:'Olio da massaggio 500 ml',marca:'Fornitore estetica',rep:'estetica',q:3,min:3,costo:14},
+   {id:'p14',nome:'Sapone da barba',marca:'Depot',rep:'barbershop',q:5,min:4,costo:11},
+   {id:'p15',nome:'Lame da rasoio, 100 pezzi',marca:'Depot',rep:'barbershop',q:1,min:3,costo:16},
+   {id:'p16',nome:'Dopobarba 100 ml',marca:'Depot',rep:'barbershop',q:7,min:4,costo:13}
+  ];
+  salva('prodotti',PRODOTTI);
+})();
+
+(function seminaFatture(){
+  if(FATTURE.length) return;
+  const forn=[['Jurvedha','capelli'],['Joico Italia','capelli'],['Fudge Italia','capelli'],
+    ['Nashi Argan','capelli'],['Depot Barbershop','barbershop'],['Beauty Service Lombardia','estetica'],
+    ['Nail Supply Milano','estetica']];
+  const f=[];
+  for(let m=-11;m<=0;m++){
+    const base=new Date(OGGI.getFullYear(),OGGI.getMonth()+m,1);
+    forn.forEach((fo,i)=>{
+      if(rnd()>.72) return;
+      const gg=Math.floor(rnd()*24)+2;
+      const data=new Date(base.getFullYear(),base.getMonth(),gg);
+      const scad=piu(data,30);
+      const imp=Math.round((110+rnd()*1250)*100)/100;
+      const pagata= m<-1 ? rnd()<.93 : rnd()<.4;
+      f.push({id:'f'+m+'-'+i,forn:fo[0],rep:fo[1],
+        num:data.getFullYear()+'/'+String(f.length+1).padStart(3,'0'),
+        data:iso(data),scad:iso(scad),imp:imp,stato:pagata?'pagata':'aperta'});
+    });
+  }
+  FATTURE=f; salva('fatture',FATTURE);
+})();
+
+/* conversazioni WhatsApp: dimostrative, non arrivano da nessun numero vero */
+CONV=[
+ {id:'c1',nome:'Chiara Fumagalli',tel:'+39 348 2211904',umano:false,nonLetti:2,
+  msg:[['cli','Buonasera, avrei bisogno di un colore e piega giovedì pomeriggio','16:41'],
+    ['bot','Buonasera Chiara. Giovedì abbiamo libero alle 15:00 con Andrea e alle 17:30 con Debora. Il colore dura un\'ora, la piega mezz\'ora.','16:41'],
+    ['cli','Alle 17:30 va bene, ma vorrei anche le sopracciglia','16:47'],
+    ['bot','Posso mettere la ceretta sopracciglia con Greta subito dopo, alle 19:00. Confermo tutto?','16:47'],
+    ['cli','Sì grazie','16:52']]},
+ {id:'c2',nome:'Marco Riva',tel:'+39 347 8890123',umano:false,nonLetti:1,
+  msg:[['cli','Ciao, riesco a spostare il taglio di sabato?','09:12'],
+    ['bot','Certo. Sabato hai taglio e barba alle 10:30 con Marco. Ti propongo sabato alle 16:00 oppure martedì alle 18:00.','09:12'],
+    ['cli','Facciamo martedì alle 18','09:20']]},
+ {id:'c3',nome:'Silvia Motta',tel:'+39 340 5566217',umano:true,nonLetti:0,
+  msg:[['cli','Buongiorno, avrei una domanda sul laser: ho fatto una seduta altrove a giugno, posso continuare da voi?','10:02'],
+    ['bot','Buongiorno Silvia. Per il laser serve una valutazione della pelle prima di riprendere il ciclo. Passo la conversazione a Greta, che le risponde direttamente.','10:02'],
+    ['sis','Presa in carico da Greta','10:04'],
+    ['noi','Buongiorno Silvia, sono Greta. Possiamo riprendere, ma le chiedo di venire dieci minuti prima per il patch test. Le va bene giovedì alle 16?','10:09']]},
+ {id:'c4',nome:'Federica Meroni',tel:'+39 333 4412098',umano:false,nonLetti:0,
+  msg:[['cli','Quanto viene la ricostruzione in gel?','18:22'],
+    ['bot','La ricostruzione in gel costa 80 € e dura due ore. Il refill è 50 €. Vuole che guardi le disponibilità?','18:22'],
+    ['cli','Sì la settimana prossima','18:25'],
+    ['bot','Ho libero martedì alle 9:00 con Giulia e mercoledì alle 14:30 con Emily.','18:25']]}
+];
+
+/* =========================================================
+   AGENDA
+   ========================================================= */
+let giornoVisto=iso(OGGI), vista='settimana', repVisto='tutti';
+
+function disegnaFiltroReparto(){
+  $('#filtro-reparto').innerHTML=
+    '<button data-r="tutti"'+(repVisto==='tutti'?' class="on"':'')+'>Tutti i reparti</button>'
+    + REPARTI.map(r=>'<button data-r="'+r[0]+'"'+(repVisto===r[0]?' class="on"':'')+'>'
+      +esc(r[1])+' ('+dellReparto(r[0]).length+')</button>').join('');
+  $$('#filtro-reparto button').forEach(b=>b.onclick=()=>{
+    repVisto=b.dataset.r; disegnaFiltroReparto(); disegnaAgenda();
+  });
+}
+function disegnaLegenda(){
+  $('#leg').innerHTML=REPARTI.map(r=>
+    '<span><i style="background:'+COL_REP[r[0]]+'"></i>'+esc(r[1])+'</span>').join('')
+    +'<span><i style="background:#EDE7DE"></i>Chiuso</span>';
+}
+function disegnaAgenda(){
+  disegnaLegenda();
+  if(vista==='settimana') disegnaSettimana(); else disegnaGiorno();
+}
+function fasciaSettimana(gg){
+  let dal=24*60, al=0;
+  gg.forEach(gi=>{ if(chiuso(gi)) return;
+    const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+    dal=Math.min(dal,minuti(o.ap)); al=Math.max(al,minuti(o.ch)); });
+  if(al<=dal){ dal=9*60; al=20*60; }
+  return [dal,al];
+}
+function bloccoApp(p,ora){
+  const t=tratt(p.tratt), pe=persona(p.persona), col=COL_REP[pe.reparto]||'#7D858C';
+  return '<div class="bloc'+(p.stato==='completata'?' fatto':'')
+    +(p.stato==='annullata'?' annullata':'')+'" data-id="'+esc(p.id)+'" '
+    +'style="border-left-color:'+col+';background:color-mix(in srgb,'+col+' 15%,#fff)" '
+    +'title="'+esc(p.nome+' · '+t.nome+' · '+pe.nome)+'">'
+    +'<u>'+esc(ora)+' '+esc(pe.nome)+'</u><b>'+esc(p.nome)+'</b>'
+    +'<small>'+esc(t.nome)+'</small></div>';
+}
+/* ---------- settimana ---------- */
+function lunediDi(gi){ const d=new Date(gi+'T12:00:00'); return piu(d,-((d.getDay()+6)%7)); }
+function disegnaSettimana(){
+  const lun=lunediDi(giornoVisto), gg=[];
+  for(let i=0;i<7;i++) gg.push(iso(piu(lun,i)));
+  const a=new Date(gg[0]+'T12:00:00'), b=new Date(gg[6]+'T12:00:00');
+  const mA=a.toLocaleDateString('it-IT',{month:'long'}), mB=b.toLocaleDateString('it-IT',{month:'long'});
+  $('#giorno-et').textContent='Dal '+a.getDate()+(mA!==mB?' '+mA:'')+' al '+b.getDate()+' '+mB
+    +' '+b.getFullYear();
+  const f=fasciaSettimana(gg), dal=f[0], al=f[1];
+  const oggi=iso(OGGI);
+  $('#ag').style.gridTemplateColumns='56px '
+    +gg.map(gi=>chiuso(gi)?'60px':'minmax(132px,1fr)').join(' ');
+  $('#ag').style.minWidth=(56+gg.reduce((t,gi)=>t+(chiuso(gi)?60:132),0))+'px';
+  let h='<div class="ang"></div>';
+  gg.forEach(gi=>{
+    const d=new Date(gi+'T12:00:00'), ch=chiuso(gi), c=CHIUSURE.find(x=>x.data===gi);
+    h+='<div class="dt'+(gi===oggi?' oggi':'')+(ch?' no':'')+'"><span>'+GG[d.getDay()]+'</span>'
+      +'<b>'+d.getDate()+'</b>'+(ch?'<small>'+esc(c?c.motivo:'chiuso')+'</small>':'')+'</div>';
+  });
+  for(let m=dal;m<al;m+=30){
+    h+='<div class="oh'+(m%60?' mezza':'')+'">'+hhmm(m)+'</div>';
+    gg.forEach(gi=>{
+      const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+      if(chiuso(gi)||m<minuti(o.ap)||m>=minuti(o.ch)){ h+='<div class="cs no"></div>'; return; }
+      const qui=daVedere().filter(p=>p.giorno===gi&&p.ora===hhmm(m)&&p.stato!=='annullata');
+      const dentro=qui.slice(0,3).map(p=>bloccoApp(p,hhmm(m))).join('')
+        +(qui.length>3?'<div class="bloc altri" data-altri="'+gi+'|'+hhmm(m)+'" '
+          +'title="Altri '+(qui.length-3)+' appuntamenti, apri la giornata">+'
+          +(qui.length-3)+'</div>':'');
+      const libera=personeAttive().find(pe=>!qui.some(p=>p.persona===pe.id));
+      h+='<div class="cs"'+(libera?' data-nuovo="'+gi+'|'+hhmm(m)+'|'+libera.id+'"':'')
+        +'>'+dentro+'</div>';
+    });
+  }
+  $('#ag').innerHTML=h;
+  legaAgenda();
+}
+/* ---------- giorno: una colonna per persona ---------- */
+function personeAttive(){
+  return repVisto==='tutti' ? attive() : dellReparto(repVisto);
+}
+function daVedere(){
+  const ids=personeAttive().map(p=>p.id);
+  return PREN.filter(p=>ids.includes(p.persona));
+}
+function disegnaGiorno(){
+  const d=new Date(giornoVisto+'T12:00:00'), o=ORARI[d.getDay()];
+  $('#giorno-et').textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '
+    +d.toLocaleDateString('it-IT',{month:'long'});
+  const gente=personeAttive();
+  if(chiuso(giornoVisto)){
+    const c=CHIUSURE.find(x=>x.data===giornoVisto);
+    $('#ag').style.gridTemplateColumns='1fr';
+    $('#ag').style.minWidth='auto';
+    $('#ag').innerHTML='<div class="vuoto">Salone chiuso'
+      +(c?': '+esc(c.motivo):' in questo giorno della settimana')+'.</div>';
+    return;
+  }
+  $('#ag').style.gridTemplateColumns='56px repeat('+gente.length+',minmax(118px,1fr))';
+  $('#ag').style.minWidth=(56+gente.length*118)+'px';
+  let h='<div class="ang"></div>';
+  gente.forEach(pe=>{
+    const n=PREN.filter(p=>p.giorno===giornoVisto&&p.persona===pe.id&&p.stato!=='annullata').length;
+    h+='<div class="dt"><b style="font-size:1rem">'+esc(pe.nome)+'</b>'
+      +'<span>'+n+' app.</span></div>';
+  });
+  for(let m=minuti(o.ap);m<minuti(o.ch);m+=30){
+    h+='<div class="oh'+(m%60?' mezza':'')+'">'+hhmm(m)+'</div>';
+    gente.forEach(pe=>{
+      const p=PREN.find(x=>x.giorno===giornoVisto&&x.persona===pe.id&&x.ora===hhmm(m)
+        &&x.stato!=='annullata');
+      h+= p ? '<div class="cs">'+bloccoApp(p,hhmm(m))+'</div>'
+        : '<div class="cs" data-nuovo="'+giornoVisto+'|'+hhmm(m)+'|'+pe.id+'"></div>';
+    });
+  }
+  $('#ag').innerHTML=h;
+  legaAgenda();
+}
+function legaAgenda(){
+  $$('#ag .bloc[data-id]').forEach(x=>x.onclick=e=>{ e.stopPropagation(); apriApp(x.dataset.id); });
+  $$('#ag [data-altri]').forEach(x=>x.onclick=e=>{ e.stopPropagation();
+    const v=x.dataset.altri.split('|');
+    giornoVisto=v[0]; vista='giorno';
+    $$('#vista button').forEach(b=>b.classList.toggle('on',b.dataset.v==='giorno'));
+    disegnaAgenda();
+  });
+  $$('#ag [data-nuovo]').forEach(c=>c.onclick=()=>{
+    const v=c.dataset.nuovo.split('|'); nuovoApp(v[0],v[1],v[2]);
+  });
+}
+
+/* =========================================================
+   CASSETTO
+   ========================================================= */
+function cass(v){ $('#cass').classList.toggle('on',v); $('#velo').classList.toggle('on',v); }
+function riga(a,b){ return '<div><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>'; }
+function apriApp(id){
+  const p=PREN.find(x=>x.id===id); if(!p) return;
+  const t=tratt(p.tratt), pe=persona(p.persona);
+  const d=new Date(p.giorno+'T12:00:00');
+  $('#cass-tit').textContent=p.nome;
+  $('#cass-corpo').innerHTML='<div class="dett">'
+    +riga('Quando',GIORNI[d.getDay()]+' '+d.getDate()+' '
+      +d.toLocaleDateString('it-IT',{month:'long'})+', '+p.ora)
+    +riga('Trattamento',t.nome)
+    +riga('Durata',t.min+' minuti')
+    +riga('Con',pe.nome+' · '+pe.ruolo)
+    +riga('Telefono',p.tel||'non indicato')
+    +riga('Origine',p.origine==='sito'?'prenotato dal sito':p.origine)
+    +riga('Importo',eur(p.prezzo))
+    +riga('Stato',p.stato)
+    +(p.metodo?riga('Pagato con',p.metodo):'')
+    +'</div>'
+    +(p.note?'<p class="nota" style="margin-bottom:12px">'+esc(p.note)+'</p>':'')
+    +'<div class="campo"><label for="ed-nota">Nota interna</label>'
+    +'<textarea id="ed-nota" rows="2">'+esc(p.nota||'')+'</textarea></div>';
+  const az=[];
+  if(p.stato==='confermata'){
+    az.push('<button class="b b-p b-sm" data-az="fatto">Segna come fatto</button>');
+    az.push('<button class="b b-s b-sm" data-az="sposta">Sposta</button>');
+    az.push('<button class="b b-ko b-sm" data-az="annulla">Annulla</button>');
+  } else if(p.stato==='annullata'){
+    az.push('<button class="b b-s b-sm" data-az="ripristina">Rimetti in agenda</button>');
+  } else {
+    az.push('<button class="b b-s b-sm" data-az="riapri">Riporta a confermato</button>');
+  }
+  az.push('<button class="b b-s b-sm" data-az="nota">Salva la nota</button>');
+  $('#cass-piede').innerHTML=az.join('');
+  $$('#cass-piede [data-az]').forEach(b=>b.onclick=()=>azioneApp(p,b.dataset.az));
+  cass(true);
+}
+function azioneApp(p,az){
+  if(az==='fatto'){
+    p.stato='completata';
+    p.metodo=p.metodo||'contanti';
+    avvisa('Appuntamento segnato come fatto, incasso in cassa');
+  }
+  if(az==='annulla'){ p.stato='annullata'; avvisa('Appuntamento annullato, lo slot torna libero'); }
+  if(az==='ripristina'||az==='riapri'){ p.stato='confermata'; p.metodo=null; avvisa('Rimesso in agenda'); }
+  if(az==='nota'){ p.nota=$('#ed-nota').value.trim(); avvisa('Nota salvata'); }
+  if(az==='sposta'){ cass(false); nuovoApp(p.giorno,p.ora,p.persona,p); return; }
+  salva('prenotazioni',PREN); cass(false); tutto();
+}
+
+/* ---------- nuovo appuntamento, o spostamento ---------- */
+function nuovoApp(giorno,ora,personaId,daSpostare){
+  const pe=persona(personaId);
+  const cand=TRATT.filter(t=>t.attivo!==false&&REPARTO_DI_AREA[t.area]===pe.reparto);
+  $('#cass-tit').textContent=daSpostare?'Sposta appuntamento':'Nuovo appuntamento';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label for="n-cliente">Cliente</label>'
+   +'<input id="n-cliente" list="l-clienti" value="'+esc(daSpostare?daSpostare.nome:'')+'" '
+   +'placeholder="Nome e cognome"><datalist id="l-clienti">'
+   + [...new Set(PREN.map(p=>p.nome))].slice(0,300).map(n=>'<option value="'+esc(n)+'">').join('')
+   +'</datalist></div>'
+   +'<div class="campo"><label for="n-tel">Telefono</label>'
+   +'<input id="n-tel" value="'+esc(daSpostare?daSpostare.tel:'')+'" placeholder="+39"></div>'
+   +'<div class="campo"><label for="n-persona">Con chi</label><select id="n-persona">'
+   + attive().map(x=>'<option value="'+x.id+'"'+(x.id===personaId?' selected':'')+'>'
+     +esc(x.nome)+' · '+esc(x.ruolo)+'</option>').join('')+'</select></div>'
+   +'<div class="campo"><label for="n-tratt">Trattamento</label><select id="n-tratt">'
+   + cand.map(t=>'<option value="'+t.id+'"'
+     +(daSpostare&&daSpostare.tratt===t.id?' selected':'')+'>'
+     +esc(t.nome)+' · '+t.min+'′ · '+eur(t.prezzo)+'</option>').join('')+'</select></div>'
+   +'<div class="griglia g2" style="gap:10px">'
+   +'<div class="campo"><label for="n-giorno">Giorno</label>'
+   +'<input type="date" id="n-giorno" value="'+giorno+'"></div>'
+   +'<div class="campo"><label for="n-ora">Ora</label>'
+   +'<input type="time" id="n-ora" step="900" value="'+ora+'"></div></div>'
+   +'<div class="campo"><label for="n-note">Note</label>'
+   +'<textarea id="n-note" rows="2">'+esc(daSpostare?daSpostare.note:'')+'</textarea></div>'
+   +'<p class="nota">Gli orari sono liberi: puoi mettere un appuntamento anche a cavallo della '
+   +'mezz\'ora, per esempio alle 10:15.</p>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="b-crea">'
+    +(daSpostare?'Sposta':'Aggiungi in agenda')+'</button>'
+    +'<button class="b b-s" id="b-annulla-crea">Lascia stare</button>';
+  /* cambiando persona cambia l'elenco dei trattamenti possibili */
+  $('#n-persona').onchange=()=>{
+    const r=persona($('#n-persona').value).reparto;
+    $('#n-tratt').innerHTML=TRATT.filter(t=>t.attivo!==false&&REPARTO_DI_AREA[t.area]===r)
+      .map(t=>'<option value="'+t.id+'">'+esc(t.nome)+' · '+t.min+'′ · '+eur(t.prezzo)
+        +'</option>').join('');
+  };
+  $('#b-annulla-crea').onclick=()=>cass(false);
+  $('#b-crea').onclick=()=>{
+    const nome=$('#n-cliente').value.trim();
+    if(nome.length<3){ avvisa('Serve il nome del cliente'); return; }
+    const t=tratt($('#n-tratt').value), gi=$('#n-giorno').value, or=$('#n-ora').value;
+    if(!gi||!or){ avvisa('Serve giorno e ora'); return; }
+    const chiId=$('#n-persona').value;
+    const scontro=PREN.some(p=>p!==daSpostare&&p.giorno===gi&&p.persona===chiId
+      &&p.stato!=='annullata'
+      &&minuti(p.ora)<minuti(or)+t.min && minuti(or)<minuti(p.ora)+tratt(p.tratt).min);
+    if(scontro){ avvisa('In quel momento '+persona(chiId).nome+' è già occupata'); return; }
+    if(daSpostare){
+      Object.assign(daSpostare,{giorno:gi,ora:or,persona:chiId,tratt:t.id,prezzo:t.prezzo,
+        nome:nome,tel:$('#n-tel').value.trim(),note:$('#n-note').value.trim()});
+      avvisa('Appuntamento spostato');
+    } else {
+      PREN.push({id:'m'+Date.now(),giorno:gi,ora:or,persona:chiId,tratt:t.id,prezzo:t.prezzo,
+        nome:nome,tel:$('#n-tel').value.trim(),note:$('#n-note').value.trim(),
+        origine:'salone',stato:'confermata',metodo:null});
+      avvisa('Appuntamento aggiunto in agenda');
+    }
+    salva('prenotazioni',PREN);
+    giornoVisto=gi; cass(false); tutto();
+  };
+  cass(true);
+}
+
+/* =========================================================
+   APPUNTAMENTI E CLIENTI
+   ========================================================= */
+let filtroPren='futuri', ricerca='';
+function disegnaPren(){
+  const oggi=iso(OGGI);
+  let v=PREN.slice();
+  if(filtroPren==='futuri')    v=v.filter(p=>p.giorno>=oggi&&p.stato==='confermata');
+  if(filtroPren==='oggi')      v=v.filter(p=>p.giorno===oggi);
+  if(filtroPren==='passati')   v=v.filter(p=>p.giorno<oggi);
+  if(filtroPren==='sito')      v=v.filter(p=>p.origine==='sito');
+  if(filtroPren==='annullate') v=v.filter(p=>p.stato==='annullata');
+  if(ricerca){ const q=ricerca.toLowerCase();
+    v=v.filter(p=>(p.nome+' '+(p.tel||'')).toLowerCase().includes(q)); }
+  v.sort((a,b)=>filtroPren==='passati'
+    ? (b.giorno+b.ora).localeCompare(a.giorno+a.ora)
+    : (a.giorno+a.ora).localeCompare(b.giorno+b.ora));
+  $('#conta-pren').textContent=v.length+' appuntamenti';
+  $('#tab-pren').innerHTML= v.length ? v.slice(0,260).map(p=>{
+    const t=tratt(p.tratt), d=new Date(p.giorno+'T12:00:00');
+    return '<tr data-id="'+esc(p.id)+'"><td>'+GG[d.getDay()]+' '+d.getDate()+'/'
+      +(d.getMonth()+1)+' · '+p.ora+'</td><td>'+esc(p.nome)+'</td><td>'+esc(t.nome)+'</td>'
+      +'<td>'+esc(persona(p.persona).nome)+'</td>'
+      +'<td>'+(p.origine==='sito'?'<span class="eti eti-web">dal sito</span>':esc(p.origine))+'</td>'
+      +'<td class="dx">'+eur(p.prezzo)+'</td><td>'+etichettaStato(p.stato)+'</td></tr>';
+  }).join('') : '<tr><td colspan="7"><div class="vuoto">Nessun appuntamento con questo filtro.</div></td></tr>';
+  $$('#tab-pren tr[data-id]').forEach(r=>r.onclick=()=>apriApp(r.dataset.id));
+  const nuoveDalSito=PREN.filter(p=>p.origine==='sito'&&p.nuova).length;
+  const b=$('#n-pren'); b.hidden=!nuoveDalSito; b.textContent=nuoveDalSito;
+}
+function etichettaStato(s){
+  if(s==='completata') return '<span class="eti eti-ok">fatto</span>';
+  if(s==='annullata') return '<span class="eti eti-ko">annullato</span>';
+  if(s==='non presentato') return '<span class="eti eti-att">non presentato</span>';
+  return '<span class="eti eti-neu">confermato</span>';
+}
+function clienti(){
+  const m={};
+  PREN.forEach(p=>{
+    if(p.stato==='annullata') return;
+    const k=p.nome;
+    m[k]=m[k]||{nome:p.nome,tel:p.tel,visite:0,speso:0,ultima:'',con:{}};
+    m[k].visite++;
+    if(p.stato==='completata') m[k].speso+=p.prezzo;
+    if(p.giorno>m[k].ultima) m[k].ultima=p.giorno;
+    m[k].con[p.persona]=(m[k].con[p.persona]||0)+1;
+  });
+  return Object.values(m).sort((a,b)=>b.speso-a.speso);
+}
+function disegnaClienti(){
+  let v=clienti();
+  if(ricerca){ const q=ricerca.toLowerCase();
+    v=v.filter(c=>(c.nome+' '+(c.tel||'')).toLowerCase().includes(q)); }
+  $('#conta-cli').textContent=v.length+' clienti';
+  $('#tab-cli').innerHTML= v.length ? v.slice(0,300).map(c=>{
+    const pref=Object.entries(c.con).sort((a,b)=>b[1]-a[1])[0];
+    const d=new Date(c.ultima+'T12:00:00');
+    return '<tr><td>'+esc(c.nome)+'</td><td>'+esc(c.tel||'')+'</td>'
+      +'<td class="dx">'+c.visite+'</td>'
+      +'<td>'+d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2)+'</td>'
+      +'<td>'+esc(persona(pref[0]).nome)+'</td><td class="dx">'+eur(c.speso)+'</td></tr>';
+  }).join('') : '<tr><td colspan="6"><div class="vuoto">Nessun cliente trovato.</div></td></tr>';
+}
+
+/* =========================================================
+   WHATSAPP
+   ========================================================= */
+let convVista='c1';
+function disegnaConv(){
+  $('#wa-el').innerHTML=CONV.map(c=>
+    '<div class="v'+(c.id===convVista?' on':'')+'" data-c="'+c.id+'">'
+    +'<div class="r"><b>'+esc(c.nome)+'</b>'
+    +(c.nonLetti?'<span class="eti eti-ko">'+c.nonLetti+'</span>':'<small>'
+      +esc(c.msg[c.msg.length-1][2])+'</small>')+'</div>'
+    +'<p>'+esc(c.msg[c.msg.length-1][1])+'</p>'
+    +'<small style="color:'+(c.umano?'var(--ko)':'var(--tx3)')+'">'
+    +(c.umano?'presa in carico':'risponde l\'assistente')+'</small></div>').join('');
+  $$('#wa-el .v').forEach(v=>v.onclick=()=>{
+    convVista=v.dataset.c;
+    const c=CONV.find(x=>x.id===convVista); c.nonLetti=0;
+    disegnaConv(); contaWa();
+  });
+  const c=CONV.find(x=>x.id===convVista)||CONV[0];
+  $('#wa-top').innerHTML='<div><b style="font-weight:400">'+esc(c.nome)+'</b>'
+    +'<div style="font-size:.76rem;color:var(--tx3)">'+esc(c.tel)+'</div></div>'
+    +'<div style="margin-left:auto;display:flex;gap:7px;flex-wrap:wrap">'
+    +'<button class="b '+(c.umano?'b-s':'b-p')+' b-sm" id="wa-umano">'
+    +(c.umano?'Torna all\'assistente':'Prendo in carico io')+'</button>'
+    +'<button class="b b-s b-sm" id="wa-app">Apri in agenda</button></div>';
+  $('#wa-msg').innerHTML=c.msg.map(m=>{
+    if(m[0]==='sis') return '<div class="wa-b sis">'+esc(m[1])+'</div>';
+    const chi=m[0]==='bot'?'Assistente':(m[0]==='noi'?'Salone':'');
+    return '<div class="wa-b '+(m[0]==='cli'?'':'noi')+'">'
+      +(chi?'<span class="chi">'+chi+'</span>':'')+esc(m[1])
+      +'<div style="font-size:.66rem;opacity:.5;text-align:right">'+esc(m[2])+'</div></div>';
+  }).join('');
+  $('#wa-msg').scrollTop=9e5;
+  $('#wa-rap').innerHTML=['Le confermo l\'appuntamento','Le mando le disponibilità',
+    'Purtroppo in quell\'orario siamo pieni','Grazie, a presto']
+    .map(t=>'<button data-r="'+esc(t)+'">'+esc(t)+'</button>').join('');
+  $$('#wa-rap button').forEach(b=>b.onclick=()=>{ $('#wa-testo').value=b.dataset.r; });
+  $('#wa-umano').onclick=()=>{
+    c.umano=!c.umano;
+    c.msg.push(['sis',c.umano?'Presa in carico dal salone':'Torna a rispondere l\'assistente',adesso()]);
+    disegnaConv();
+    avvisa(c.umano?'Rispondi tu, l\'assistente si ferma su questa chat'
+      :'Torna a rispondere l\'assistente');
+  };
+  $('#wa-app').onclick=()=>{
+    const p=PREN.filter(x=>x.nome===c.nome&&x.giorno>=iso(OGGI)).sort((a,b)=>
+      (a.giorno+a.ora).localeCompare(b.giorno+b.ora))[0];
+    if(!p){ avvisa('Nessun appuntamento futuro per '+c.nome); return; }
+    giornoVisto=p.giorno; vaiA('agenda'); disegnaAgenda(); apriApp(p.id);
+  };
+  contaWa();
+}
+function adesso(){ const d=new Date();
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function contaWa(){
+  const n=CONV.reduce((t,c)=>t+c.nonLetti,0);
+  const b=$('#n-wa'); b.hidden=!n; b.textContent=n;
+  $('#conta-conv').textContent=CONV.length+' conversazioni';
+}
+function inviaWa(){
+  const t=$('#wa-testo').value.trim(); if(!t) return;
+  const c=CONV.find(x=>x.id===convVista);
+  c.msg.push([c.umano?'noi':'bot',t,adesso()]);
+  $('#wa-testo').value='';
+  disegnaConv();
+}
+
+/* =========================================================
+   LISTINO E SQUADRA
+   ========================================================= */
+let filtroTr='tutti';
+function disegnaFiltriTr(){
+  $('#filtri-tr').innerHTML='<button data-t="tutti"'+(filtroTr==='tutti'?' class="on"':'')
+    +'>Tutte le aree</button>'
+    + AREE.map(a=>'<button data-t="'+a.id+'"'+(filtroTr===a.id?' class="on"':'')+'>'
+      +esc(a.nome)+'</button>').join('');
+  $$('#filtri-tr button').forEach(b=>b.onclick=()=>{
+    filtroTr=b.dataset.t; disegnaFiltriTr(); disegnaTratt();
+  });
+}
+function disegnaTratt(){
+  const v=TRATT.filter(t=>filtroTr==='tutti'||t.area===filtroTr);
+  $('#conta-tratt').textContent=TRATT.filter(t=>t.attivo!==false).length+' sul sito, '
+    +TRATT.length+' in tutto';
+  $('#tab-tratt').innerHTML=v.map(t=>
+    '<tr data-t="'+esc(t.id)+'"><td>'+esc(t.nome)+'</td>'
+    +'<td>'+esc((AREE.find(a=>a.id===t.area)||{nome:t.area}).nome)+'</td>'
+    +'<td style="color:var(--tx3)">'+esc(t.cat)+'</td>'
+    +'<td class="dx">'+t.min+'′</td><td class="dx">'+eur(t.prezzo)+'</td>'
+    +'<td>'+(t.attivo!==false?'<span class="eti eti-ok">visibile</span>'
+      :'<span class="eti eti-neu">nascosto</span>')+'</td>'
+    +'<td class="dx"><button class="b b-s b-sm" data-mod="'+esc(t.id)+'">Modifica</button></td></tr>'
+  ).join('');
+  $$('#tab-tratt [data-mod]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    modificaTratt(b.dataset.mod); });
+  $$('#tab-tratt tr[data-t]').forEach(r=>r.onclick=()=>modificaTratt(r.dataset.t));
+}
+function modificaTratt(id){
+  const t=id?TRATT.find(x=>x.id===id):{id:'',area:'capelli',cat:'',nome:'',desc:'',min:30,
+    prezzo:0,attivo:true};
+  $('#cass-tit').textContent=id?'Modifica trattamento':'Nuovo trattamento';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label for="t-nome">Nome</label>'
+   +'<input id="t-nome" value="'+esc(t.nome)+'"></div>'
+   +'<div class="campo"><label for="t-area">Area</label><select id="t-area">'
+   + AREE.map(a=>'<option value="'+a.id+'"'+(a.id===t.area?' selected':'')+'>'+esc(a.nome)
+     +'</option>').join('')+'</select></div>'
+   +'<div class="campo"><label for="t-cat">Categoria a listino</label>'
+   +'<input id="t-cat" list="l-cat" value="'+esc(t.cat)+'"><datalist id="l-cat">'
+   + [...new Set(TRATT.map(x=>x.cat))].map(c=>'<option value="'+esc(c)+'">').join('')+'</datalist></div>'
+   +'<div class="campo"><label for="t-desc">Descrizione sul sito</label>'
+   +'<textarea id="t-desc" rows="3">'+esc(t.desc||'')+'</textarea></div>'
+   +'<div class="griglia g2" style="gap:10px">'
+   +'<div class="campo"><label for="t-min">Durata in minuti</label>'
+   +'<input type="number" id="t-min" min="5" step="5" value="'+t.min+'"></div>'
+   +'<div class="campo"><label for="t-prezzo">Prezzo in euro</label>'
+   +'<input type="number" id="t-prezzo" min="0" step="1" value="'+t.prezzo+'"></div></div>'
+   +'<label style="display:flex;gap:9px;align-items:center;font-size:.88rem">'
+   +'<input type="checkbox" id="t-attivo" '+(t.attivo!==false?'checked':'')
+   +' style="width:auto">Visibile e prenotabile sul sito</label>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="t-salva">Salva</button>'
+    +(id?'<button class="b b-ko" id="t-togli">Togli dal listino</button>':'')
+    +'<button class="b b-s" id="t-chiudi">Lascia stare</button>';
+  $('#t-chiudi').onclick=()=>cass(false);
+  if(id) $('#t-togli').onclick=()=>{
+    if(PREN.some(p=>p.tratt===id&&p.giorno>=iso(OGGI)&&p.stato==='confermata')){
+      avvisa('Non lo tolgo: ci sono appuntamenti futuri con questo trattamento. Nascondilo dal sito.');
+      return;
+    }
+    TRATT=TRATT.filter(x=>x.id!==id); salva('trattamenti',TRATT); cass(false); tutto();
+    avvisa('Trattamento tolto dal listino');
+  };
+  $('#t-salva').onclick=()=>{
+    const nome=$('#t-nome').value.trim();
+    if(nome.length<3){ avvisa('Serve il nome del trattamento'); return; }
+    const dati={area:$('#t-area').value,cat:$('#t-cat').value.trim()||'Altro',nome:nome,
+      desc:$('#t-desc').value.trim(),min:Math.max(5,+$('#t-min').value||30),
+      prezzo:Math.max(0,+$('#t-prezzo').value||0),attivo:$('#t-attivo').checked};
+    if(id) Object.assign(TRATT.find(x=>x.id===id),dati);
+    else TRATT.push(Object.assign({id:'n'+Date.now()},dati));
+    salva('trattamenti',TRATT); cass(false); tutto();
+    avvisa(id?'Trattamento aggiornato, il sito è già cambiato':'Trattamento aggiunto e già sul sito');
+  };
+  cass(true);
+}
+function disegnaSquadra(){
+  const dal=iso(piu(OGGI,-30));
+  $('#conta-squadra').textContent=attive().length+' in agenda, '+SQUADRA.length+' in tutto';
+  $('#tab-squadra').innerHTML=SQUADRA.map(p=>{
+    const suoi=PREN.filter(x=>x.persona===p.id&&x.giorno>=dal&&x.giorno<=iso(OGGI)
+      &&x.stato==='completata');
+    const inc=suoi.reduce((t,x)=>t+x.prezzo,0);
+    return '<tr data-p="'+esc(p.id)+'"><td>'+esc(p.nome)+'</td><td>'+esc(p.ruolo)+'</td>'
+      +'<td>'+esc((REPARTI.find(r=>r[0]===p.reparto)||['','?'])[1])+'</td>'
+      +'<td class="dx">'+suoi.length+'</td><td class="dx">'+eur(inc)+'</td>'
+      +'<td>'+(p.attivo!==false?'<span class="eti eti-ok">sì</span>'
+        :'<span class="eti eti-neu">no</span>')+'</td>'
+      +'<td class="dx"><button class="b b-s b-sm" data-mod="'+esc(p.id)+'">Modifica</button></td></tr>';
+  }).join('');
+  $$('#tab-squadra [data-mod]').forEach(b=>b.onclick=e=>{ e.stopPropagation();
+    modificaPersona(b.dataset.mod); });
+  $$('#tab-squadra tr[data-p]').forEach(r=>r.onclick=()=>modificaPersona(r.dataset.p));
+}
+function modificaPersona(id){
+  const p=id?SQUADRA.find(x=>x.id===id):{id:'',nome:'',ruolo:'',reparto:'capelli',voto:null,rec:null};
+  $('#cass-tit').textContent=id?p.nome:'Nuova persona';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label for="s-nome">Nome</label><input id="s-nome" value="'+esc(p.nome)+'"></div>'
+   +'<div class="campo"><label for="s-ruolo">Ruolo</label>'
+   +'<input id="s-ruolo" value="'+esc(p.ruolo)+'" placeholder="Hair stylist, estetista, barber"></div>'
+   +'<div class="campo"><label for="s-rep">Reparto</label><select id="s-rep">'
+   + REPARTI.map(r=>'<option value="'+r[0]+'"'+(r[0]===p.reparto?' selected':'')+'>'+esc(r[1])
+     +'</option>').join('')+'</select></div>'
+   +'<label style="display:flex;gap:9px;align-items:center;font-size:.88rem">'
+   +'<input type="checkbox" id="s-attivo" '+(p.attivo!==false?'checked':'')
+   +' style="width:auto">In agenda e visibile sul sito</label>'
+   +'<p class="nota" style="margin-top:12px">Il reparto decide quali trattamenti questa persona '
+   +'può prendere: sala capelli, barbershop o estetica.</p>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="s-salva">Salva</button>'
+    +'<button class="b b-s" id="s-chiudi">Lascia stare</button>';
+  $('#s-chiudi').onclick=()=>cass(false);
+  $('#s-salva').onclick=()=>{
+    const nome=$('#s-nome').value.trim();
+    if(nome.length<2){ avvisa('Serve il nome'); return; }
+    const dati={nome:nome,ruolo:$('#s-ruolo').value.trim()||'Collaboratore',
+      reparto:$('#s-rep').value,attivo:$('#s-attivo').checked};
+    if(id) Object.assign(SQUADRA.find(x=>x.id===id),dati);
+    else SQUADRA.push(Object.assign({id:'p'+Date.now(),voto:null,rec:null},dati));
+    salva('squadra',SQUADRA); cass(false); tutto();
+    avvisa('Squadra aggiornata');
+  };
+  cass(true);
+}
+
+/* =========================================================
+   ORARI E CHIUSURE
+   ========================================================= */
+function disegnaOrari(){
+  $('#orari-campi').innerHTML=[1,2,3,4,5,6,0].map(g=>{
+    const o=ORARI[g];
+    return '<div style="display:flex;gap:9px;align-items:center;padding:7px 0;'
+      +'border-bottom:1px solid var(--bord)">'
+      +'<span style="width:92px;font-size:.87rem">'+GIORNI[g]+'</span>'
+      +'<input type="time" data-ap="'+g+'" value="'+(o.ap||'')+'" '
+      +'style="padding:.35em .5em;border:1px solid var(--bord);border-radius:3px;'
+      +'background:var(--carta2)">'
+      +'<input type="time" data-ch="'+g+'" value="'+(o.ch||'')+'" '
+      +'style="padding:.35em .5em;border:1px solid var(--bord);border-radius:3px;'
+      +'background:var(--carta2)">'
+      +'<span style="font-size:.78rem;color:var(--tx3);margin-left:auto">'
+      +(o.ap?'aperto':'chiuso')+'</span></div>';
+  }).join('');
+  const f=CHIUSURE.filter(c=>c.data>=iso(OGGI)).sort((a,b)=>a.data.localeCompare(b.data));
+  $('#elenco-chiusure').innerHTML= f.length ? f.map(c=>{
+    const d=new Date(c.data+'T12:00:00');
+    return '<div style="display:flex;gap:10px;align-items:center;padding:8px 0;'
+      +'border-bottom:1px solid var(--bord);font-size:.87rem">'
+      +'<b style="font-weight:400">'+GG[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'</b>'
+      +'<span style="color:var(--tx3)">'+esc(c.motivo)+'</span>'
+      +'<button class="b b-s b-sm" style="margin-left:auto" data-ch="'+c.data+'">Togli</button></div>';
+  }).join('') : '<div class="vuoto">Nessuna chiusura in programma.</div>';
+  $$('#elenco-chiusure [data-ch]').forEach(b=>b.onclick=()=>{
+    CHIUSURE=CHIUSURE.filter(c=>c.data!==b.dataset.ch);
+    salva('chiusure',CHIUSURE); tutto(); avvisa('Chiusura tolta');
+  });
+}
+function salvaOrari(){
+  for(let g=0;g<7;g++){
+    const ap=$('[data-ap="'+g+'"]').value, ch=$('[data-ch="'+g+'"]').value;
+    ORARI[g]= (ap&&ch&&minuti(ch)>minuti(ap)) ? {ap:ap,ch:ch} : {ap:null,ch:null};
+  }
+  salva('orari',ORARI); tutto();
+  avvisa('Orari salvati, il sito propone già le nuove fasce');
+}
+
+/* =========================================================
+   INCASSI E PREVISIONE
+   ========================================================= */
+function meseId(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function incassoMese(m){
+  return PREN.filter(p=>mese(p.giorno)===m&&p.stato==='completata')
+    .reduce((t,p)=>t+p.prezzo,0);
+}
+function giorniLavorati(m){
+  return new Set(PREN.filter(p=>mese(p.giorno)===m&&p.stato==='completata')
+    .map(p=>p.giorno)).size;
+}
+function giorniApertiDelMese(anno,m){
+  let n=0;
+  const gg=new Date(anno,m+1,0).getDate();
+  for(let i=1;i<=gg;i++){
+    const d=new Date(anno,m,i,12);
+    if(!chiuso(iso(d))) n++;
+  }
+  return n;
+}
+function previsione(){
+  const pros=new Date(OGGI.getFullYear(),OGGI.getMonth()+1,1);
+  const prec=new Date(OGGI.getFullYear(),OGGI.getMonth()-1,1);
+  const prec2=new Date(OGGI.getFullYear(),OGGI.getMonth()-2,1);
+  const mPros=meseId(pros), mPrec=meseId(prec), mPrec2=meseId(prec2);
+  const iPrec=incassoMese(mPrec), iPrec2=incassoMese(mPrec2);
+  const gLav=giorniLavorati(mPrec)||1;
+  const mediaGiorno=iPrec/gLav;
+  let tend=iPrec2>0?iPrec/iPrec2:1;
+  tend=Math.max(.85,Math.min(1.15,tend));
+  const gAperti=giorniApertiDelMese(pros.getFullYear(),pros.getMonth());
+  const stima=mediaGiorno*gAperti*tend;
+  const gia=PREN.filter(p=>mese(p.giorno)===mPros&&p.stato==='confermata')
+    .reduce((t,p)=>t+p.prezzo,0);
+  return {stima:stima,gia:gia,mediaGiorno:mediaGiorno,gAperti:gAperti,tend:tend,
+    mPrec:mPrec,iPrec:iPrec,gLav:gLav,mPros:mPros};
+}
+function disegnaIncassi(){
+  const mOra=meseId(OGGI), p=previsione();
+  const iOra=incassoMese(mOra);
+  $('#i-mese').textContent=eur(iOra);
+  $('#i-mese-s').textContent=giorniLavorati(mOra)+' giornate lavorate finora';
+  $('#i-prec').textContent=eur(p.iPrec);
+  $('#i-prec-s').textContent=p.gLav+' giornate, media '+eur(p.mediaGiorno)+' al giorno';
+  $('#i-pros').textContent=eur(p.stima);
+  $('#i-pros-s').textContent=p.gAperti+' giorni di apertura, tendenza '
+    +(p.tend>=1?'+':'')+Math.round((p.tend-1)*100)+'%';
+  $('#i-gia').textContent=eur(p.gia);
+
+  /* sei mesi indietro piu' la previsione */
+  const mesi=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(OGGI.getFullYear(),OGGI.getMonth()-i,1);
+    mesi.push({et:d.toLocaleDateString('it-IT',{month:'short'}),v:incassoMese(meseId(d)),pros:false});
+  }
+  const dPros=new Date(OGGI.getFullYear(),OGGI.getMonth()+1,1);
+  mesi.push({et:dPros.toLocaleDateString('it-IT',{month:'short'}),v:p.stima,pros:true});
+  const max=Math.max.apply(null,mesi.map(m=>m.v))||1;
+  $('#barre').innerHTML=mesi.map(m=>
+    '<div class="col'+(m.pros?' pros':'')+'"><b>'+eur(m.v)+'</b>'
+    +'<i style="height:'+Math.max(3,Math.round(m.v/max*100))+'%"></i>'
+    +'<span>'+esc(m.et)+'</span></div>').join('');
+  $('#spiega-prev').textContent='La previsione non è un numero a caso: prende la media giornaliera '
+    +'del mese scorso ('+eur(p.mediaGiorno)+'), la moltiplica per i '+p.gAperti+' giorni in cui il '
+    +'salone sarà aperto il mese prossimo, e la corregge con la tendenza fra gli ultimi due mesi ('
+    +(p.tend>=1?'+':'')+Math.round((p.tend-1)*100)+'%). Le chiusure che segni negli orari entrano '
+    +'subito nel conto. Dei '+eur(p.stima)+' previsti, '+eur(p.gia)+' sono già in agenda.';
+
+  /* diviso per reparto */
+  const delMese=PREN.filter(x=>mese(x.giorno)===mOra&&x.stato==='completata');
+  const perRep={};
+  REPARTI.forEach(r=>perRep[r[0]]=0);
+  delMese.forEach(x=>{ perRep[persona(x.persona).reparto]+=x.prezzo; });
+  const tot=Object.values(perRep).reduce((a,b)=>a+b,0)||1;
+  $('#quota-rep').innerHTML=REPARTI.map(r=>{
+    const q=perRep[r[0]]/tot*100;
+    return q<1?'':'<div style="width:'+q.toFixed(1)+'%;background:'+COL_REP[r[0]]+'">'
+      +Math.round(q)+'%</div>';
+  }).join('');
+  $('#righe-rep').innerHTML=REPARTI.map(r=>
+    '<div class="riga-p"><span>'+esc(r[1])+'</span><b>'+eur(perRep[r[0]])+'</b></div>').join('')
+    +'<div class="riga-p"><span>Totale del mese</span><b>'+eur(tot===1?0:tot)+'</b></div>';
+
+  /* chi ha incassato */
+  const perPersona={};
+  delMese.forEach(x=>{ perPersona[x.persona]=(perPersona[x.persona]||0)+x.prezzo; });
+  const ord=Object.entries(perPersona).sort((a,b)=>b[1]-a[1]);
+  $('#righe-persone').innerHTML= ord.length ? ord.map(e=>
+    '<div class="riga-p"><span>'+esc(persona(e[0]).nome)+'<span style="color:var(--tx3)"> · '
+    +esc(persona(e[0]).ruolo)+'</span></span><b>'+eur(e[1])+'</b></div>').join('')
+    : '<div class="vuoto">Ancora nessun incasso questo mese.</div>';
+
+  /* metodi di pagamento */
+  const perMetodo={};
+  delMese.forEach(x=>{ const m=x.metodo||'contanti';
+    perMetodo[m]=(perMetodo[m]||0)+x.prezzo; });
+  $('#righe-metodi').innerHTML=Object.entries(perMetodo).sort((a,b)=>b[1]-a[1]).map(e=>
+    '<div class="riga-p"><span>'+esc(e[0])+'</span><b>'+eur(e[1])+' · '
+    +Math.round(e[1]/(tot===1?1:tot)*100)+'%</b></div>').join('')
+    || '<div class="vuoto">Nessun incasso registrato.</div>';
+}
+
+/* =========================================================
+   MAGAZZINO
+   ========================================================= */
+function sottoScorta(){ return PRODOTTI.filter(p=>p.q<=p.min); }
+function disegnaMagazzino(){
+  const bassi=sottoScorta();
+  $('#conta-mag').textContent=PRODOTTI.length+' prodotti, '+bassi.length+' sotto scorta';
+  const b=$('#n-mag'); b.hidden=!bassi.length; b.textContent=bassi.length;
+  $('#tab-mag').innerHTML=PRODOTTI.map(p=>{
+    const q=Math.min(100,Math.round(p.q/(p.min*2||1)*100));
+    return '<tr data-m="'+esc(p.id)+'"><td>'+esc(p.nome)+'</td><td>'+esc(p.marca)+'</td>'
+      +'<td>'+esc((REPARTI.find(r=>r[0]===p.rep)||['','?'])[1])+'</td>'
+      +'<td class="dx">'+p.q+'</td><td class="dx">'+p.min+'</td>'
+      +'<td><div class="scorta'+(p.q<=p.min?' basso':'')+'">'
+      +'<i style="width:'+q+'%"></i></div></td>'
+      +'<td class="dx">'+eur2(p.costo)+'</td>'
+      +'<td class="dx"><button class="b b-s b-sm" data-mod="'+esc(p.id)+'">Modifica</button></td></tr>';
+  }).join('');
+  $$('#tab-mag [data-mod]').forEach(x=>x.onclick=e=>{ e.stopPropagation();
+    modificaProdotto(x.dataset.mod); });
+  $$('#tab-mag tr[data-m]').forEach(r=>r.onclick=()=>modificaProdotto(r.dataset.m));
+}
+function modificaProdotto(id){
+  const p=id?PRODOTTI.find(x=>x.id===id):{id:'',nome:'',marca:'',rep:'capelli',q:0,min:3,costo:0};
+  $('#cass-tit').textContent=id?p.nome:'Nuovo prodotto';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label for="m-nome">Prodotto</label><input id="m-nome" value="'+esc(p.nome)+'"></div>'
+   +'<div class="campo"><label for="m-marca">Marca</label>'
+   +'<input id="m-marca" list="l-marche" value="'+esc(p.marca)+'"><datalist id="l-marche">'
+   + [...new Set(PRODOTTI.map(x=>x.marca))].map(m=>'<option value="'+esc(m)+'">').join('')
+   +'</datalist></div>'
+   +'<div class="campo"><label for="m-rep">Reparto</label><select id="m-rep">'
+   + REPARTI.map(r=>'<option value="'+r[0]+'"'+(r[0]===p.rep?' selected':'')+'>'+esc(r[1])
+     +'</option>').join('')+'</select></div>'
+   +'<div class="griglia g3" style="gap:10px">'
+   +'<div class="campo"><label for="m-q">In casa</label>'
+   +'<input type="number" id="m-q" min="0" value="'+p.q+'"></div>'
+   +'<div class="campo"><label for="m-min">Scorta minima</label>'
+   +'<input type="number" id="m-min" min="0" value="'+p.min+'"></div>'
+   +'<div class="campo"><label for="m-costo">Costo</label>'
+   +'<input type="number" id="m-costo" min="0" step="0.5" value="'+p.costo+'"></div></div>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="m-salva">Salva</button>'
+    +(id?'<button class="b b-s" id="m-carico">Carico rapido, +10</button>':'')
+    +'<button class="b b-s" id="m-chiudi">Lascia stare</button>';
+  $('#m-chiudi').onclick=()=>cass(false);
+  if(id) $('#m-carico').onclick=()=>{
+    PRODOTTI.find(x=>x.id===id).q+=10; salva('prodotti',PRODOTTI); cass(false); tutto();
+    avvisa('Carico registrato');
+  };
+  $('#m-salva').onclick=()=>{
+    const nome=$('#m-nome').value.trim();
+    if(nome.length<3){ avvisa('Serve il nome del prodotto'); return; }
+    const dati={nome:nome,marca:$('#m-marca').value.trim()||'senza marca',rep:$('#m-rep').value,
+      q:Math.max(0,+$('#m-q').value||0),min:Math.max(0,+$('#m-min').value||0),
+      costo:Math.max(0,+$('#m-costo').value||0)};
+    if(id) Object.assign(PRODOTTI.find(x=>x.id===id),dati);
+    else PRODOTTI.push(Object.assign({id:'k'+Date.now()},dati));
+    salva('prodotti',PRODOTTI); cass(false); tutto(); avvisa('Magazzino aggiornato');
+  };
+  cass(true);
+}
+
+/* =========================================================
+   FATTURE FORNITORI
+   ========================================================= */
+let filtroForn='tutte';
+function disegnaForn(){
+  const oggi=iso(OGGI);
+  const aperte=FATTURE.filter(f=>f.stato==='aperta');
+  const scadute=aperte.filter(f=>f.scad<oggi);
+  const annoOra=String(OGGI.getFullYear());
+  const pagate=FATTURE.filter(f=>f.stato==='pagata'&&f.data.startsWith(annoOra));
+  $('#f-aperte').textContent=eur(aperte.reduce((t,f)=>t+f.imp,0));
+  $('#f-aperte-s').textContent=aperte.length+' fatture aperte';
+  $('#f-scadute').textContent=eur(scadute.reduce((t,f)=>t+f.imp,0));
+  $('#f-scadute-s').textContent=scadute.length+' oltre la scadenza';
+  $('#f-anno').textContent=eur(pagate.reduce((t,f)=>t+f.imp,0));
+  const dal=iso(piu(OGGI,-365));
+  const incasso=PREN.filter(p=>p.giorno>=dal&&p.stato==='completata')
+    .reduce((t,p)=>t+p.prezzo,0);
+  const spesa=FATTURE.filter(f=>f.data>=dal).reduce((t,f)=>t+f.imp,0);
+  $('#f-perc').textContent=incasso? Math.round(spesa/incasso*100)+'%' : '0%';
+  const b=$('#n-forn'); b.hidden=!scadute.length; b.textContent=scadute.length;
+
+  let v=FATTURE.slice();
+  if(filtroForn==='aperte')  v=aperte;
+  if(filtroForn==='scadute') v=scadute;
+  if(filtroForn==='pagate')  v=v.filter(f=>f.stato==='pagata');
+  v.sort((a,b)=>b.data.localeCompare(a.data));
+  $('#tab-forn').innerHTML= v.length ? v.slice(0,200).map(f=>{
+    const dat=x=>{ const d=new Date(x+'T12:00:00');
+      return d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2); };
+    const stato= f.stato==='pagata' ? '<span class="eti eti-ok">pagata</span>'
+      : (f.scad<oggi ? '<span class="eti eti-ko">scaduta</span>'
+        : '<span class="eti eti-att">da pagare</span>');
+    return '<tr><td>'+esc(f.forn)+'</td><td style="color:var(--tx3)">'+esc(f.num)+'</td>'
+      +'<td>'+dat(f.data)+'</td><td>'+dat(f.scad)+'</td>'
+      +'<td class="dx">'+eur2(f.imp)+'</td><td>'+stato+'</td>'
+      +'<td class="dx">'+(f.stato==='aperta'
+        ? '<button class="b b-s b-sm" data-paga="'+f.id+'">Segna pagata</button>' : '')+'</td></tr>';
+  }).join('') : '<tr><td colspan="7"><div class="vuoto">Nessuna fattura con questo filtro.</div></td></tr>';
+  $$('#tab-forn [data-paga]').forEach(b2=>b2.onclick=()=>{
+    FATTURE.find(f=>f.id===b2.dataset.paga).stato='pagata';
+    salva('fatture',FATTURE); tutto(); avvisa('Fattura segnata come pagata');
+  });
+}
+function nuovaFattura(){
+  $('#cass-tit').textContent='Nuova fattura';
+  $('#cass-corpo').innerHTML=
+   '<div class="campo"><label for="ff-forn">Fornitore</label>'
+   +'<input id="ff-forn" list="l-forn"><datalist id="l-forn">'
+   + [...new Set(FATTURE.map(f=>f.forn))].map(f=>'<option value="'+esc(f)+'">').join('')
+   +'</datalist></div>'
+   +'<div class="campo"><label for="ff-num">Numero</label><input id="ff-num"></div>'
+   +'<div class="griglia g2" style="gap:10px">'
+   +'<div class="campo"><label for="ff-data">Data</label>'
+   +'<input type="date" id="ff-data" value="'+iso(OGGI)+'"></div>'
+   +'<div class="campo"><label for="ff-scad">Scadenza</label>'
+   +'<input type="date" id="ff-scad" value="'+iso(piu(OGGI,30))+'"></div></div>'
+   +'<div class="campo"><label for="ff-imp">Importo in euro</label>'
+   +'<input type="number" id="ff-imp" min="0" step="0.01"></div>';
+  $('#cass-piede').innerHTML='<button class="b b-p" id="ff-salva">Salva</button>'
+    +'<button class="b b-s" id="ff-chiudi">Lascia stare</button>';
+  $('#ff-chiudi').onclick=()=>cass(false);
+  $('#ff-salva').onclick=()=>{
+    const forn=$('#ff-forn').value.trim(), imp=+$('#ff-imp').value;
+    if(forn.length<2||!imp){ avvisa('Servono fornitore e importo'); return; }
+    FATTURE.push({id:'f'+Date.now(),forn:forn,rep:'capelli',
+      num:$('#ff-num').value.trim()||'senza numero',
+      data:$('#ff-data').value,scad:$('#ff-scad').value,imp:imp,stato:'aperta'});
+    salva('fatture',FATTURE); cass(false); tutto(); avvisa('Fattura aggiunta');
+  };
+  cass(true);
+}
+
+/* =========================================================
+   ASSISTENTE
+   ========================================================= */
+function consigli(){
+  const out=[], oggi=iso(OGGI);
+  /* 1. buchi in agenda nei prossimi giorni */
+  let peggio=null;
+  for(let g=0;g<7;g++){
+    const gi=iso(piu(OGGI,g));
+    if(chiuso(gi)) continue;
+    const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+    const slot=Math.floor((minuti(o.ch)-minuti(o.ap))/30)*attive().length;
+    const usati=PREN.filter(p=>p.giorno===gi&&p.stato!=='annullata').length;
+    const liberi=slot-usati;
+    if(!peggio||liberi>peggio.liberi) peggio={gi:gi,liberi:liberi,slot:slot};
+  }
+  if(peggio&&peggio.liberi>peggio.slot*.45){
+    const d=new Date(peggio.gi+'T12:00:00');
+    out.push({t:'Agenda scarica '+(peggio.gi===oggi?'oggi':GIORNI[d.getDay()].toLowerCase()+' '+d.getDate()),
+      p:'Restano '+peggio.liberi+' caselle libere su '+peggio.slot+'. Un messaggio ai clienti che '
+        +'non passano da più di due mesi di solito riempie mezza giornata.',
+      q:'oggi',
+      az:[['Apri quel giorno',()=>{ giornoVisto=peggio.gi; vista='giorno';
+        $$('#vista button').forEach(b=>b.classList.toggle('on',b.dataset.v==='giorno'));
+        vaiA('agenda'); disegnaAgenda(); },true],
+        ['Vedi le conversazioni',()=>vaiA('whatsapp'),false]]});
+  }
+  /* 2. messaggi da leggere */
+  const nonLetti=CONV.reduce((t,c)=>t+c.nonLetti,0);
+  if(nonLetti) out.push({t:nonLetti+' messaggi WhatsApp da leggere',
+    p:'L\'assistente ha già risposto su prezzi e disponibilità, ma qualche richiesta aspetta una '
+      +'conferma vostra.',q:'oggi',
+    az:[['Apri le conversazioni',()=>vaiA('whatsapp'),true]]});
+  /* 3. prodotti sotto scorta */
+  const bassi=sottoScorta();
+  if(bassi.length) out.push({t:bassi.length+' prodotti sotto la scorta minima',
+    p:bassi.slice(0,3).map(p=>p.nome+' ('+p.q+')').join(', ')
+      +(bassi.length>3?' e altri '+(bassi.length-3):'')+'. Conviene ordinare prima del fine settimana.',
+    q:'magazzino',
+    az:[['Apri il magazzino',()=>vaiA('magazzino'),true]]});
+  /* 4. fatture scadute */
+  const scadute=FATTURE.filter(f=>f.stato==='aperta'&&f.scad<oggi);
+  if(scadute.length) out.push({t:scadute.length+' fatture fornitori scadute',
+    p:'In totale '+eur(scadute.reduce((t,f)=>t+f.imp,0))+'. La più vecchia è di '
+      +esc(scadute.sort((a,b)=>a.scad.localeCompare(b.scad))[0].forn)+'.',q:'amministrazione',
+    az:[['Apri le fatture',()=>vaiA('fornitori'),true]]});
+  /* 5. clienti che non tornano */
+  const limite=iso(piu(OGGI,-75));
+  const persi=clienti().filter(c=>c.ultima<limite&&c.visite>=3);
+  if(persi.length) out.push({t:persi.length+' clienti abituali non tornano da oltre due mesi',
+    p:'Erano venuti almeno tre volte. Valgono in media '+eur(persi.reduce((t,c)=>t+c.speso,0)
+      /persi.length)+' a testa di storico.',q:'clienti',
+    az:[['Vedi i clienti',()=>vaiA('clienti'),true]]});
+  /* 6. previsione */
+  const p=previsione();
+  out.push({t:'Il mese prossimo dovreste chiudere intorno a '+eur(p.stima),
+    p:'Media di '+eur(p.mediaGiorno)+' al giorno per '+p.gAperti+' giorni di apertura, corretta con '
+      +'la tendenza degli ultimi due mesi. In agenda ci sono già '+eur(p.gia)+'.',q:'nota',
+    az:[['Vedi gli incassi',()=>vaiA('incassi'),false]]});
+  return out;
+}
+function disegnaAssistente(){
+  const c=consigli();
+  $('#conta-cons').textContent=c.length+' cose da valutare';
+  $('#consigli').innerHTML=c.map((x,i)=>
+    '<div class="cons"><div class="r1"><div><h4>'+esc(x.t)+'</h4><p>'+esc(x.p)+'</p></div>'
+    +'<span class="quando">'+esc(x.q)+'</span></div>'
+    +'<div class="az">'+x.az.map((a,j)=>'<button data-c="'+i+'" data-a="'+j+'"'
+      +(a[2]?' class="p"':'')+'>'+esc(a[0])+'</button>').join('')+'</div></div>').join('');
+  $$('#consigli [data-c]').forEach(b=>b.onclick=()=>c[+b.dataset.c].az[+b.dataset.a][1]());
+}
+
+/* =========================================================
+   KPI E ROUTER
+   ========================================================= */
+function disegnaKpi(){
+  const oggi=iso(OGGI);
+  const app=PREN.filter(p=>p.giorno===oggi&&p.stato!=='annullata');
+  $('#k-app').textContent=app.length;
+  $('#k-app-s').textContent=app.filter(p=>p.stato==='completata').length+' già fatti';
+  const inc=app.reduce((t,p)=>t+p.prezzo,0);
+  $('#k-inc').textContent=eur(inc);
+  $('#k-inc-s').textContent=eur(app.filter(p=>p.stato==='completata')
+    .reduce((t,p)=>t+p.prezzo,0))+' già incassati';
+  const o=ORARI[OGGI.getDay()];
+  const slot= o.ap ? Math.floor((minuti(o.ch)-minuti(o.ap))/30)*attive().length : 0;
+  const perc=slot?Math.round(app.length/slot*100):0;
+  $('#k-occ').textContent=perc+'%';
+  $('#k-occ-bar').style.width=Math.min(100,perc)+'%';
+  const set=iso(piu(OGGI,-7));
+  $('#k-web').textContent=PREN.filter(p=>p.origine==='sito'&&p.giorno>=set&&p.giorno<=oggi).length;
+}
+const TITOLI={agenda:'Agenda',prenotazioni:'Appuntamenti',clienti:'Clienti',
+  whatsapp:'Conversazioni WhatsApp',trattamenti:'Listino',squadra:'Squadra',
+  orari:'Orari e chiusure',incassi:'Incassi e previsioni',magazzino:'Magazzino',
+  fornitori:'Fatture fornitori'};
+const stretto=()=>matchMedia('(max-width:900px)').matches;
+function apriLato(v){
+  document.body.classList.toggle('menu-aperto',v);
+  $('#lato').classList.toggle('on',v);
+  $('#velo').classList.toggle('on', v&&stretto());
+}
+function vaiA(p){
+  $$('.pagina').forEach(s=>s.hidden=(s.id!=='p-'+p));
+  $$('#voci button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  $('#titolo').textContent=TITOLI[p];
+  if(stretto()) apriLato(false);
+  scrollTo({top:0,behavior:'smooth'});
+}
+function avvisa(t){
+  $('#toast').textContent=t;
+  $('#toast').classList.add('on');
+  clearTimeout(avvisa.t);
+  avvisa.t=setTimeout(()=>$('#toast').classList.remove('on'),4600);
+}
+function tutto(){
+  disegnaKpi(); disegnaFiltroReparto(); disegnaAgenda(); disegnaPren(); disegnaClienti();
+  disegnaFiltriTr(); disegnaTratt(); disegnaSquadra(); disegnaOrari(); disegnaIncassi();
+  disegnaMagazzino(); disegnaForn(); disegnaAssistente();
+}
+
+(function(){
+  $('#data-oggi').textContent=OGGI.toLocaleDateString('it-IT',
+    {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  disegnaConv(); tutto();
+
+  $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
+  $('#burger').onclick=()=>apriLato(!$('#lato').classList.contains('on'));
+  $('#lato-x').onclick=()=>apriLato(false);
+  $('#cass-x').onclick=()=>cass(false);
+  $('#velo').onclick=()=>{ cass(false); apriLato(false); };
+  addEventListener('resize',()=>apriLato($('#lato').classList.contains('on')));
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); apriLato(false); }});
+
+  $('#q').addEventListener('input',e=>{ ricerca=e.target.value.trim();
+    disegnaPren(); disegnaClienti(); });
+  $$('#filtri-pren button').forEach(b=>b.onclick=()=>{
+    filtroPren=b.dataset.f;
+    $$('#filtri-pren button').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaPren();
+  });
+  $$('#filtri-forn button').forEach(b=>b.onclick=()=>{
+    filtroForn=b.dataset.f;
+    $$('#filtri-forn button').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaForn();
+  });
+  $$('#vista button').forEach(b=>b.onclick=()=>{
+    vista=b.dataset.v;
+    $$('#vista button').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaAgenda();
+  });
+  const passo=n=>{ const q=vista==='settimana'?7:1;
+    giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),n*q)); disegnaAgenda(); };
+  $('#g-prima').onclick=()=>passo(-1);
+  $('#g-dopo').onclick=()=>passo(1);
+  $('#g-oggi').onclick=()=>{ giornoVisto=iso(OGGI); disegnaAgenda(); };
+  $('#b-nuovo').onclick=()=>nuovoApp(giornoVisto,'10:00',attive()[0].id);
+  $('#b-nuovo-tratt').onclick=()=>modificaTratt(null);
+  $('#b-nuova-persona').onclick=()=>modificaPersona(null);
+  $('#b-nuovo-prod').onclick=()=>modificaProdotto(null);
+  $('#b-nuova-fatt').onclick=nuovaFattura;
+  $('#b-salva-orari').onclick=salvaOrari;
+  $('#b-chiusura').onclick=()=>{
+    const d=$('#ch-data').value;
+    if(!d){ avvisa('Scegli il giorno da chiudere'); return; }
+    CHIUSURE.push({data:d,motivo:$('#ch-motivo').value.trim()||'chiusura'});
+    salva('chiusure',CHIUSURE); $('#ch-data').value=''; $('#ch-motivo').value='';
+    tutto(); avvisa('Chiusura aggiunta, il sito non accetta più prenotazioni per quel giorno');
+  };
+  $('#wa-invia').onclick=inviaWa;
+  $('#wa-testo').addEventListener('keydown',e=>{ if(e.key==='Enter') inviaWa(); });
+
+  /* se il sito prenota mentre il gestionale è aperto */
+  addEventListener('storage',e=>{
+    if(String(e.key||'').startsWith('naif_')){
+      leggi(); tutto();
+      avvisa('È arrivata una prenotazione dal sito');
+    }
+  });
+})();
+</script>
+</body>
+</html>
