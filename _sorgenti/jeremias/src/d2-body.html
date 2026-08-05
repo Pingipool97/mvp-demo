@@ -21,6 +21,7 @@
   <div class="cap">
     <span class="logo"><img src="{{ASSET:logo.webp}}" alt=""></span>
     <div><b>Jeremias</b><small>Gestionale</small></div>
+    <button class="x" id="lato-x" aria-label="Chiudi il menu"><svg><use href="#i-x"/></svg></button>
   </div>
   <nav id="voci">
     <button data-p="agenda" class="on"><svg><use href="#i-agenda"/></svg>Agenda</button>
@@ -59,19 +60,6 @@
 
   <!-- ============ AGENDA ============ -->
   <section class="pagina" id="p-agenda">
-    <div class="griglia g4" style="margin-bottom:16px">
-      <div class="kpi"><span class="et">Appuntamenti oggi</span><b id="k-app">0</b><small id="k-app-s"></small></div>
-      <div class="kpi"><span class="et">Incasso previsto oggi</span><b id="k-inc">0 €</b><small id="k-inc-s"></small></div>
-      <div class="kpi"><span class="et">Poltrone occupate</span><b id="k-occ">0%</b>
-        <div class="bar"><i id="k-occ-bar" style="width:0"></i></div></div>
-      <div class="kpi"><span class="et">Arrivati dal sito</span><b id="k-web">0</b><small>questa settimana</small></div>
-    </div>
-
-    <div class="assist" id="assistente" style="margin-bottom:16px">
-      <div class="a-top"><svg><use href="#i-scint"/></svg><h2>Assistente</h2><span id="conta-cons"></span></div>
-      <div id="consigli"></div>
-    </div>
-
     <div class="tit">
       <div class="sx">
         <button class="b b-s b-sm" id="g-prima"><svg><use href="#i-sx"/></svg></button>
@@ -89,6 +77,20 @@
     <div class="sett-guscio" id="sett-guscio" hidden><div class="sett" id="sett"></div></div>
     <p style="font-size:.8rem;color:var(--tx3);margin-top:9px">Tocca una casella libera per aggiungere
       un appuntamento, tocca un appuntamento per aprirlo.</p>
+
+    <div class="griglia g4" style="margin:20px 0 16px">
+      <div class="kpi"><span class="et">Appuntamenti oggi</span><b id="k-app">0</b><small id="k-app-s"></small></div>
+      <div class="kpi"><span class="et">Incasso previsto oggi</span><b id="k-inc">0 €</b><small id="k-inc-s"></small></div>
+      <div class="kpi"><span class="et">Poltrone occupate</span><b id="k-occ">0%</b>
+        <div class="bar"><i id="k-occ-bar" style="width:0"></i></div></div>
+      <div class="kpi"><span class="et">Arrivati dal sito</span><b id="k-web">0</b><small>questa settimana</small></div>
+    </div>
+
+    <div class="assist" id="assistente" style="margin-bottom:16px">
+      <div class="a-top"><svg><use href="#i-scint"/></svg><h2>Assistente</h2><span id="conta-cons"></span></div>
+      <div id="consigli"></div>
+    </div>
+
   </section>
 
   <!-- ============ APPUNTAMENTI ============ -->

@@ -134,6 +134,9 @@ function disegnaSettimana(){
   if(al<=dal){ dal=8*60+30; al=20*60; }
 
   const oggi=iso(OGGI);
+  /* i giorni chiusi prendono una colonna stretta: non c'e' niente da mostrarci */
+  $('#sett').style.gridTemplateColumns='58px '
+    +gg.map(gi=>chiuso(gi)?'62px':'minmax(126px,1fr)').join(' ');
   let h='<div class="ang"></div>';
   gg.forEach(gi=>{
     const d=new Date(gi+'T12:00:00'), ch=chiuso(gi);
@@ -768,6 +771,7 @@ function vaiA(p){
   $$('#voci button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
   $('#titolo').textContent=TITOLI[p];
   $('#lato').classList.remove('on');
+  $('#velo').classList.remove('on');
   scrollTo({top:0,behavior:'smooth'});
 }
 function avvisa(t){
@@ -799,10 +803,12 @@ function tutto(){
   disegnaConv(); tutto();
 
   $$('#voci button').forEach(b=>b.onclick=()=>vaiA(b.dataset.p));
-  $('#burger').onclick=()=>$('#lato').classList.toggle('on');
+  const apriLato=v=>{ $('#lato').classList.toggle('on',v); $('#velo').classList.toggle('on',v); };
+  $('#burger').onclick=()=>apriLato(!$('#lato').classList.contains('on'));
+  $('#lato-x').onclick=()=>apriLato(false);
   $('#cass-x').onclick=()=>cass(false);
-  $('#velo').onclick=()=>{ cass(false); $('#lato').classList.remove('on'); };
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); $('#lato').classList.remove('on'); }});
+  $('#velo').onclick=()=>{ cass(false); apriLato(false); };
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cass(false); apriLato(false); }});
   $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
   $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{ filtroPren=b.dataset.f;
     $$('.filtri [data-f]').forEach(x=>x.classList.toggle('on',x===b)); disegnaPren(); });
