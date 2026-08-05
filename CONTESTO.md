@@ -1,7 +1,9 @@
-# MVP PROGETTI — contesto per proseguire in una nuova sessione
+# MVP PROGETTI · contesto per proseguire in una nuova sessione
 
-Copia questo file all'inizio di una nuova chat di Claude Code, oppure di' semplicemente
-"leggi `C:\Users\miche\Desktop\MVP PROGETTI\CONTESTO.md` e proseguiamo da lì".
+Questo file sta nel repo. In una sessione nuova basta dire:
+"leggi CONTESTO.md e proseguiamo da lì".
+
+Aggiornato il 5 agosto 2026.
 
 ---
 
@@ -10,211 +12,238 @@ Copia questo file all'inizio di una nuova chat di Claude Code, oppure di' sempli
 Michele (utente GitHub **Pingipool97**) fa demo commerciali per attività locali.
 Il giro è sempre lo stesso:
 
-1. Si analizza il sito attuale del cliente (font, colori, logo, testi, bug reali).
-2. Si costruisce una **demo completa e funzionante** con quella identità visiva.
-3. Si pubblica su un link unico e si mostra al cliente.
+1. Si analizza il sito attuale del cliente: font e colori presi dal DOM, non a occhio,
+   logo, testi, e i bug reali da mostrare in presentazione.
+2. Si costruisce una demo completa e funzionante con quella identità visiva.
+3. Si pubblica sul link unico e si mostra al cliente.
 
-Le demo sono **file HTML singoli e autonomi**: immagini e font incorporati in base64,
-nessuna dipendenza esterna, si aprono anche senza rete.
-
----
-
-## 2. Dove sta tutto
-
-```
-C:\Users\miche\Desktop\MVP PROGETTI\
-├── CONTESTO.md              questo file
-├── pubblica.ps1             INTERRUTTORE: decide cosa va online
-├── soglie-desktop.ps1       utilità già applicata (soglie responsive a 940px)
-├── menu-mobile.ps1          utilità già applicata (menu laterale con "left")
-├── mvp-demo\                repo git collegato a GitHub e a Vercel
-│   ├── index.html           portale generato da pubblica.ps1
-│   ├── tortuga\ lido53\ ghepost\
-│   └── vercel.json  _headers  robots.txt  .nojekyll
-├── Tortuga Beach\
-├── Lido 53\
-└── Ghe Post\
-```
-
-Ogni cartella progetto ha la stessa forma:
-
-```
-<Progetto>\
-├── src\          sorgenti del sito     (part1-head, part2-body, part3-script)
-├── src-dash\     sorgenti gestionale   (d1/g1-head, d2/g2-body, d3/g3-script)
-├── src-app\      solo Ghe Post: app dipendenti (a1, a2, a3)
-├── assets-src\   immagini e loghi originali del cliente
-├── fonts-src\    woff2 scaricati da Google Fonts
-├── build*.ps1    uniscono le parti e incorporano gli asset in base64
-└── <Nome>-*.html file finale costruito
-```
-
-I sorgenti sono spezzati in tre file solo per comodità di scrittura: lo script di build
-li concatena e sostituisce i segnaposto `{{ASSET:nomefile}}` con data URI base64.
+Le demo sono **file HTML singoli e autonomi**: immagini e caratteri incorporati in
+base64, nessuna dipendenza esterna, si aprono anche senza rete. Unica eccezione
+consapevole: il meteo dal vivo nella bacheca, che ha bisogno della rete e in sua
+assenza scrive che non è disponibile.
 
 ---
 
-## 3. Come si costruisce e si pubblica
+## 2. Come si lavora adesso
 
-**Costruire** (dentro la cartella del progetto):
+**Si lavora solo su questo repo.** Niente più build in locale, niente `pubblica.ps1`.
+Il repo è l'unica fonte di verità: quello che c'è qui è quello che è online.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File "C:\Users\miche\Desktop\MVP PROGETTI\Ghe Post\build-sito.ps1"
-```
-Ogni progetto ha `build.ps1` / `build-dash.ps1` / `build-sito.ps1` / `build-app.ps1`.
+- Repo: `github.com/Pingipool97/mvp-demo`, branch **main**
+- Hosting: Vercel, si aggiorna da solo a ogni push, circa 40 secondi
+- Link pubblico: **https://mvp-demo-dun.vercel.app/**
+- I file hanno `noindex` e `robots.txt` blocca tutto: non finiscono su Google
 
-**Pubblicare** (dalla cartella radice). È un interruttore: online va **solo** ciò che elenchi.
-
-```powershell
-cd "C:\Users\miche\Desktop\MVP PROGETTI"
-.\pubblica.ps1 -Elenco                    # progetti disponibili
-.\pubblica.ps1 tortuga,lido53,ghepost     # manda online questi
-.\pubblica.ps1 ghepost                    # solo Ghe Post, gli altri spariscono
-.\pubblica.ps1 ghepost -Pin 4821          # online ma chiede un codice
-.\pubblica.ps1 -Chiudi                    # tutto offline, resta una pagina nera
-```
-
-Lo script svuota `mvp-demo`, copia solo i progetti scelti, genera il portale,
-fa commit e push. Vercel si aggiorna da solo in circa 40 secondi.
-
-**Aggiungere un progetto nuovo**: creare la cartella con la stessa struttura, poi
-aggiungere una voce nel registro `$REG` dentro `pubblica.ps1`.
+**Attenzione.** Sul PC di Michele esiste ancora `pubblica.ps1`, che svuota la cartella
+`mvp-demo` e ricopia solo i progetti elencati nel suo registro. Se venisse rilanciato,
+cancellerebbe `bagnitortuga/`, `_sorgenti/` e tutti gli innesti. **Non va più usato**,
+a meno di aggiornarlo prima con le esclusioni.
 
 ---
 
-## 4. Pubblicazione online
+## 3. Struttura del repo
 
-- **Repo**: `git@github.com:Pingipool97/mvp-demo.git`, push via **SSH** (chiave già registrata, nessuna password).
-- **Hosting**: **Vercel**, collegato al repo, deploy automatico a ogni push.
-- **Link pubblico**: `https://mvp-demo-dun.vercel.app/`
-- I file hanno `noindex` e `robots.txt` blocca tutto: non finiscono su Google.
-- `gh` (GitHub CLI) **non è installato**. Git sì, versione 2.53.
-
-Struttura online:
 ```
-/                              portale con l'elenco dei progetti
-/tortuga/sito.html   /tortuga/dashboard.html
-/lido53/sito.html    /lido53/dashboard.html
-/ghepost/sito.html   /ghepost/gestionale.html   /ghepost/app.html
+mvp-demo/
+├── index.html                 portale con l'elenco dei progetti
+├── bagnitortuga/              sito.html  dashboard.html
+├── tortuga/                   sito.html  dashboard.html      (Tortuga Beach)
+├── lido53/                    sito.html  dashboard.html
+├── ghepost/                   sito.html  gestionale.html  app.html
+├── _sorgenti/
+│   ├── bagnitortuga/          sorgenti veri del progetto
+│   │   ├── build.js           unisce le parti e incorpora gli asset
+│   │   ├── src/               s1-head s2-body s3-script  (sito)
+│   │   │                      d1-head d2-body d3-script  (gestionale)
+│   │   ├── assets/            foto del cliente, logo, versioni webp
+│   │   └── fonts/             woff2 incorporati
+│   └── bacheca/
+│       └── innesta-bacheca.js innesta la bacheca nei progetti senza sorgenti
+└── vercel.json  _headers  robots.txt  .nojekyll
 ```
 
-**Nota**: quando si dice "chiudi", i file spariscono davvero dal server. Non è un
-filtro cosmetico, è la protezione vera di queste demo.
+**Solo Bagni Tortuga ha i sorgenti nel repo.** Tortuga Beach, Lido 53 e Ghe Post
+esistono qui solo come file costruiti: i loro sorgenti sono rimasti sul PC.
+Per modificarli si interviene sul file costruito, oppure si caricano i sorgenti
+nel repo (consigliato, se ci si deve lavorare seriamente).
+
+### Costruire Bagni Tortuga
+
+```bash
+cd _sorgenti/bagnitortuga
+node build.js sito     # scrive out/sito.html
+node build.js dash     # scrive out/dashboard.html
+```
+
+Il build sostituisce i segnaposto `{{ASSET:nome}}` con i data URI in base64 e
+si ferma con errore se un asset manca o se trova `$(...)` seguito da `.forEach`,
+che è un errore già costato due volte (`$` restituisce un elemento solo, serve `$$`).
 
 ---
 
-## 5. Regole di stile che Michele ha imposto
+## 4. I progetti
 
-Sono richieste esplicite, non preferenze mie:
+### Bagni Tortuga · Passeggiata Quaglia, via Aurelia 45, Andora (SV)
 
-- **Niente emoji.** Mai, in nessun file. Usare icone SVG o niente.
-- **Niente trattini lunghi** (— e –). Usare virgole, due punti, oppure il punto medio ·.
-- **Non riusare lo stesso layout** fra progetti diversi. I lidi hanno la barra laterale,
-  Ghe Post ha la navigazione orizzontale in alto. Il prossimo dovrà essere ancora diverso.
-- **Font e colori si prendono dal sito del cliente**, ispezionando il DOM, non a occhio.
-- **Il logo lo fornisce lui** o si scarica dal loro sito.
-- Testi in italiano, tono professionale, niente marketing gonfiato.
-- Vuole **velocità**. Non fare venti giri: se una strada non funziona, cambiarla subito
-  e dirlo, invece di insistere.
+Stabilimento balneare. Telefono +39 375 5063425, bagnitortuga24@gmail.com.
+Il loro sito attuale è su Wix, bagnitortuga.it.
 
----
+- Colori presi dal logo fornito dal cliente: giallo `#EFB402`, blu `#014364`, panna `#FAF4E8`
+- Caratteri presi dal loro sito: **Pinyon Script** (lo stesso corsivo della loro insegna),
+  **Syne** per i titoli, **Questrial** per il testo. Il gestionale usa **Inter**.
+- Layout nuovo: navigazione agganciata in basso come un'app, sezioni numerate.
+  Il gestionale ha hamburger e pannello laterale.
+- Mappa della spiaggia disegnata sulla ripresa dal drone: 84 postazioni su 6 file da 14,
+  ogni ombrellone con i due lettini ai lati, passerella al centro, molo a sinistra,
+  scogliera a destra, 24 cabine colorate in fondo. Tre livelli di ingrandimento.
+- **Avviso bambini**: le postazioni con bambini sotto i 10 anni sono cerchiate, e
+  scegliendo un posto accanto compare l'avviso, con il tasto per trovarne uno più riparato.
+- Assistente in chat che risponde e **agisce**: seleziona il posto sulla mappa, apre il listino.
+- Pulsante WhatsApp verso wa.me con messaggio precompilato.
+- Gestionale: assistente con i suggerimenti del giorno, mappa operativa, prenotazioni,
+  lista d'attesa, conversazioni WhatsApp con presa in carico e restituzione all'assistente,
+  bacheca, clienti, cabine, listino modificabile, cassa e documenti dimostrativi.
+- **Disposizione della spiaggia**: dal gestionale si montano e si smontano le postazioni,
+  una per volta o per file intere. A giugno la spiaggia è più corta di agosto.
+  Il sito pubblico si adegua da solo.
 
-## 6. Trappole tecniche già scoperte (leggere prima di lavorare)
+### Tortuga Beach · Marina di Andora (SV)
 
-Queste sono costate ore. Non ripeterle.
+Nome simile ma **cliente diverso** dai Bagni Tortuga, e concorrente. Non confonderli:
+la webcam che si trova cercando "Andora" inquadra il Tortuga Beach, quindi non va
+messa sul sito dei Bagni Tortuga.
 
-**PowerShell srotola l'ultimo elemento di un array.**
-Un array di coppie `$R = @( @('a','b'), @('c','d') )` viene srotolato sull'ultimo
-elemento, che diventa due stringhe separate. Poi `$r[0]` e `$r[1]` sono **caratteri**,
-e `.Replace()` sostituisce carattere per carattere distruggendo il file
-(`ASSET` diventava `tppET`). Soluzione: mettere sempre una sentinella innocua in fondo,
-tipo `@('~~','~~')`, e validare che ogni elemento sia una coppia.
+Oro `#EDA60C`, blu `#06273A`. 80 ombrelloni su 5 file da 16, 30 cabine.
+QR di check-in scritto a mano e verificato: non toccarlo senza riverificarlo.
 
-**PowerShell 5.1 legge i .ps1 come ANSI, non UTF-8.**
-Il simbolo € e le lettere accentate nelle stringhe di ricerca non corrispondono e le
-sostituzioni falliscono in silenzio. Soluzione: salvare gli script **con BOM**
-(`New-Object System.Text.UTF8Encoding($true)`), oppure costruire i caratteri con
-`[char]0x20AC`. I file HTML invece si scrivono **senza BOM**.
+### Lido 53 · Via Aurelia 53, Andora (SV)
 
-**Preferire sostituzioni sequenziali agli array.**
-`$t = $t.Replace('a','b')` ripetuto è noioso ma non si rompe mai.
+Stesso motore del Tortuga Beach, identità diversa: Poppins, oro `#BF8F3D`,
+quasi-nero `#1D1D1F`. Argomento di vendita: oggi mandano le prenotazioni a
+spiagge.it e pagano commissioni.
 
-**git scrive gli avvisi su stderr** e con `$ErrorActionPreference='Stop'` PowerShell li
-tratta come errori bloccanti. In `pubblica.ps1` è già gestito, ma attenzione se si
-scrivono nuovi script con git dentro.
+### Ghe Post · Via Manfredo Fanti 2, Milano
 
-**File di sola lettura in mvp-demo.** Ogni tanto compaiono e bloccano la pubblicazione.
-`pubblica.ps1` non li pulisce da solo: se dà "accesso negato", lanciare prima
-`Get-ChildItem .\mvp-demo -Recurse | Where-Object {$_.IsReadOnly} | ForEach-Object {$_.IsReadOnly=$false}`.
-
-**System.Drawing non legge i .webp.** Per ridimensionare immagini usare i jpg/png;
-i webp si incorporano così come sono, i browser li leggono.
-
-**Il pannello di anteprima del browser è inaffidabile.** In questa sessione ha:
-servito versioni vecchie in cache, smesso di ricalcolare gli stili (nemmeno un
-`!important` inline spostava un elemento), troncato script inline, e non eseguito
-JavaScript su pagine appena caricate. **Verificare sempre sul file costruito o sull'URL
-Vercel**, mai fidarsi solo dell'anteprima. Se un test dà risultati assurdi, ricaricare
-la pagina o riaprire una scheda nuova prima di dare la colpa al codice.
-
-**Lezione sul debug**: il menu della dashboard "non funzionava su telefono" per tre
-tentativi. La causa vera era banale: `.side` aveva `z-index:60` e il velo `.scrim`
-`z-index:70`, quindi il velo copriva il menu e intercettava i tocchi. Prima di riscrivere
-CSS a tentoni, controllare l'ordine di impilamento e leggere il codice.
-
-**Estrarre testo dai PDF senza librerie**: c'è uno script Node funzionante che decomprime
-gli stream FlateDecode e legge gli operatori di testo. È servito per ricavare i menu di
-Ghe Post. Vedere la cartella scratchpad della sessione, oppure riscriverlo: sono 30 righe.
+Caffetteria e paninoteca. Roboto Slab e Roboto, verde `#19391B`, oro `#8A6A2F`.
+160 prodotti veri estratti dai loro PDF. Personale: Saverio 1234, Carolina 2345,
+Piero 3456, Lorenzo (titolare) 0000.
 
 ---
 
-## 7. Stato dei tre progetti
+## 5. La bacheca del giorno
 
-### Tortuga Beach — stabilimento balneare, Marina di Andora (SV)
-- Sito 6 MB (nove foto vere incorporate) e gestionale.
-- Font Original Surfer, Pacifico, Open Sans. Oro `#EDA60C`, blu `#06273A`.
-- 80 ombrelloni su 5 file da 16, 30 cabine, prezzi per fila e periodo.
-- QR di check-in: encoder scritto a mano e **verificato leggibile** con un decodificatore
-  indipendente. Non toccarlo senza riverificare.
-- Ha un pannello "Modalità presentazione" con l'audit dei bug reali del loro sito.
+C'è su tutti e tre i lidi. Sul sito sta **in home**, subito sotto l'apertura:
+meteo e temperatura del mare dal vivo, menù del giorno (primo, secondo, contorno,
+dolce, prezzo, bevande escluse), bandiera in battigia, avvisi ed eventi.
+Nel gestionale c'è la voce **Bacheca** per scriverla.
 
-### Lido 53 — stabilimento balneare, Andora (SV)
-- Stesso motore del Tortuga, identità diversa: font Poppins, oro `#BF8F3D`, quasi-nero `#1D1D1F`.
-- Quattro foto reali del cliente, incorporate una volta sola tramite classi CSS.
-- Argomento di vendita forte: **oggi mandano le prenotazioni a spiagge.it e pagano commissioni**.
+- Bagni Tortuga: è nei sorgenti, si modifica lì e si ricostruisce.
+- Tortuga Beach e Lido 53: innestata da fuori con `_sorgenti/bacheca/innesta-bacheca.js`,
+  perché non hanno sorgenti nel repo.
 
-### Ghe Post — caffetteria e paninoteca, Via Manfredo Fanti 2, Milano
-Tre file: **sito**, **gestionale**, **app dipendenti**.
-- Font Roboto Slab e Roboto. Verde `#19391B`, bruno `#262018`, oro `#8A6A2F`, panna `#FAF8F4`.
-- **160 prodotti reali** estratti dai loro PDF, in `Ghe Post\catalogo.html`, condiviso dai tre file.
-- 12 tavoli misti (tondi da 4, rettangolari da 6) su tre zone.
-- Regola loro rispettata: nei panini si toglie o si aggiunge **un solo** ingrediente;
-  il panino su misura ha massimo 3 ingredienti da 7,50 €.
-- Comande divise per reparto: cucina, bar, caffetteria.
-- Personale: **Saverio** 1234, **Carolina** 2345, **Piero** 3456, **Lorenzo** (titolare) 0000.
-- Sezione fiscale **dimostrativa**: nessuna integrazione, e lo dice a schermo.
-- App e gestionale si parlano tramite `localStorage` (chiave `ghepost_dati`): funziona solo
-  sullo **stesso dispositivo**. Michele lo sa e gli va bene.
-- Il gestionale semina da solo un servizio in corso: 7 tavoli occupati e comande nei monitor,
-  lasciando liberi **T3, T6, T9, T11, T12** per la dimostrazione dal vivo con l'app.
+```bash
+node _sorgenti/bacheca/innesta-bacheca.js tortuga tortugabeach
+node _sorgenti/bacheca/innesta-bacheca.js lido53  lido53
+```
+
+Lo script è ripetibile: riconosce l'innesto precedente fra i marcatori
+`<!-- BACHECA:INIZIO -->` e `<!-- BACHECA:FINE -->` e lo sostituisce invece di
+duplicarlo. Registra anche la nuova rotta nell'elenco `PAGES` del gestionale,
+altrimenti il loro instradatore rimanda alla panoramica.
+
+Il meteo arriva da **Open-Meteo**, senza chiave e senza registrazione:
+`api.open-meteo.com` per aria e vento, `marine-api.open-meteo.com` per mare e onda.
+Coordinate di Andora: 43.9497, 8.1417.
 
 ---
 
-## 8. Cosa resta da fare
+## 6. Memorie del browser
 
-- Nessun lavoro aperto sui tre progetti.
-- Il sito di Ghe Post è stato verificato sul file pubblicato, ma **il menu sfogliabile non
-  è mai stato provato cliccandolo** a causa del pannello di anteprima rotto. Prima cosa da
-  fare: aprirlo e provarlo davvero.
-- Idee già proposte e non realizzate: accesso vero con Cloudflare Access (gratis fino a
-  50 utenti) al posto del filtro a email, se un giorno servisse protezione seria.
+Sito e gestionale si parlano tramite `localStorage`, quindi **stesso dispositivo e
+stesso browser**. Aprire il gestionale sul portatile e il sito sul telefono non funziona.
+
+Le chiavi vanno tenute separate per progetto, perché i tre lidi stanno sullo stesso
+dominio e senza prefisso si sovrascriverebbero:
+
+| Chiave | A cosa serve |
+|---|---|
+| `tortuga_prenotazioni` | prenotazioni chiuse sul sito dei Bagni Tortuga |
+| `tortuga_mappa` | quali postazioni sono montate |
+| `tortuga_bacheca` | menù, bandiera e avvisi dei Bagni Tortuga |
+| `tortugabeach_bacheca` | bacheca del Tortuga Beach |
+| `lido53_bacheca` | bacheca del Lido 53 |
+| `ghepost_dati` | app e gestionale di Ghe Post |
+| `tortuga_menu` | preferenza barra laterale, condivisa fra i due lidi vecchi, innocua |
 
 ---
 
-## 9. Come lavorare con lui
+## 7. Regole di stile che Michele ha imposto
 
-- Dice "manda online X" o "chiudi": si esegue `pubblica.ps1` e si conferma con il link.
-- Manda screenshot quando qualcosa non va: guardarli, sono precisi.
-- Non gradisce le promesse: dire "sistemato" solo dopo aver verificato davvero, e dire
-  chiaramente quando una cosa **non** è stata verificata.
+Sono richieste esplicite, non preferenze.
+
+- **Niente emoji.** Mai, in nessun file. Icone SVG o niente.
+- **Niente trattini lunghi** (— e –). Virgole, due punti, oppure il punto medio ·.
+- **Non riusare lo stesso layout** fra progetti diversi.
+- **Niente toni da pubblicità.** I titoli dicono cosa c'è, non vendono.
+  "Listino della stagione 2026", non "Prezzi chiari, scritti una volta sola".
+- Font e colori dal DOM del sito del cliente, non a occhio.
+- Testi in italiano, tono professionale.
+- **Niente dati inventati spacciati per veri.** Quello che è inventato va dichiarato,
+  e nei siti c'è un elenco dentro il pannello Presentazione.
+- Velocità: se una strada non funziona, cambiarla subito e dirlo.
+
+---
+
+## 8. Trappole già scoperte
+
+**`$(...)` non è `$$(...)`.** `$` restituisce un elemento solo: chiamarci `.forEach`
+sopra rompe tutto lo script, e siccome l'errore avviene all'avvio non si collega più
+nessun pulsante. Costato due volte. Ora `build.js` lo blocca.
+
+**Le griglie CSS si allargano.** Una colonna `1fr` che contiene un elemento largo
+(la mappa, una tabella) prende la larghezza del contenuto e allarga tutta la pagina:
+sul telefono il browser rimpicciolisce tutto. Serve `min-width:0` sugli elementi
+della griglia.
+
+**Larghezza minima sulle mappe.** `min-width` su un SVG dentro un contenitore che
+scorre impedisce alla mappa di rimpicciolirsi. Meglio farla adattare e offrire uno zoom.
+
+**Gli stili in linea vincono sul CSS.** Se le larghezze della galleria le scrive
+il JavaScript nell'attributo `style`, le soglie per il telefono non hanno effetto
+senza `!important`.
+
+**Provare la leggibilità, non solo lo straripamento.** Un blocco a due colonne su
+390px non straripa, ma è illeggibile. Vanno guardate le colonne, non solo la larghezza.
+
+**Il pannello di anteprima del browser è inaffidabile**: serve versioni vecchie dalla
+cache. Se qualcosa sembra rotto, prima ricaricare con Ctrl+F5, poi dare la colpa al codice.
+
+**Chromium in sessione cloud non esce in rete.** Le pagine si collaudano in locale;
+le chiamate esterne si verificano intercettandole e restituendo risposte vere
+scaricate con `curl`.
+
+---
+
+## 9. Cosa resta aperto
+
+- **Webcam.** Quella del porto di Andora non è incorporabile (Windy risponde che
+  l'embed non è disponibile) e l'unica altra della zona inquadra il Tortuga Beach,
+  che è un concorrente. Serve una webcam del cliente.
+- **Cambio lingua.** Tortuga Beach e Lido 53 hanno il selettore IT/EN, ma la bacheca
+  innestata è solo in italiano.
+- **Sorgenti mancanti.** Tortuga Beach, Lido 53 e Ghe Post nel repo esistono solo
+  come file costruiti. Se ci si deve lavorare molto, conviene caricare i sorgenti.
+- **Dati inventati in Bagni Tortuga**, da sostituire con quelli veri: numero di
+  ombrelloni, file e cabine, disposizione della mappa, tutti i prezzi, gli orari,
+  il menù, e le prenotazioni già segnate sulla mappa.
+
+---
+
+## 10. Come lavorare con lui
+
+- Dice "manda online X": si fa il push su main e si conferma con il link,
+  dopo aver verificato che il file online sia davvero quello nuovo.
+- Manda screenshot quando qualcosa non va: sono precisi, e finora aveva sempre ragione.
+- Non gradisce le promesse: dire "sistemato" solo dopo aver verificato davvero,
+  e dire chiaramente quando una cosa non è stata verificata.
 - Se una richiesta ha un problema, dirlo in una riga e poi farla comunque.
