@@ -39,7 +39,7 @@
 
   <div class="fondo">
     <div class="riga"><b>Via Monte Sabotino 32</b>20030 Paderno Dugnano (MI)</div>
-    <div class="riga"><b>Orari</b>Martedì · venerdì 8:30 &ndash; 20:00<br>Sabato 8:30 &ndash; 19:00<br>Domenica e lunedì chiuso</div>
+    <div class="riga"><b>Orari</b>Da martedì a venerdì, 8:30 alle 20:00<br>Sabato, 8:30 alle 19:00<br>Domenica e lunedì chiuso</div>
     <a class="wa" id="wa-lato" href="#" target="_blank" rel="noopener">
       <svg><use href="#i-wa"/></svg>Scrivi su WhatsApp</a>
   </div>
@@ -114,9 +114,29 @@
 
     <!-- passo 3 -->
     <div class="passo" id="passo-3" hidden>
-      <div class="giorni" id="giorni"></div>
-      <div class="ore" id="ore"></div>
-      <p id="nota-ore" style="margin-top:16px;font-size:.9rem;color:rgba(255,255,255,.6)"></p>
+      <div class="cal-guscio">
+        <div class="cal">
+          <div class="cal-t">
+            <h4 class="os" id="cal-mese"></h4>
+            <div class="fr">
+              <button id="cal-prima" aria-label="Mese precedente"><svg><use href="#i-indietro"/></svg></button>
+              <button id="cal-dopo" aria-label="Mese successivo"><svg><use href="#i-freccia"/></svg></button>
+            </div>
+          </div>
+          <div class="cal-g" id="cal-g"></div>
+          <div class="cal-leg">
+            <span><i style="background:var(--verde-s)"></i>Molti orari liberi</span>
+            <span><i style="background:#C0801F"></i>Ultimi posti</span>
+            <span><i style="background:var(--bord)"></i>Completo o chiuso</span>
+          </div>
+        </div>
+        <div>
+          <p id="cal-giorno" style="font-family:'Oswald',sans-serif;font-size:1.25rem;
+            text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px"></p>
+          <div id="ore"></div>
+          <p id="nota-ore" style="margin-top:8px;font-size:.9rem;color:rgba(255,255,255,.6)"></p>
+        </div>
+      </div>
     </div>
 
     <!-- passo 4 -->
@@ -158,20 +178,19 @@
       <div class="barbiere">
         <div class="img" style="background-image:url({{ASSET:f9.jpg}})"></div>
         <div class="in">
-          <p class="ruolo">Titolare</p>
           <h3>Jeremias</h3>
-          <p>Ha aperto il negozio nel 2020. Tagli sfumati e rasatura tradizionale con
-            panno caldo e rasoio a mano libera.</p>
+          <p>Professionista da oltre quindici anni, cresciuto nei saloni della zona prima
+            di mettersi in proprio. Lavora soprattutto sulle sfumature e sulla rasatura
+            con panno caldo e rasoio a mano libera.</p>
           <div class="voto"><b>4,9</b><span>su oltre 900 recensioni verificate</span></div>
         </div>
       </div>
       <div class="barbiere">
         <div class="img" style="background-image:url({{ASSET:f11.jpg}})"></div>
         <div class="in">
-          <p class="ruolo">Barbiere</p>
           <h3>Luca Terragni</h3>
-          <p>Puntuale, veloce, preciso sulle sfumature. Segue i tagli dei più giovani
-            e i trattamenti per cute e capello.</p>
+          <p>Professionista da oltre dieci anni, con un passato tra Milano e l'hinterland.
+            Segue volentieri i tagli dei più giovani e i trattamenti per cute e capello.</p>
           <div class="voto"><b>4,9</b><span>su oltre 600 recensioni verificate</span></div>
         </div>
       </div>

@@ -115,10 +115,12 @@ function scegliTratt(id){
   $$('#scelta-tratt .scelta').forEach(x=>x.classList.toggle('on',x.dataset.t===id));
   disegnaPassi();
 }
+const SEGNO='<span class="segno"><svg><use href="#i-ok"/></svg></span>';
 function disegnaSceltaTratt(){
   $('#scelta-tratt').innerHTML=attivi().map(t=>
-    '<button class="scelta" data-t="'+esc(t.id)+'"><b>'+esc(t.nome)+'</b>'
-    +'<small>'+t.min+' minuti · '+esc(t.cat)+'</small>'
+    '<button class="scelta" data-t="'+esc(t.id)+'">'
+    +'<span class="t"><b>'+esc(t.nome)+'</b>'
+    +'<small>'+t.min+' minuti · '+esc(t.cat)+'</small></span>'
     +'<span class="p">'+eur(t.prezzo)+'</span></button>').join('');
   $$('#scelta-tratt .scelta').forEach(b=>b.onclick=()=>scegliTratt(b.dataset.t));
 }
@@ -127,8 +129,8 @@ function disegnaSceltaBarbiere(){
     {id:'qualsiasi',nome:'Il primo libero',ini:'?',sotto:'Ti diamo l\'orario più comodo'}];
   $('#scelta-barbiere').innerHTML=v.map(b=>
     '<button class="scelta" data-b="'+b.id+'"><span class="barbiere-scelta">'
-    +'<span class="tondo">'+b.ini+'</span><span><b>'+esc(b.nome)+'</b>'
-    +'<small>'+esc(b.sotto)+'</small></span></span></button>').join('');
+    +'<span class="tondo">'+b.ini+'</span><span class="t"><b>'+esc(b.nome)+'</b>'
+    +'<small>'+esc(b.sotto)+'</small></span></span>'+SEGNO+'</button>').join('');
   $$('#scelta-barbiere .scelta').forEach(x=>x.onclick=()=>{
     S.barbiere=x.dataset.b; S.ora=null;
     $$('#scelta-barbiere .scelta').forEach(y=>y.classList.toggle('on',y===x));
@@ -136,66 +138,127 @@ function disegnaSceltaBarbiere(){
   });
 }
 
-function iso(d){ return d.toISOString().slice(0,10); }
+/* data locale in formato AAAA-MM-GG, senza passare dal fuso UTC */
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')
+  +'-'+String(d.getDate()).padStart(2,'0'); }
+function hhmm(m){ return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
 function dataBreve(s){
   const d=new Date(s+'T12:00:00');
   return GG[d.getDay()]+' '+d.getDate();
 }
-function disegnaGiorni(){
-  const oggi=new Date(); let h='';
-  for(let i=0;i<14;i++){
-    const d=new Date(oggi); d.setDate(d.getDate()+i);
-    const o=ORARI[d.getDay()], chiuso=!o||!o.ap;
-    h+='<button class="giorno'+(chiuso?' chiuso':'')+(iso(d)===S.giorno?' on':'')+'" data-g="'+iso(d)+'">'
-      +'<span>'+GG[d.getDay()]+'</span><b>'+d.getDate()+'</b>'
-      +'<small>'+(chiuso?'chiuso':d.toLocaleDateString('it-IT',{month:'short'}))+'</small></button>';
-  }
-  $('#giorni').innerHTML=h;
-  $$('#giorni .giorno').forEach(b=>b.onclick=()=>{
-    S.giorno=b.dataset.g; S.ora=null;
-    $$('#giorni .giorno').forEach(x=>x.classList.toggle('on',x===b));
-    disegnaOre(); disegnaPassi();
-  });
-}
+
 /* slot occupati: una prenotazione occupa il barbiere per la durata del trattamento */
-function occupato(barbiere,giorno,ora,durata){
+function prenDelGiorno(gi){ return PREN.filter(p=>p.giorno===gi&&p.stato!=='annullata'); }
+function occupatoIn(lista,barbiere,ora,durata){
   const inizio=minuti(ora), fine=inizio+durata;
-  return PREN.some(p=>{
-    if(p.giorno!==giorno) return false;
+  return lista.some(p=>{
     if(barbiere!=='qualsiasi' && p.barbiere!==barbiere) return false;
     const t=TRATT.find(x=>x.id===p.tratt);
     const d=t?t.min:30, a=minuti(p.ora), b=a+d;
     return inizio<b && a<fine;
   });
 }
-function liberoPerQualcuno(giorno,ora,durata){
-  return BARBIERI.some(b=>!occupato(b.id,giorno,ora,durata));
+function occupato(barbiere,giorno,ora,durata){
+  return occupatoIn(prenDelGiorno(giorno),barbiere,ora,durata);
+}
+/* elenco degli orari di una giornata, null se il negozio è chiuso */
+function orariDelGiorno(gi){
+  const d=new Date(gi+'T12:00:00'), o=ORARI[d.getDay()];
+  if(!o||!o.ap) return null;
+  const t=TRATT.find(x=>x.id===S.tratt), durata=t?t.min:30;
+  const lista=prenDelGiorno(gi), adesso=new Date(), oggi=iso(adesso);
+  const ora=adesso.getHours()*60+adesso.getMinutes();
+  const out=[];
+  for(let m=minuti(o.ap); m+durata<=minuti(o.ch); m+=30){
+    const hh=hhmm(m);
+    let pieno = S.barbiere==='qualsiasi'
+      ? BARBIERI.every(b=>occupatoIn(lista,b.id,hh,durata))
+      : occupatoIn(lista,S.barbiere,hh,durata);
+    if(gi<oggi) pieno=true;
+    if(gi===oggi && m<=ora) pieno=true;
+    out.push({ora:hh,pieno:pieno});
+  }
+  return out;
+}
+
+/* =========================================================
+   CALENDARIO
+   ========================================================= */
+const GIORNI_PRENOTABILI=60;
+const DOW=['lun','mar','mer','gio','ven','sab','dom'];
+let calMese=new Date(new Date().getFullYear(),new Date().getMonth(),1,12);
+function ultimoPrenotabile(){
+  const d=new Date(); d.setDate(d.getDate()+GIORNI_PRENOTABILI); return iso(d);
+}
+function disegnaCal(){
+  const oggi=iso(new Date()), fine=ultimoPrenotabile();
+  const anno=calMese.getFullYear(), mese=calMese.getMonth();
+  $('#cal-mese').textContent=calMese.toLocaleDateString('it-IT',{month:'long',year:'numeric'});
+  const salta=(new Date(anno,mese,1,12).getDay()+6)%7;   /* la settimana parte da lunedì */
+  const quanti=new Date(anno,mese+1,0).getDate();
+  let h=DOW.map(g=>'<div class="dow">'+g+'</div>').join('');
+  for(let i=0;i<salta;i++) h+='<div class="cal-d fuori"></div>';
+  for(let n=1;n<=quanti;n++){
+    const gi=iso(new Date(anno,mese,n,12));
+    let cl='cal-d', punto='', chiuso=false;
+    if(gi===oggi) cl+=' oggi';
+    if(gi<oggi||gi>fine){ cl+=' no'; chiuso=true; }
+    else{
+      const sl=orariDelGiorno(gi);
+      if(!sl){ cl+=' no'; chiuso=true; }
+      else{
+        const liberi=sl.filter(s=>!s.pieno).length;
+        punto='<i></i>';
+        if(!liberi){ cl+=' pieno'; chiuso=true; }
+        else if(liberi<=3) cl+=' pochi';
+      }
+    }
+    if(gi===S.giorno) cl+=' on';
+    h+= chiuso ? '<div class="'+cl+'">'+n+punto+'</div>'
+      : '<button class="'+cl+'" data-g="'+gi+'">'+n+punto+'</button>';
+  }
+  $('#cal-g').innerHTML=h;
+  $$('#cal-g [data-g]').forEach(b=>b.onclick=()=>{
+    S.giorno=b.dataset.g; S.ora=null;
+    disegnaCal(); disegnaOre(); disegnaPassi();
+  });
+  const meseOggi=new Date().getFullYear()*12+new Date().getMonth();
+  const meseFine=new Date(fine+'T12:00:00');
+  $('#cal-prima').disabled = anno*12+mese <= meseOggi;
+  $('#cal-dopo').disabled  = anno*12+mese >= meseFine.getFullYear()*12+meseFine.getMonth();
+}
+function spostaMese(n){
+  calMese=new Date(calMese.getFullYear(),calMese.getMonth()+n,1,12);
+  disegnaCal();
 }
 function disegnaOre(){
-  const cont=$('#ore');
-  if(!S.giorno){ cont.innerHTML=''; $('#nota-ore').textContent=''; return; }
-  const d=new Date(S.giorno+'T12:00:00'), o=ORARI[d.getDay()];
-  if(!o||!o.ap){ cont.innerHTML=''; $('#nota-ore').textContent='Quel giorno il negozio è chiuso.'; return; }
-  const t=TRATT.find(x=>x.id===S.tratt), durata=t?t.min:30;
-  const adesso=new Date();
-  let h='', liberi=0;
-  for(let m=minuti(o.ap); m+durata<=minuti(o.ch); m+=30){
-    const hh=String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
-    let pieno = S.barbiere==='qualsiasi' ? !liberoPerQualcuno(S.giorno,hh,durata)
-              : occupato(S.barbiere,S.giorno,hh,durata);
-    /* niente orari già passati per oggi */
-    if(iso(adesso)===S.giorno && m<=adesso.getHours()*60+adesso.getMinutes()) pieno=true;
-    if(!pieno) liberi++;
-    h+='<button class="ora'+(pieno?' pieno':'')+(S.ora===hh?' on':'')+'" data-o="'+hh+'">'+hh+'</button>';
+  const cont=$('#ore'), et=$('#cal-giorno'), nota=$('#nota-ore');
+  if(!cont) return;
+  if(!S.giorno){
+    cont.innerHTML=''; nota.textContent='';
+    et.textContent='Scegli un giorno dal calendario';
+    return;
   }
-  cont.innerHTML=h;
+  const d=new Date(S.giorno+'T12:00:00');
+  et.textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '+d.toLocaleDateString('it-IT',{month:'long'});
+  const sl=orariDelGiorno(S.giorno);
+  if(!sl){ cont.innerHTML=''; nota.textContent='Quel giorno il negozio è chiuso.'; return; }
+  const fasce=[['Mattina',s=>minuti(s.ora)<13*60],['Pomeriggio',s=>minuti(s.ora)>=13*60]];
+  cont.innerHTML=fasce.map(f=>{
+    const v=sl.filter(f[1]);
+    if(!v.length) return '';
+    return '<div class="fascia"><h5>'+f[0]+'</h5><div class="ore">'+v.map(s=>
+      '<button class="ora'+(s.pieno?' pieno':'')+(S.ora===s.ora?' on':'')
+      +'" data-o="'+s.ora+'">'+s.ora+'</button>').join('')+'</div></div>';
+  }).join('');
   $$('#ore .ora').forEach(b=>b.onclick=()=>{
     S.ora=b.dataset.o;
     $$('#ore .ora').forEach(x=>x.classList.toggle('on',x===b));
     disegnaPassi();
   });
-  $('#nota-ore').textContent= liberi ? liberi+' orari liberi in questa giornata.'
-    : 'Nessun orario libero, prova un altro giorno.';
+  const liberi=sl.filter(s=>!s.pieno).length;
+  nota.textContent= liberi ? liberi+' orari liberi in questa giornata.'
+    : 'Nessun orario libero, prova un altro giorno dal calendario.';
 }
 function disegnaRiepilogo(){
   const t=TRATT.find(x=>x.id===S.tratt);
@@ -217,7 +280,7 @@ function avanti(){
   if(S.passo===3 && !(S.giorno&&S.ora)) return;
   if(S.passo===4){ conferma(); return; }
   S.passo++;
-  if(S.passo===3){ disegnaGiorni(); disegnaOre(); }
+  if(S.passo===3){ disegnaCal(); disegnaOre(); }
   if(S.passo===4) disegnaRiepilogo();
   disegnaPassi();
   $('#prenota').scrollIntoView({behavior:'smooth',block:'start'});
@@ -250,7 +313,7 @@ function conferma(){
   /* torno al primo passo pronto per un\'altra prova */
   S.passo=1; S.ora=null; S.giorno=null;
   ['#c-nome','#c-tel','#c-mail','#c-note'].forEach(s=>$(s).value='');
-  disegnaPassi(); disegnaOre();
+  disegnaPassi(); disegnaCal(); disegnaOre();
 }
 
 /* =========================================================
@@ -262,7 +325,7 @@ function disegnaOrari(){
   for(let i=1;i<=7;i++){
     const g=i%7, o=ORARI[g];
     h+='<tr class="'+(g===oggi?'oggi':'')+(o.ap?'':' chiuso')+'">'
-      +'<td>'+GIORNI[g]+'</td><td>'+(o.ap? o.ap+' &ndash; '+o.ch : 'chiuso')+'</td></tr>';
+      +'<td>'+GIORNI[g]+'</td><td>'+(o.ap? o.ap+' / '+o.ch : 'chiuso')+'</td></tr>';
   }
   $('#tab-orari').innerHTML=h;
 }
@@ -322,8 +385,10 @@ function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',bl
    ========================================================= */
 (function(){
   disegnaStato(); disegnaListino(); disegnaSceltaTratt(); disegnaSceltaBarbiere();
-  disegnaGiorni(); disegnaOrari(); disegnaGalleria(); disegnaBug(); disegnaPassi();
+  disegnaCal(); disegnaOre(); disegnaOrari(); disegnaGalleria(); disegnaBug(); disegnaPassi();
   setInterval(disegnaStato,60000);
+  $('#cal-prima').onclick=()=>spostaMese(-1);
+  $('#cal-dopo').onclick=()=>spostaMese(1);
 
   const testo=encodeURIComponent('Buongiorno, scrivo dal sito. Vorrei prenotare');
   ['#wa-lato','#wa-contatti'].forEach(s=>{ const a=$(s); if(a) a.href='https://wa.me/'+TEL+'?text='+testo; });
@@ -349,7 +414,8 @@ function vaiA(sel){ const e=$(sel); if(e) e.scrollIntoView({behavior:'smooth',bl
   /* se il gestionale cambia qualcosa mentre il sito è aperto */
   addEventListener('storage',e=>{
     if(['jeremias_trattamenti','jeremias_orari','jeremias_prenotazioni'].includes(e.key)){
-      leggi(); disegnaListino(); disegnaSceltaTratt(); disegnaOrari(); disegnaStato(); disegnaOre();
+      leggi(); disegnaListino(); disegnaSceltaTratt(); disegnaOrari(); disegnaStato();
+      disegnaCal(); disegnaOre();
       messaggio('Il negozio ha aggiornato il listino o gli orari.');
     }
   });

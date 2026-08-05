@@ -20,6 +20,8 @@
   --lato:250px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* display:grid o flex battono l'attributo hidden: qui non succede */
+[hidden]{display:none!important}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);
   font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
 h1,h2,h3,h4,.os{font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;
@@ -162,6 +164,46 @@ tbody tr:hover{background:var(--card2)}
 .app.annullata{background:#7A2E27;opacity:.6;text-decoration:line-through}
 .app b{display:block;font-weight:700;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app small{opacity:.72;font-size:.72rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- AGENDA SETTIMANALE ---------- */
+.leg{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:11px;
+  font-size:.76rem;color:var(--tx2)}
+.leg span{display:flex;align-items:center;gap:6px}
+.leg i{width:9px;height:9px;border-radius:99px;display:block;flex:none}
+.sett-guscio{overflow-x:auto;border:1px solid var(--bord);border-radius:10px;background:var(--card)}
+.sett{display:grid;grid-template-columns:58px repeat(7,minmax(132px,1fr));min-width:940px}
+.sett .dt{position:sticky;top:56px;z-index:6;background:var(--card);text-align:center;padding:9px 6px;
+  border-bottom:1px solid var(--bord);border-right:1px solid var(--bord)}
+.sett .dt span{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3)}
+.sett .dt b{font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:600;display:block;line-height:1.15}
+.sett .dt small{font-size:.68rem;color:var(--ko);display:block}
+.sett .dt.oggi{background:color-mix(in srgb,var(--verde) 15%,var(--card))}
+.sett .dt.oggi b{color:var(--verde-s)}
+.sett .dt.no{background:var(--card2)}
+.sett .dt.no b{color:var(--tx3)}
+.sett .ang{position:sticky;top:56px;z-index:6;background:var(--card);
+  border-bottom:1px solid var(--bord);border-right:1px solid var(--bord)}
+.sett .oh{height:54px;font-size:.71rem;color:var(--tx3);text-align:right;padding:3px 7px 0 0;
+  border-bottom:1px solid var(--bord);border-right:1px solid var(--bord);background:var(--card2);
+  font-variant-numeric:tabular-nums}
+.sett .oh.mezza{opacity:.5;font-size:.66rem}
+.sett .cs{height:54px;border-bottom:1px solid var(--bord);border-right:1px solid var(--bord);
+  display:flex;gap:2px;padding:2px;cursor:pointer;transition:.12s}
+.sett .cs:hover{background:color-mix(in srgb,var(--verde) 11%,transparent)}
+.sett .cs.no{background:repeating-linear-gradient(45deg,var(--card2),var(--card2) 6px,
+  #EDECE7 6px,#EDECE7 12px);cursor:not-allowed}
+.sett .cs.no:hover{background:repeating-linear-gradient(45deg,var(--card2),var(--card2) 6px,
+  #EDECE7 6px,#EDECE7 12px)}
+.bloc{flex:1;min-width:0;border-radius:5px;padding:4px 6px;font-size:.72rem;line-height:1.25;
+  overflow:hidden;cursor:pointer;border-left:3px solid var(--tx3);
+  background:var(--card2);color:var(--tx);transition:.12s}
+.bloc:hover{filter:brightness(.97)}
+.bloc u{display:block;text-decoration:none;font-variant-numeric:tabular-nums;font-weight:700;font-size:.7rem}
+.bloc b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bloc small{display:block;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-size:.68rem}
+.bloc.fatto{opacity:.6}
+.bloc.annullata{opacity:.5;text-decoration:line-through}
 
 /* ---------- assistente ---------- */
 .assist{background:var(--nero);color:#fff;border-radius:10px;padding:17px}
@@ -359,9 +401,16 @@ tbody tr:hover{background:var(--card2)}
         <button class="b b-s b-sm" id="g-dopo"><svg><use href="#i-dx"/></svg></button>
         <button class="b b-s b-sm" id="g-oggi">Oggi</button>
       </div>
-      <span style="font-size:.8rem;color:var(--tx3)">Tocca una cella libera per aggiungere un appuntamento</span>
+      <div class="filtri" id="vista">
+        <button data-v="giorno" class="on">Giorno</button>
+        <button data-v="settimana">Settimana</button>
+      </div>
     </div>
+    <div class="leg" id="leg-sett" hidden></div>
     <div class="agenda" id="agenda"></div>
+    <div class="sett-guscio" id="sett-guscio" hidden><div class="sett" id="sett"></div></div>
+    <p style="font-size:.8rem;color:var(--tx3);margin-top:9px">Tocca una casella libera per aggiungere
+      un appuntamento, tocca un appuntamento per aprirlo.</p>
   </section>
 
   <!-- ============ APPUNTAMENTI ============ -->
@@ -627,7 +676,83 @@ const METODI=['contanti','bancomat','carta'];
    AGENDA
    ========================================================= */
 let giornoVisto=iso(OGGI);
+let vista='giorno';
+
+/* un colore per famiglia di trattamento, come la legenda sopra il calendario */
+const COL_CAT={'Taglio uomo':'#B8801F','Barba':'#0F7E9B',
+  'Trattamenti per cute e capello':'#6B5BA8','Taglio bambini e teenager':'#B85A76'};
+const colCat=c=>COL_CAT[c]||'#7D858C';
+
 function disegnaAgenda(){
+  const sett = vista==='settimana';
+  $('#agenda').hidden=sett;
+  $('#sett-guscio').hidden=!sett;
+  $('#leg-sett').hidden=!sett;
+  if(sett) disegnaSettimana(); else disegnaGiorno();
+}
+
+/* ---------- vista settimana ---------- */
+function lunediDi(gi){ const d=new Date(gi+'T12:00:00'); return piu(d,-((d.getDay()+6)%7)); }
+function disegnaSettimana(){
+  const lun=lunediDi(giornoVisto), gg=[];
+  for(let i=0;i<7;i++) gg.push(iso(piu(lun,i)));
+  const a=new Date(gg[0]+'T12:00:00'), b=new Date(gg[6]+'T12:00:00');
+  const meseA=a.toLocaleDateString('it-IT',{month:'long'});
+  const meseB=b.toLocaleDateString('it-IT',{month:'long'});
+  $('#giorno-et').textContent='Dal '+a.getDate()+(meseA!==meseB?' '+meseA:'')
+    +' al '+b.getDate()+' '+meseB+' '+b.getFullYear();
+
+  $('#leg-sett').innerHTML=Object.keys(COL_CAT).map(c=>
+    '<span><i style="background:'+COL_CAT[c]+'"></i>'+esc(c)+'</span>').join('')
+    +'<span><i style="background:#EDECE7"></i>Chiuso</span>';
+
+  /* fascia oraria più ampia fra i giorni aperti della settimana */
+  let dal=24*60, al=0;
+  gg.forEach(gi=>{ if(chiuso(gi)) return;
+    const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+    dal=Math.min(dal,minuti(o.ap)); al=Math.max(al,minuti(o.ch)); });
+  if(al<=dal){ dal=8*60+30; al=20*60; }
+
+  const oggi=iso(OGGI);
+  let h='<div class="ang"></div>';
+  gg.forEach(gi=>{
+    const d=new Date(gi+'T12:00:00'), ch=chiuso(gi);
+    const c=CHIUSURE.find(x=>x.data===gi);
+    h+='<div class="dt'+(gi===oggi?' oggi':'')+(ch?' no':'')+'">'
+      +'<span>'+GG[d.getDay()]+'</span><b>'+d.getDate()+'</b>'
+      +(ch?'<small>'+esc(c?c.motivo:'chiuso')+'</small>':'')+'</div>';
+  });
+  for(let m=dal;m<al;m+=30){
+    h+='<div class="oh'+(m%60?' mezza':'')+'">'+hhmm(m)+'</div>';
+    gg.forEach(gi=>{
+      const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+      const fuori = chiuso(gi) || m<minuti(o.ap) || m>=minuti(o.ch);
+      if(fuori){ h+='<div class="cs no"></div>'; return; }
+      const qui=PREN.filter(p=>p.giorno===gi&&p.ora===hhmm(m)&&p.stato!=='annullata')
+        .sort((x,y)=>x.barbiere.localeCompare(y.barbiere));
+      let dentro='';
+      qui.forEach(p=>{
+        const t=tratt(p.tratt), col=colCat(t.cat);
+        dentro+='<div class="bloc'+(p.stato==='completata'?' fatto':'')+'" data-id="'+esc(p.id)+'" '
+          +'style="border-left-color:'+col+';background:color-mix(in srgb,'+col+' 18%,#fff)" '
+          +'title="'+esc(p.nome+' · '+t.nome+' · '+nomeB(p.barbiere))+'">'
+          +'<u>'+hhmm(m)+' '+esc(BARBIERI.find(x=>x.id===p.barbiere).ini)+'</u>'
+          +'<b>'+esc(p.nome)+'</b><small>'+esc(t.nome)+'</small></div>';
+      });
+      const liberi=BARBIERI.filter(x=>!qui.some(p=>p.barbiere===x.id));
+      h+='<div class="cs"'+(liberi.length?' data-nuovo="'+gi+'|'+hhmm(m)+'|'+liberi[0].id+'"':'')
+        +'>'+dentro+'</div>';
+    });
+  }
+  $('#sett').innerHTML=h;
+  $$('#sett .bloc').forEach(x=>x.onclick=e=>{ e.stopPropagation(); apriApp(x.dataset.id); });
+  $$('#sett [data-nuovo]').forEach(c=>c.onclick=()=>{
+    const v=c.dataset.nuovo.split('|'); nuovoApp(v[0],v[1],v[2]);
+  });
+}
+
+/* ---------- vista giorno ---------- */
+function disegnaGiorno(){
   const d=new Date(giornoVisto+'T12:00:00'), o=ORARI[d.getDay()];
   $('#giorno-et').textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '+
     d.toLocaleDateString('it-IT',{month:'long'});
@@ -1261,9 +1386,16 @@ function tutto(){
   $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
   $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{ filtroPren=b.dataset.f;
     $$('.filtri [data-f]').forEach(x=>x.classList.toggle('on',x===b)); disegnaPren(); });
-  $('#g-prima').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),-1)); disegnaAgenda(); };
-  $('#g-dopo').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),1)); disegnaAgenda(); };
+  const passo=n=>{ const q=vista==='settimana'?7:1;
+    giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),n*q)); disegnaAgenda(); };
+  $('#g-prima').onclick=()=>passo(-1);
+  $('#g-dopo').onclick=()=>passo(1);
   $('#g-oggi').onclick=()=>{ giornoVisto=iso(OGGI); disegnaAgenda(); };
+  $$('#vista button').forEach(b=>b.onclick=()=>{
+    vista=b.dataset.v;
+    $$('#vista button').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaAgenda();
+  });
   $('#b-nuovo').onclick=()=>nuovoApp(giornoVisto,'09:00','jeremias');
   $('#b-nuovo-tratt').onclick=nuovoTratt;
   $('#b-nuova-fatt').onclick=nuovaFattura;

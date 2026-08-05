@@ -96,7 +96,83 @@ const METODI=['contanti','bancomat','carta'];
    AGENDA
    ========================================================= */
 let giornoVisto=iso(OGGI);
+let vista='giorno';
+
+/* un colore per famiglia di trattamento, come la legenda sopra il calendario */
+const COL_CAT={'Taglio uomo':'#B8801F','Barba':'#0F7E9B',
+  'Trattamenti per cute e capello':'#6B5BA8','Taglio bambini e teenager':'#B85A76'};
+const colCat=c=>COL_CAT[c]||'#7D858C';
+
 function disegnaAgenda(){
+  const sett = vista==='settimana';
+  $('#agenda').hidden=sett;
+  $('#sett-guscio').hidden=!sett;
+  $('#leg-sett').hidden=!sett;
+  if(sett) disegnaSettimana(); else disegnaGiorno();
+}
+
+/* ---------- vista settimana ---------- */
+function lunediDi(gi){ const d=new Date(gi+'T12:00:00'); return piu(d,-((d.getDay()+6)%7)); }
+function disegnaSettimana(){
+  const lun=lunediDi(giornoVisto), gg=[];
+  for(let i=0;i<7;i++) gg.push(iso(piu(lun,i)));
+  const a=new Date(gg[0]+'T12:00:00'), b=new Date(gg[6]+'T12:00:00');
+  const meseA=a.toLocaleDateString('it-IT',{month:'long'});
+  const meseB=b.toLocaleDateString('it-IT',{month:'long'});
+  $('#giorno-et').textContent='Dal '+a.getDate()+(meseA!==meseB?' '+meseA:'')
+    +' al '+b.getDate()+' '+meseB+' '+b.getFullYear();
+
+  $('#leg-sett').innerHTML=Object.keys(COL_CAT).map(c=>
+    '<span><i style="background:'+COL_CAT[c]+'"></i>'+esc(c)+'</span>').join('')
+    +'<span><i style="background:#EDECE7"></i>Chiuso</span>';
+
+  /* fascia oraria più ampia fra i giorni aperti della settimana */
+  let dal=24*60, al=0;
+  gg.forEach(gi=>{ if(chiuso(gi)) return;
+    const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+    dal=Math.min(dal,minuti(o.ap)); al=Math.max(al,minuti(o.ch)); });
+  if(al<=dal){ dal=8*60+30; al=20*60; }
+
+  const oggi=iso(OGGI);
+  let h='<div class="ang"></div>';
+  gg.forEach(gi=>{
+    const d=new Date(gi+'T12:00:00'), ch=chiuso(gi);
+    const c=CHIUSURE.find(x=>x.data===gi);
+    h+='<div class="dt'+(gi===oggi?' oggi':'')+(ch?' no':'')+'">'
+      +'<span>'+GG[d.getDay()]+'</span><b>'+d.getDate()+'</b>'
+      +(ch?'<small>'+esc(c?c.motivo:'chiuso')+'</small>':'')+'</div>';
+  });
+  for(let m=dal;m<al;m+=30){
+    h+='<div class="oh'+(m%60?' mezza':'')+'">'+hhmm(m)+'</div>';
+    gg.forEach(gi=>{
+      const o=ORARI[new Date(gi+'T12:00:00').getDay()];
+      const fuori = chiuso(gi) || m<minuti(o.ap) || m>=minuti(o.ch);
+      if(fuori){ h+='<div class="cs no"></div>'; return; }
+      const qui=PREN.filter(p=>p.giorno===gi&&p.ora===hhmm(m)&&p.stato!=='annullata')
+        .sort((x,y)=>x.barbiere.localeCompare(y.barbiere));
+      let dentro='';
+      qui.forEach(p=>{
+        const t=tratt(p.tratt), col=colCat(t.cat);
+        dentro+='<div class="bloc'+(p.stato==='completata'?' fatto':'')+'" data-id="'+esc(p.id)+'" '
+          +'style="border-left-color:'+col+';background:color-mix(in srgb,'+col+' 18%,#fff)" '
+          +'title="'+esc(p.nome+' · '+t.nome+' · '+nomeB(p.barbiere))+'">'
+          +'<u>'+hhmm(m)+' '+esc(BARBIERI.find(x=>x.id===p.barbiere).ini)+'</u>'
+          +'<b>'+esc(p.nome)+'</b><small>'+esc(t.nome)+'</small></div>';
+      });
+      const liberi=BARBIERI.filter(x=>!qui.some(p=>p.barbiere===x.id));
+      h+='<div class="cs"'+(liberi.length?' data-nuovo="'+gi+'|'+hhmm(m)+'|'+liberi[0].id+'"':'')
+        +'>'+dentro+'</div>';
+    });
+  }
+  $('#sett').innerHTML=h;
+  $$('#sett .bloc').forEach(x=>x.onclick=e=>{ e.stopPropagation(); apriApp(x.dataset.id); });
+  $$('#sett [data-nuovo]').forEach(c=>c.onclick=()=>{
+    const v=c.dataset.nuovo.split('|'); nuovoApp(v[0],v[1],v[2]);
+  });
+}
+
+/* ---------- vista giorno ---------- */
+function disegnaGiorno(){
   const d=new Date(giornoVisto+'T12:00:00'), o=ORARI[d.getDay()];
   $('#giorno-et').textContent=GIORNI[d.getDay()]+' '+d.getDate()+' '+
     d.toLocaleDateString('it-IT',{month:'long'});
@@ -730,9 +806,16 @@ function tutto(){
   $('#q').addEventListener('input',()=>{ disegnaPren(); disegnaClienti(); });
   $$('.filtri [data-f]').forEach(b=>b.onclick=()=>{ filtroPren=b.dataset.f;
     $$('.filtri [data-f]').forEach(x=>x.classList.toggle('on',x===b)); disegnaPren(); });
-  $('#g-prima').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),-1)); disegnaAgenda(); };
-  $('#g-dopo').onclick=()=>{ giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),1)); disegnaAgenda(); };
+  const passo=n=>{ const q=vista==='settimana'?7:1;
+    giornoVisto=iso(piu(new Date(giornoVisto+'T12:00:00'),n*q)); disegnaAgenda(); };
+  $('#g-prima').onclick=()=>passo(-1);
+  $('#g-dopo').onclick=()=>passo(1);
   $('#g-oggi').onclick=()=>{ giornoVisto=iso(OGGI); disegnaAgenda(); };
+  $$('#vista button').forEach(b=>b.onclick=()=>{
+    vista=b.dataset.v;
+    $$('#vista button').forEach(x=>x.classList.toggle('on',x===b));
+    disegnaAgenda();
+  });
   $('#b-nuovo').onclick=()=>nuovoApp(giornoVisto,'09:00','jeremias');
   $('#b-nuovo-tratt').onclick=nuovoTratt;
   $('#b-nuova-fatt').onclick=nuovaFattura;

@@ -79,9 +79,16 @@
         <button class="b b-s b-sm" id="g-dopo"><svg><use href="#i-dx"/></svg></button>
         <button class="b b-s b-sm" id="g-oggi">Oggi</button>
       </div>
-      <span style="font-size:.8rem;color:var(--tx3)">Tocca una cella libera per aggiungere un appuntamento</span>
+      <div class="filtri" id="vista">
+        <button data-v="giorno" class="on">Giorno</button>
+        <button data-v="settimana">Settimana</button>
+      </div>
     </div>
+    <div class="leg" id="leg-sett" hidden></div>
     <div class="agenda" id="agenda"></div>
+    <div class="sett-guscio" id="sett-guscio" hidden><div class="sett" id="sett"></div></div>
+    <p style="font-size:.8rem;color:var(--tx3);margin-top:9px">Tocca una casella libera per aggiungere
+      un appuntamento, tocca un appuntamento per aprirlo.</p>
   </section>
 
   <!-- ============ APPUNTAMENTI ============ -->
