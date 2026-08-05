@@ -43,7 +43,7 @@ function durata(m){
    ========================================================= */
 const SEZIONI=[['copertina','Copertina'],['manifesto','Dal 1979'],['reparti','I reparti'],
  ['listino','Listino'],['squadra','Squadra'],['recensioni','Recensioni'],
- ['salone-foto','Il salone'],['contatti','Dove siamo']];
+ ['salone-foto','Le foto'],['contatti','Dove siamo']];
 function disegnaGuida(){
   $('#punti').innerHTML=SEZIONI.map(s=>
     '<a href="#'+s[0]+'" data-s="'+s[0]+'" aria-label="'+esc(s[1])+'"><i></i>'
@@ -166,25 +166,31 @@ function disegnaRecensione(){
 /* =========================================================
    FOTO
    ========================================================= */
+/* tutte e diciassette le fotografie, con i formati alternati nel mosaico */
 const FOTO=[
- ['{{ASSET:t1.webp}}','La sala del barbershop'],
- ['{{ASSET:t6.webp}}','La sala capelli e l\'attesa'],
- ['{{ASSET:t9.webp}}','La poltrona da barbiere e il jukebox'],
- ['{{ASSET:t4.webp}}','Le postazioni della sala capelli'],
- ['{{ASSET:t17.webp}}','Il lavatesta'],
- ['{{ASSET:t11.webp}}','La cabina dell\'estetica'],
- ['{{ASSET:t14.webp}}','La postazione del barbershop'],
- ['{{ASSET:t13.webp}}','I prodotti Jurvedha'],
- ['{{ASSET:t7.webp}}','I prodotti Joico'],
- ['{{ASSET:t3.webp}}','Rasatura con panno caldo'],
- ['{{ASSET:t12.webp}}','Colore e piega in sala'],
- ['{{ASSET:t2.webp}}','Dentro il barbershop']
+ ['{{ASSET:t1.webp}}','La sala del barbershop','g'],
+ ['{{ASSET:t2.webp}}','Dentro il barbershop',''],
+ ['{{ASSET:t9.webp}}','La poltrona da barbiere e il jukebox',''],
+ ['{{ASSET:t6.webp}}','La sala capelli e l\'attesa','l'],
+ ['{{ASSET:t4.webp}}','Le postazioni della sala capelli',''],
+ ['{{ASSET:t17.webp}}','Il lavatesta',''],
+ ['{{ASSET:t11.webp}}','La cabina dell\'estetica','v'],
+ ['{{ASSET:t14.webp}}','La postazione del barbershop','l'],
+ ['{{ASSET:t3.webp}}','Rasatura con panno caldo',''],
+ ['{{ASSET:t8.webp}}','Barba e panno caldo, la cabina rossa','g'],
+ ['{{ASSET:t12.webp}}','Colore e piega in sala',''],
+ ['{{ASSET:t13.webp}}','I prodotti Jurvedha',''],
+ ['{{ASSET:t7.webp}}','I prodotti Joico',''],
+ ['{{ASSET:t15.webp}}','Il jukebox e la poltrona',''],
+ ['{{ASSET:t16.webp}}','I prodotti per cute e capello',''],
+ ['{{ASSET:t5.webp}}','Piega e finish in sala','l'],
+ ['{{ASSET:t10.webp}}','Pino nella sala capelli','']
 ];
 function disegnaFoto(){
-  $('#strip').innerHTML=FOTO.map((f,i)=>
-    '<figure data-i="'+i+'"><div style="background-image:url('+f[0]+')"></div>'
+  $('#mosaico').innerHTML=FOTO.map((f,i)=>
+    '<figure class="'+f[2]+'" data-i="'+i+'"><i style="background-image:url('+f[0]+')"></i>'
     +'<figcaption>'+esc(f[1])+'</figcaption></figure>').join('');
-  $$('#strip figure').forEach(f=>f.onclick=()=>{
+  $$('#mosaico figure').forEach(f=>f.onclick=()=>{
     $('#lente-img').src=FOTO[+f.dataset.i][0];
     $('#lente-img').alt=FOTO[+f.dataset.i][1];
     $('#lente').classList.add('on');
@@ -217,12 +223,12 @@ function disegnaMappa(){
    +'<rect x="170" y="158" width="36" height="24" fill="#2C2520"/>'
    +'<rect x="250" y="76" width="54" height="40" fill="#2C2520"/>'
    +'<rect x="112" y="76" width="62" height="42" fill="#2C2520"/>'
-   +'<text x="8" y="133" font-size="9" fill="#948A7F" font-family="Jost,sans-serif" '
+   +'<text x="8" y="133" font-size="9" fill="#948A7F" font-family="Archivo,sans-serif" '
    +'letter-spacing="1.6">VIA UMBERTO I</text>'
    +'<circle cx="190" cy="130" r="19" fill="#A97C4A" opacity=".22"/>'
    +'<path d="M190 115c-6.4 0-11.5 5.2-11.5 11.5 0 8.4 11.5 20 11.5 20s11.5-11.6 11.5-20'
    +'c0-6.3-5.1-11.5-11.5-11.5Z" fill="#E9D9C3"/><circle cx="190" cy="126" r="4" fill="#241D18"/>'
-   +'<text x="209" y="131" font-size="11" fill="#E9D9C3" font-family="Playfair,serif">Naïf</text>'
+   +'<text x="209" y="131" font-size="11" fill="#E9D9C3" font-family="Bodoni,serif">Naïf</text>'
    +'</svg>';
 }
 

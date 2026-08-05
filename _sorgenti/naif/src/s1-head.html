@@ -7,8 +7,8 @@
 <title>Naïf Hair&amp;Beauty · Varedo</title>
 <meta name="description" content="Parrucchiere, barbershop ed estetica a Varedo dal 1979. Ottantacinque trattamenti a listino e prenotazione online.">
 <style>
-@font-face{font-family:'Playfair';src:url({{ASSET:playfair.woff2}}) format('woff2');font-weight:400 700;font-display:swap}
-@font-face{font-family:'Jost';src:url({{ASSET:jost.woff2}}) format('woff2');font-weight:300 600;font-display:swap}
+@font-face{font-family:'Bodoni';src:url({{ASSET:bodoni.woff2}}) format('woff2');font-weight:400 700;font-display:swap}
+@font-face{font-family:'Archivo';src:url({{ASSET:archivo.woff2}}) format('woff2');font-weight:300 600;font-display:swap}
 
 /* colori presi dalle foto del salone: mattone, cuoio, ottone, pareti sabbia */
 :root{
@@ -23,9 +23,9 @@
 /* display:grid o flex battono l'attributo hidden: qui non succede */
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
-body{font-family:'Jost',system-ui,sans-serif;background:var(--crema);color:var(--tx);
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--crema);color:var(--tx);
   font-size:16.5px;font-weight:300;line-height:1.62;overflow-x:hidden}
-h1,h2,h3,h4,.pf{font-family:'Playfair',Georgia,serif;font-weight:400;line-height:1.05;
+h1,h2,h3,h4,.pf{font-family:'Bodoni',Didot,Georgia,serif;font-weight:400;line-height:1.05;
   letter-spacing:-.012em}
 h1{font-size:clamp(3rem,8.4vw,7.4rem)}
 h2{font-size:clamp(2.2rem,5.2vw,4.2rem)}
@@ -47,7 +47,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
    su una guida verticale a destra                        */
 .foglio{padding-right:var(--rail)}
 .riga{width:min(1240px,100%);margin:0 auto;padding:0 clamp(18px,4vw,54px)}
-.griglia{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(14px,2vw,28px)}
+.griglia{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(14px,2vw,28px)}
 .sez{padding:clamp(70px,9vw,132px) 0;position:relative}
 .sez+.sez{border-top:1px solid var(--filo)}
 .scura{background:var(--inch);color:#fff;border-top:none!important}
@@ -111,24 +111,29 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .cop .conta{position:absolute;right:clamp(18px,4vw,54px);bottom:clamp(40px,7vw,86px);
   text-align:right;color:rgba(255,255,255,.62);font-size:.68rem;letter-spacing:.2em;
   text-transform:uppercase;z-index:2}
-.cop .conta b{display:block;font-family:'Playfair',serif;font-size:2.4rem;color:#fff;
+.cop .conta b{display:block;font-family:'Bodoni',serif;font-size:2.4rem;color:#fff;
   letter-spacing:0;line-height:1.1}
 
 /* ================= MANIFESTO ================= */
+.man .fotine{grid-column:1/4;display:grid;gap:12px;margin-bottom:22px}
+.man .fotine div{min-width:0;min-height:0}
+.man .fotine div{background-size:cover;background-position:center}
+.man .fotine div:first-child{aspect-ratio:3/4}
+.man .fotine div:last-child{aspect-ratio:4/3}
 .man .nota-lato{grid-column:1/4;border-top:2px solid var(--inch);padding-top:14px}
-.man .nota-lato b{display:block;font-family:'Playfair',serif;font-size:1.2rem;margin-bottom:5px}
+.man .nota-lato b{display:block;font-family:'Bodoni',serif;font-size:1.2rem;margin-bottom:5px}
 .man .nota-lato span{font-size:.86rem;color:var(--tx3)}
-.man .testo{grid-column:5/13}
+.man .testo{grid-column:5/13;grid-row:1/3;align-self:start}
 .man .testo p{font-size:1.16rem;margin-bottom:16px}
-.man .testo p:first-of-type::first-letter{font-family:'Playfair',serif;font-size:3.6rem;
+.man .testo p:first-of-type::first-letter{font-family:'Bodoni',serif;font-size:3.6rem;
   float:left;line-height:.86;padding:4px 12px 0 0;color:var(--ottone)}
 .man .gen{margin-top:34px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .man .gen div{border-top:1px solid var(--filo);padding-top:12px}
-.man .gen b{display:block;font-family:'Playfair',serif;font-size:1.06rem}
+.man .gen b{display:block;font-family:'Bodoni',serif;font-size:1.06rem}
 .man .gen span{font-size:.83rem;color:var(--tx3);line-height:1.5;display:block;margin-top:3px}
 
 /* ================= REPARTI A FASCE ================= */
-.fascia{display:grid;grid-template-columns:repeat(12,1fr);gap:0;align-items:center;
+.fascia{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0;align-items:center;
   border-top:1px solid var(--filo);min-height:min(78vh,620px)}
 .fascia:first-child{border-top:none}
 .fascia .im{grid-column:1/6;align-self:stretch;background-size:cover;background-position:center;
@@ -136,7 +141,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .fascia .tx{grid-column:7/12;padding:clamp(30px,4vw,52px) 0}
 .fascia.gira .im{grid-column:8/13;grid-row:1}
 .fascia.gira .tx{grid-column:2/7;grid-row:1}
-.fascia .n{font-family:'Playfair',serif;font-size:3.4rem;color:var(--filo);line-height:1;
+.fascia .n{font-family:'Bodoni',serif;font-size:3.4rem;color:var(--filo);line-height:1;
   display:block;margin-bottom:6px}
 .fascia h3{font-size:clamp(2rem,3.6vw,3rem);margin-bottom:12px}
 .fascia .assaggio{margin:22px 0;display:grid;gap:1px;background:var(--filo);border-top:1px solid var(--filo);
@@ -144,7 +149,18 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .fascia .assaggio div{background:var(--crema);display:flex;justify-content:space-between;gap:14px;
   padding:9px 0;font-size:.92rem}
 .fascia .assaggio span{color:var(--tx2)}
-.fascia .assaggio b{font-family:'Playfair',serif;font-weight:400;font-size:1.06rem}
+.fascia .assaggio b{font-family:'Bodoni',serif;font-weight:400;font-size:1.06rem}
+
+/* ================= BANDA A TUTTA PAGINA ================= */
+.banda{position:relative;min-height:min(72vh,540px);display:flex;align-items:center;
+  background-size:cover;background-position:center 60%;background-attachment:scroll;
+  border-top:none!important}
+.banda::after{content:"";position:absolute;inset:0;background:rgba(23,19,16,.58)}
+.banda .riga{position:relative;z-index:2}
+.banda blockquote{font-family:'Bodoni',serif;color:#fff;font-size:clamp(1.7rem,4vw,3.4rem);
+  line-height:1.18;max-width:20ch}
+.banda .chi{color:var(--ottone-c);font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;
+  margin-top:22px}
 
 /* ================= LISTINO ================= */
 .listino{display:grid;grid-template-columns:220px 1fr;gap:clamp(24px,4vw,56px);align-items:start}
@@ -165,7 +181,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   border-bottom:1px dotted var(--filo);transition:.16s}
 .piatto:hover{background:linear-gradient(90deg,rgba(169,124,74,.07),transparent 70%)}
 .piatto .n{font-size:1.04rem}
-.piatto .p{font-family:'Playfair',serif;font-size:1.24rem;white-space:nowrap}
+.piatto .p{font-family:'Bodoni',serif;font-size:1.24rem;white-space:nowrap}
 .piatto .d{grid-column:1/2;font-size:.84rem;color:var(--tx3);line-height:1.45}
 .piatto .m{grid-column:2;text-align:right;font-size:.74rem;color:var(--tx3);letter-spacing:.1em;
   text-transform:uppercase}
@@ -178,7 +194,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   border-right:1px solid var(--filo);transition:.2s;cursor:default}
 .nastro .p:hover{background:var(--carta)}
 .nastro .p .r{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ottone)}
-.nastro .p b{display:block;font-family:'Playfair',serif;font-size:2rem;font-weight:400;
+.nastro .p b{display:block;font-family:'Bodoni',serif;font-size:2rem;font-weight:400;
   margin:10px 0 4px}
 .nastro .p small{font-size:.84rem;color:var(--tx3);display:block}
 .nastro .p .v{margin-top:16px;padding-top:12px;border-top:1px solid var(--filo);font-size:.82rem;
@@ -190,15 +206,16 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .rep-ban i{flex:1;height:1px;background:var(--filo)}
 
 /* ================= RECENSIONI ================= */
-.rec-g{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(14px,2vw,28px);align-items:center}
+.rec-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(14px,2vw,28px);
+  align-items:center}
 .rec-voto{grid-column:1/4}
-.rec-voto b{font-family:'Playfair',serif;font-size:clamp(4rem,9vw,6.4rem);line-height:.9;display:block}
+.rec-voto b{font-family:'Bodoni',serif;font-size:clamp(4rem,9vw,6.4rem);line-height:.9;display:block}
 .rec-voto .stelle{color:var(--ottone-c);letter-spacing:.24em;margin:10px 0 6px}
 .rec-voto span{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
   color:rgba(255,255,255,.5)}
 .rec-corpo{grid-column:5/13;min-height:210px;display:flex;flex-direction:column;
   justify-content:center}
-.rec-corpo blockquote{font-family:'Playfair',serif;font-size:clamp(1.5rem,3vw,2.3rem);
+.rec-corpo blockquote{font-family:'Bodoni',serif;font-size:clamp(1.5rem,3vw,2.3rem);
   line-height:1.28;font-style:italic;color:#fff}
 .rec-corpo .chi{margin-top:20px;font-size:.8rem;letter-spacing:.12em;color:rgba(255,255,255,.55)}
 .rec-corpo .chi b{color:#fff;font-weight:400}
@@ -207,14 +224,21 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   display:grid;place-items:center;color:#fff;transition:.18s}
 .rec-frecce button:hover{background:#fff;color:var(--inch);border-color:#fff}
 
-/* ================= FOTO A SCORRIMENTO ================= */
-.strip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;
-  scrollbar-width:thin}
-.strip figure{flex:0 0 clamp(260px,34vw,440px);scroll-snap-align:center;cursor:zoom-in;margin:0}
-.strip figure div{aspect-ratio:4/3;background-size:cover;background-position:center;
-  transition:filter .4s}
-.strip figure:hover div{filter:brightness(1.08)}
-.strip figcaption{font-size:.78rem;color:var(--tx3);margin-top:8px;letter-spacing:.04em}
+/* ================= MOSAICO DI FOTO ================= */
+.mosaico{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+  grid-auto-rows:168px;grid-auto-flow:row dense}
+.mosaico figure{margin:0;position:relative;overflow:hidden;cursor:zoom-in;background:var(--inch);
+  grid-column:span 1;grid-row:span 1}
+.mosaico figure.g{grid-column:span 2;grid-row:span 2}
+.mosaico figure.v{grid-row:span 2}
+.mosaico figure.l{grid-column:span 2}
+.mosaico figure i{position:absolute;inset:0;background-size:cover;background-position:center;
+  transition:transform .7s cubic-bezier(.2,.6,.2,1)}
+.mosaico figure:hover i{transform:scale(1.06)}
+.mosaico figcaption{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 9px;color:#fff;
+  font-size:.76rem;letter-spacing:.03em;opacity:0;transition:.25s;
+  background:linear-gradient(0deg,rgba(23,19,16,.85),transparent)}
+.mosaico figure:hover figcaption{opacity:1}
 .lente{position:fixed;inset:0;background:rgba(14,11,9,.95);z-index:140;display:none;
   place-items:center;padding:24px}
 .lente.on{display:grid}
@@ -223,18 +247,18 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   background:rgba(255,255,255,.14);display:grid;place-items:center}
 
 /* ================= CONTATTI ================= */
-.cont-g{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(16px,2.4vw,34px)}
+.cont-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(16px,2.4vw,34px)}
 .cont-g .col1{grid-column:1/5}
 .cont-g .col2{grid-column:5/9}
 .cont-g .col3{grid-column:9/13}
 .dato{padding:13px 0;border-top:1px solid rgba(255,255,255,.16)}
-.dato h4{font-family:'Jost',sans-serif;font-weight:400;font-size:.66rem;letter-spacing:.24em;
+.dato h4{font-family:'Archivo',sans-serif;font-weight:400;font-size:.66rem;letter-spacing:.24em;
   text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:5px}
 .dato p{color:#fff;font-size:1rem}
 .dato a:hover{color:var(--ottone-c)}
 .orari{width:100%;border-collapse:collapse;font-size:.94rem;color:#fff}
 .orari td{padding:9px 0;border-top:1px solid rgba(255,255,255,.16)}
-.orari td:last-child{text-align:right;font-family:'Playfair',serif;font-size:1.04rem}
+.orari td:last-child{text-align:right;font-family:'Bodoni',serif;font-size:1.04rem}
 .orari tr.oggi td{color:var(--ottone-c)}
 .orari tr.oggi td:first-child::after{content:" · oggi";font-size:.7rem;letter-spacing:.1em}
 .orari tr.chiuso td{color:rgba(255,255,255,.42)}
@@ -263,10 +287,10 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .tappa.fatta i{border-color:var(--ottone-c);color:var(--ottone-c)}
 .tappa .t{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
   color:rgba(255,255,255,.55)}
-.tappa .v{font-family:'Playfair',serif;font-size:1.1rem;margin-top:2px;min-height:1.2em}
+.tappa .v{font-family:'Bodoni',serif;font-size:1.1rem;margin-top:2px;min-height:1.2em}
 .scheda .lato .prezzo{border-top:1px solid rgba(255,255,255,.2);padding-top:16px;margin-top:16px;
   display:flex;justify-content:space-between;align-items:baseline}
-.scheda .lato .prezzo b{font-family:'Playfair',serif;font-size:2rem}
+.scheda .lato .prezzo b{font-family:'Bodoni',serif;font-size:2rem}
 .scheda .lato .prezzo span{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
   color:rgba(255,255,255,.5)}
 .scheda .palco{overflow-y:auto;padding:clamp(20px,3vw,40px)}
@@ -293,9 +317,9 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .opz .t{min-width:0}
 .opz b{display:block;font-weight:400;font-size:.98rem;line-height:1.28}
 .opz small{display:block;font-size:.77rem;color:var(--tx3);margin-top:1px}
-.opz .p{font-family:'Playfair',serif;font-size:1.16rem;flex:none}
+.opz .p{font-family:'Bodoni',serif;font-size:1.16rem;flex:none}
 .opz .cerchio{width:34px;height:34px;border-radius:99px;background:var(--sabbia);
-  color:var(--ottone-s);display:grid;place-items:center;font-family:'Playfair',serif;flex:none}
+  color:var(--ottone-s);display:grid;place-items:center;font-family:'Bodoni',serif;flex:none}
 .opz .fianco{display:flex;align-items:center;gap:11px;min-width:0}
 .opz .voto{font-size:.76rem;color:var(--ottone-s);flex:none}
 
@@ -313,7 +337,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .cal-g .dow{text-align:center;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--tx3);padding-bottom:6px}
 .cal-d{aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:3px;border:1px solid transparent;background:var(--sabbia);font-family:'Playfair',serif;
+  gap:3px;border:1px solid transparent;background:var(--sabbia);font-family:'Bodoni',serif;
   font-size:1rem;cursor:pointer;transition:.14s;color:var(--tx)}
 .cal-d:hover{border-color:var(--inch)}
 .cal-d i{width:4px;height:4px;border-radius:99px;background:#6E9E4F;display:block}
@@ -328,7 +352,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .cal-leg{display:flex;flex-wrap:wrap;gap:12px;margin-top:13px;padding-top:11px;
   border-top:1px solid var(--filo);font-size:.72rem;color:var(--tx3)}
 .cal-leg i{width:5px;height:5px;border-radius:99px;display:inline-block;margin-right:5px}
-.giorno-et{font-family:'Playfair',serif;font-size:1.35rem;margin-bottom:14px}
+.giorno-et{font-family:'Bodoni',serif;font-size:1.35rem;margin-bottom:14px}
 .fascia-ore{margin-bottom:16px}
 .fascia-ore h5{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--tx3);
   margin-bottom:8px;font-weight:400}
@@ -367,7 +391,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   transition:.3s}
 .velo.on{opacity:1;pointer-events:auto}
 .difetto{padding:15px 0;border-bottom:1px solid var(--filo)}
-.difetto h4{font-family:'Jost',sans-serif;font-weight:400;font-size:.97rem;display:flex;gap:10px;
+.difetto h4{font-family:'Archivo',sans-serif;font-weight:400;font-size:.97rem;display:flex;gap:10px;
   align-items:flex-start;line-height:1.35}
 .difetto h4 i{width:21px;height:21px;flex:none;border-radius:99px;background:var(--inch);color:#fff;
   display:grid;place-items:center;font-size:.66rem;font-style:normal;margin-top:2px}
@@ -375,7 +399,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 .difetto .fix{font-size:.84rem;margin-top:6px;padding-left:31px;color:var(--ottone-s)}
 .conto{background:var(--sabbia);padding:16px 18px;margin:14px 0;font-size:.87rem}
 .conto .r{display:flex;justify-content:space-between;gap:12px;padding:6px 0}
-.conto .r b{font-family:'Playfair',serif;font-size:1.02rem}
+.conto .r b{font-family:'Bodoni',serif;font-size:1.02rem}
 .conto .tot{border-top:1px solid var(--filo);margin-top:8px;padding-top:10px}
 .conto .tot b{font-size:1.3rem;color:var(--ottone-s)}
 
@@ -388,7 +412,7 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
 /* ================= SOGLIE ================= */
 @media(max-width:1080px){
   .man .nota-lato{grid-column:1/13;margin-bottom:22px}
-  .man .testo{grid-column:1/13}
+  .man .testo{grid-column:1/13;grid-row:auto}
   .man .gen{grid-template-columns:repeat(2,1fr)}
   .fascia .im{grid-column:1/13;grid-row:1;min-height:240px}
   .fascia .tx{grid-column:1/13;grid-row:2;padding:26px 0 40px}
@@ -399,7 +423,9 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   .indice .voci{display:flex;gap:7px;flex-wrap:wrap}
   .indice a{border:1px solid var(--filo);padding:.42em .9em;font-size:.78rem}
   .indice a span{display:none}
+  .man .fotine{grid-column:1/13;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   .rec-voto,.rec-corpo,.cont-g .col1,.cont-g .col2,.cont-g .col3{grid-column:1/13}
+  .mosaico{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:140px}
   .rec-corpo{margin-top:20px;min-height:auto}
   .scheda{grid-template-columns:1fr}
   .scheda .lato{display:none}
@@ -411,6 +437,9 @@ svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.4;
   .cop .anno,.cop .conta{display:none}
   .man .gen{grid-template-columns:1fr}
   .opzioni{grid-template-columns:1fr}
+  .mosaico{grid-template-columns:repeat(2,1fr);grid-auto-rows:110px}
+  .mosaico figure,.mosaico figure.g,.mosaico figure.l{grid-column:span 1}
+  .mosaico figcaption{opacity:1;font-size:.7rem}
 }
 @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
 </style>
