@@ -3,7 +3,7 @@
 Questo file sta nel repo. In una sessione nuova basta dire:
 "leggi CONTESTO.md e proseguiamo da lì".
 
-Aggiornato il 5 agosto 2026.
+Aggiornato il 6 agosto 2026.
 
 ---
 
@@ -127,6 +127,52 @@ spiagge.it e pagano commissioni.
 Caffetteria e paninoteca. Roboto Slab e Roboto, verde `#19391B`, oro `#8A6A2F`.
 160 prodotti veri estratti dai loro PDF. Personale: Saverio 1234, Carolina 2345,
 Piero 3456, Lorenzo (titolare) 0000.
+
+Quattro pezzi: `sito.html`, `gestionale.html`, `app.html` (terminale di sala) e
+`tracciabilita.html`, terminale di banco per lotti e scadenze. Quest'ultimo è
+arrivato da fuori con le sole funzioni: le funzioni sono rimaste intatte, il
+vestito è stato rifatto con i caratteri e i colori di Ghe Post.
+
+### Naïf Hair&Beauty · Via Umberto I 56, Varedo (MB)
+
+Parrucchiere, barbershop ed estetica, dal 1979. Telefono 0362 580539.
+Oggi prenotano con **Fresha** e hanno la scheda su **Treatwell**: il sito attuale
+è su Wix e la pagina "Book Online" è solo un bottone che porta fuori.
+
+- Dati veri dalla scheda Treatwell del 5 agosto 2026: 82 trattamenti con prezzo e
+  durata, più i 3 prezzi del barbershop dal loro sito, in tutto 85 voci. Squadra di
+  16 persone con ruolo, voto e numero di recensioni. Voto 4,9 su 4090 recensioni.
+  Orari, storia del salone e 17 fotografie.
+- Caratteri **Bodoni Moda** e **Archivo**, colori presi dalle foto del salone:
+  inchiostro `#171310`, ottone `#A97C4A`, crema `#F6F2EB`.
+- Sito a rivista: guida a punti sulla destra invece della barra in alto, reparti a
+  fasce, listino a menù con indice, prenotazione in una scheda a tutto schermo.
+- Gestionale a schede in alto con spalla fissa a destra, agenda giorno e settimana,
+  incassi per reparto e per persona, magazzino, fatture, WhatsApp.
+- Argomento di vendita, verificato sul listino pubblico di Fresha:
+  **20% una tantum sul cliente nuovo** che arriva dal loro marketplace (minimo 6 USD),
+  **14,95 USD al mese per ogni persona prenotabile**, 2,79% + 0,20 USD sui pagamenti
+  online. Il canale diretto, Google, Instagram e Facebook non hanno commissione.
+
+---
+
+## 4bis. Progetti chiusi
+
+Restano online e raggiungibili con il link diretto, ma **non compaiono nel portale**.
+Per rimetterli in elenco basta riaggiungere il blocco `<section class="proj">` in
+`index.html`.
+
+### Jeremias Barbiere · Via Monte Sabotino 32, Paderno Dugnano (MI)
+
+**Chiuso il 6 agosto 2026.** File: `jeremias/sito.html`, `jeremias/dashboard.html`,
+sorgenti in `_sorgenti/jeremias/`.
+
+Barbiere senza sito, presente solo su Treatwell. Verde `#93C01F`, petrolio `#0F7E9B`,
+Oswald e Inter. Sei trattamenti con prezzi e durate dalla scheda Treatwell,
+4,9 su 1530 recensioni, due barbieri (Jeremias e Luca Terragni, referente Luca).
+Sito con calendario di disponibilità, gestionale con agenda a giorno e settimana,
+incassi divisi per barbiere, previsione del mese, fatture fornitori, WhatsApp con
+passaggio all'operatore.
 
 ---
 
